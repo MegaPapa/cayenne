@@ -102,25 +102,8 @@ class DbRelationshipValidator extends ConfigurationNodeValidator {
         }
 
         checkForDuplicates(relationship, validationResult);
-        checkOnGeneratedStrategyConflict(relationship, validationResult);
     }
 
-    private void checkOnGeneratedStrategyConflict(DbRelationship relationship, ValidationResult validationResult) {
-        if (relationship.isToDependentPK()) {
-            Collection<DbAttribute> attributes = relationship.getTargetEntity().getGeneratedAttributes();
-            for (DbAttribute attribute : attributes) {
-
-                if (attribute.isGenerated()) {
-                    addFailure(
-                            validationResult,
-                            relationship,
-                            "'To Dep Pk' incompatible with Database-Generated on '%s' relationship",
-                            toString(relationship));
-                }
-
-            }
-        }
-    }
 
     /**
      * Per CAY-1813, make sure two (or more) DbRelationships do not map to the
