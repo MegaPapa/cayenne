@@ -17,22 +17,12 @@
  *  under the License.
  ****************************************************************/
 
-package org.apache.cayenne.plugin
+package org.apache.cayenne.plugin.task
 
-import org.apache.cayenne.plugin.task.CayenneGeneratorTask
-import org.apache.cayenne.plugin.task.DbGeneratorTask
-import org.apache.cayenne.plugin.task.DbImporterTask
-import org.gradle.api.Plugin
-import org.gradle.api.Project
+import org.gradle.api.DefaultTask
 
 /**
  * @since 4.0
  */
-class CayennePlugin implements Plugin<Project> {
-
-    def apply(Project project) {
-        project.task('cgen', type: CayenneGeneratorTask)
-        project.task('cdbgen', type: DbGeneratorTask)
-        project.task('cdbimport', type: DbImporterTask)
-    }
+class DbImporterTask extends DefaultTask {
 }
