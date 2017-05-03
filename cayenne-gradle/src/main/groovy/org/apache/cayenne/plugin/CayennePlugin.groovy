@@ -22,6 +22,7 @@ package org.apache.cayenne.plugin
 import org.apache.cayenne.plugin.task.CayenneGeneratorTask
 import org.apache.cayenne.plugin.task.DbGeneratorTask
 import org.apache.cayenne.plugin.task.DbImporterTask
+import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
@@ -30,7 +31,10 @@ import org.gradle.api.Project
  */
 class CayennePlugin implements Plugin<Project> {
 
-    def apply(Project project) {
+    void apply(Project project) {
+        //NamedDomainObjectContainer<CustomObject> customObjectContainer = project.container(CustomObject)
+        //project.extensions.add('customObj', customObjectContainer)
+
         project.task('cgen', type: CayenneGeneratorTask)
         project.task('cdbgen', type: DbGeneratorTask)
         project.task('cdbimport', type: DbImporterTask)

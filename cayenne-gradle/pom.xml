@@ -145,6 +145,7 @@
             <version>${gradle-plugins.version}</version>
             <scope>provided</scope>
         </dependency>
+
     </dependencies>
 
     
