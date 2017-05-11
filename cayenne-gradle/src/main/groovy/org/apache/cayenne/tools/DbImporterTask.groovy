@@ -17,26 +17,18 @@
  *  under the License.
  ****************************************************************/
 
-package org.apache.cayenne.plugin
+package org.apache.cayenne.tools
 
-import org.apache.cayenne.plugin.task.CayenneGeneratorTask
-import org.apache.cayenne.plugin.task.DbGeneratorTask
-import org.apache.cayenne.plugin.task.DbImporterTask
-import org.gradle.api.NamedDomainObjectContainer
-import org.gradle.api.Plugin
-import org.gradle.api.Project
+import org.gradle.api.DefaultTask
+import org.gradle.api.tasks.TaskAction
 
 /**
  * @since 4.0
  */
-class CayennePlugin implements Plugin<Project> {
+class  DbImporterTask extends DefaultTask {
 
-    void apply(Project project) {
-        //NamedDomainObjectContainer<CustomObject> customObjectContainer = project.container(CustomObject)
-        //project.extensions.add('customObj', customObjectContainer)
+    @TaskAction
+    def action() {
 
-        project.task('cgen', type: CayenneGeneratorTask)
-        project.task('cdbgen', type: DbGeneratorTask)
-        project.task('cdbimport', type: DbImporterTask)
     }
 }

@@ -32,7 +32,20 @@ repositories {
     mavenCentral()
 }
 
+/*configurations {
+    // configuration that holds jars to include in the jar
+    extraLibs
+}
+
+jar {
+    from {
+        configurations.extraLibs.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}*/
+
+
 dependencies {
-    compile gradleApi()
-    compile group: 'org.apache.cayenne', name: 'cayenne-cgen', version: version
+    compile group: 'org.apache.cayenne', name: 'cayenne-cgen', version: "4.0.M5"
+    //extraLibs group: 'org.apache.cayenne', name: 'cayenne-cgen', version: version
+    //configurations.compile.extendsFrom(configurations.extraLibs)
 }

@@ -120,6 +120,12 @@
             <version>${groovy.version}</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy-all</artifactId>
+            <version>${groovy.version}</version>
+            <scope>provided</scope>
+        </dependency>
         <!-- GRADLE DEPENDENCIES -->
         <dependency>
             <groupId>org.gradle</groupId>

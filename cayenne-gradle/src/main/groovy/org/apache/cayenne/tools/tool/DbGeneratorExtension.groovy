@@ -17,12 +17,23 @@
  *  under the License.
  ****************************************************************/
 
-package org.apache.cayenne.plugin.task
+package org.apache.cayenne.tools.tool
 
-import org.gradle.api.DefaultTask
+class DbGeneratorExtension {
 
-/**
- * @since 4.0
- */
-class DbImporterTask extends DefaultTask {
+    static File map
+
+    static String adapter
+
+    static DbImportDataSourceConfig dataSource = this.getExtensions().create('dbImportDataSource', DbImportDataSourceConfig)
+
+    static boolean dropTables = false
+
+    static boolean dropPK = false
+
+    static boolean createTables = false
+
+    static boolean createPK = true
+
+    static boolean createFK = true
 }
