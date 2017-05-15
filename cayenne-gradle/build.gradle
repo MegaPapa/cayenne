@@ -45,7 +45,7 @@ jar {
 
 
 dependencies {
-    compile group: 'org.apache.cayenne', name: 'cayenne-cgen', version: "4.0.M5"
+    compile group: 'org.apache.cayenne', name: 'cayenne-cgen', version: version
     //extraLibs group: 'org.apache.cayenne', name: 'cayenne-cgen', version: version
     //configurations.compile.extendsFrom(configurations.extraLibs)
 }

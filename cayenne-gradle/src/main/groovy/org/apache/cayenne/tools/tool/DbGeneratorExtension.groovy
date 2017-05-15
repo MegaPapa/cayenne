@@ -19,13 +19,16 @@
 
 package org.apache.cayenne.tools.tool
 
+/**
+ * @since 4.0
+ */
 class DbGeneratorExtension {
 
-    static File map
+    static String map
 
     static String adapter
 
-    static DbImportDataSourceConfig dataSource = this.getExtensions().create('dbImportDataSource', DbImportDataSourceConfig)
+    static DbImportDataSourceConfig dataSource
 
     static boolean dropTables = false
 
@@ -36,4 +39,8 @@ class DbGeneratorExtension {
     static boolean createPK = true
 
     static boolean createFK = true
+
+    DbGeneratorExtension() {
+        dataSource = this.getExtensions().create('dbDataSource', DbImportDataSourceConfig)
+    }
 }

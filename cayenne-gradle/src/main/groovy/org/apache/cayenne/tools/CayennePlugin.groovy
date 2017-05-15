@@ -20,6 +20,7 @@
 package org.apache.cayenne.tools
 
 import org.apache.cayenne.tools.tool.CgenConfigExtension
+import org.apache.cayenne.tools.tool.DbGeneratorExtension
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
@@ -37,7 +38,8 @@ class CayennePlugin implements Plugin<Project> {
         //project.extensions.create("cgenConfig", CgenConfigExtension, project)
 
         CgenConfigExtension cgenExtension = project.extensions.create('cgenConfig', CgenConfigExtension)
-        CgenConfigExtension cdbgenExtension = project.extensions.create('cdbgenConfig', CgenConfigExtension)
+        DbGeneratorExtension cdbgenExtension = project.extensions.create('cdbgenConfig', DbGeneratorExtension)
+        //cdbgenExtension.dataSource = project.extensions.create('dbDataSource', DbImportDataSourceConfig)
         //extension.hardObject = project.getExtensions().create('hardObject', HardObject)
 
 

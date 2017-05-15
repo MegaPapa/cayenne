@@ -31,12 +31,11 @@ import org.apache.cayenne.di.Injector
 import org.apache.cayenne.log.NoopJdbcEventLogger
 import org.apache.cayenne.map.DataMap
 import org.apache.cayenne.map.MapLoader
+import org.apache.cayenne.tools.tool.DbGeneratorExtension
 import org.apache.cayenne.util.Util
 import org.apache.cayenne.tools.tool.DbImportDataSourceConfig
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.TaskAction
 import org.xml.sax.InputSource
 
@@ -48,23 +47,36 @@ import java.sql.Driver
 class DbGeneratorTask extends DefaultTask {
 
     private File map
-
     private String adapter
+    private DbImportDataSourceConfig dataSource
+    private boolean dropTables
+    private boolean dropPK
+    private boolean createTables
+    private boolean createPK
+    private boolean createFK
 
-    private DbImportDataSourceConfig dataSource = new DbImportDataSourceConfig()
-
-    private boolean dropTables = false
-
-    private boolean dropPK = false
-
-    private boolean createTables = false
-
-    private boolean createPK = true
-
-    private boolean createFK = true
+    DbImportDataSourceConfig getDataSource() {
+        return dataSource
+    }
 
     private def fillData() {
-
+        if (DbGeneratorExtension.map == null) {
+            throw new GradleException("Property 'map' must be set.")
+        }
+        this.map = new File(DbGeneratorExtension.map)
+        this.adapter = DbGeneratorExtension.adapter
+        this.dataSource = DbGeneratorExtension.dataSource
+        this.dropPK = DbGeneratorExtension.dropPK
+        this.dropTables = DbGeneratorExtension.dropTables
+        this.createTables = DbGeneratorExtension.createTables
+        this.createPK = DbGeneratorExtension.createPK
+        this.createFK = DbGeneratorExtension.createFK
+        if (this.dataSource.driver == null) {
+            throw new GradleException("Data source property 'driver' must be set.")
+        }
+        if (this.dataSource.url == null) {
+            throw new GradleException("Data source property 'url' must be set.")
+        }
     }
 
     @TaskAction
