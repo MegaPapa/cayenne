@@ -17,37 +17,44 @@
  *  under the License.
  ****************************************************************/
 
-package org.apache.cayenne.tools
+package org.apache.cayenne.tools.model;
 
-import org.gradle.api.DefaultTask
-import org.gradle.api.InvalidUserDataException
+import java.util.Collection;
+import java.util.LinkedList;
+
+import groovy.lang.Closure;
+import org.apache.cayenne.dbsync.reverse.dbimport.Catalog;
+import org.apache.cayenne.dbsync.reverse.dbimport.Schema;
+import org.codehaus.groovy.runtime.DefaultGroovyMethods;
+import org.gradle.util.ConfigureUtil;
 
 /**
  * @since 4.0
  */
-class BaseCayenneTask extends DefaultTask {
+public class SchemaContainer extends FilterContainer {
 
-    File map
+    Collection<FilterContainer> schemas = new LinkedList<>();
 
-    private String mapFileName
-
-    void setMap(String mapFileName) {
-        this.mapFileName = mapFileName
+    SchemaContainer() {
     }
 
-    protected File getDataMapFile() {
-        if(map != null) {
-            return map
-        }
+    SchemaContainer(String name) {
+        this.setName(name);
+    }
 
-        if(mapFileName == null) {
-            mapFileName = getProject().extensions.getByType(GradleCayenneExtension).defaultDataMap
-        }
+    public void schema(String name) {
+        schemas.add(new FilterContainer(name));
+    }
 
-        if(mapFileName != null) {
-            return getProject().file(mapFileName)
-        }
+    public void schema(Closure<?> closure) {
+        schemas.add(ConfigureUtil.configure(closure, new FilterContainer()));
+    }
 
-        throw new InvalidUserDataException("No datamap found in task or in cayenne.defaultDataMap.")
+    Catalog toCatalog() {
+        Catalog catalog = fillContainer(new Catalog());
+        for(FilterContainer container : schemas) {
+            catalog.addSchema(container.fillContainer(new Schema()));
+        }
+        return catalog;
     }
 }

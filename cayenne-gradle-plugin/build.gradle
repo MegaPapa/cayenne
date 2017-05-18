@@ -16,14 +16,15 @@
  *  specific language governing permissions and limitations
  *  under the License.
  ****************************************************************/
+plugins {
+    id 'java-gradle-plugin'
+}
+
 group 'org.apache.cayenne.plugins'
 version '4.0.M6-SNAPSHOT'
 def cayenneVersion = version
 
 apply plugin: 'java'
-apply plugin: 'groovy'
-apply plugin: 'maven'
-apply plugin: 'java-gradle-plugin'
 
 sourceCompatibility = 1.8
 sourceCompatibility = 1.7
@@ -46,6 +47,8 @@ jar {
 
 
 dependencies {
+    compile gradleApi()
+    compile localGroovy()
     compile group: 'org.apache.cayenne', name: 'cayenne-cgen', version: cayenneVersion
     //extraLibs group: 'org.apache.cayenne', name: 'cayenne-cgen', version: version
     //configurations.compile.extendsFrom(configurations.extraLibs)

@@ -17,31 +17,30 @@
  *  under the License.
  ****************************************************************/
 
-package org.apache.cayenne.tools.model
+package org.apache.cayenne.tools;
 
-import org.gradle.api.InvalidUserDataException
+import java.util.HashMap;
+import java.util.Map;
 
-/**
- * @since 4.0
- */
-class DataSourceConfig {
+import org.gradle.api.Plugin;
+import org.gradle.api.Project;
 
-    String driver
-    String url
-    String username
-    String password
+public class GradlePlugin implements Plugin<Project> {
+    public void apply(Project project) {
+        // Add DSL extension
+        project.getExtensions().create("cayenne", GradleCayenneExtension.class, project);
 
-    def validate() {
-        if(driver == null && url == null && username == null && password == null) {
-            throw new InvalidUserDataException("Missing dataSource configuration.")
-        }
+        // Register tasks
+        Map<String, Object> map = new HashMap<>(1);
+        map.put("type", CgenTask.class);
+        project.task(map, "cgen");
 
-        if(driver == null) {
-            throw new InvalidUserDataException("Missing required 'driver' parameter in dataSource.")
-        }
+        Map<String, Object> map1 = new HashMap<>(1);
+        map1.put("type", DbImportTask.class);
+        project.task(map1, "cdbimport");
 
-        if(url == null) {
-            throw new InvalidUserDataException("Missing required 'url' parameter in dataSource.")
-        }
+        Map<String, Object> map2 = new HashMap<>(1);
+        map2.put("type", DbGenerateTask.class);
+        project.task(map2, "cdbgen");
     }
 }
