@@ -17,13 +17,14 @@
  *  under the License.
  ****************************************************************/
 
-package org.apache.cayenne.tools.tool
+package org.apache.cayenne.tools.deprecated
 
 /**
  * @since 4.0
  */
 class DbGeneratorExtension {
 
+/*
     static String map
 
     static String adapter
@@ -43,4 +44,5 @@ class DbGeneratorExtension {
     DbGeneratorExtension() {
         dataSource = this.getExtensions().create('dbDataSource', DbImportDataSourceConfig)
     }
+    */
 }

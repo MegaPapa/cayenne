@@ -19,8 +19,6 @@
 
 package org.apache.cayenne.tools
 
-import org.apache.cayenne.tools.tool.CgenConfigExtension
-import org.apache.cayenne.tools.tool.DbGeneratorExtension
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
@@ -37,14 +35,22 @@ class CayennePlugin implements Plugin<Project> {
         //project.extensions.add('cgenConfig', cgenConfigExtensions)
         //project.extensions.create("cgenConfig", CgenConfigExtension, project)
 
-        CgenConfigExtension cgenExtension = project.extensions.create('cgenConfig', CgenConfigExtension)
-        DbGeneratorExtension cdbgenExtension = project.extensions.create('cdbgenConfig', DbGeneratorExtension)
+
+
+        //CgenConfigExtension cgenExtension = project.extensions.create('cgenConfig', CgenConfigExtension)
+        //DbGeneratorExtension cdbgenExtension = project.extensions.create('cdbgenConfig', DbGeneratorExtension)
+
+
+
+
         //cdbgenExtension.dataSource = project.extensions.create('dbDataSource', DbImportDataSourceConfig)
         //extension.hardObject = project.getExtensions().create('hardObject', HardObject)
 
+        //DSL Extension
+        project.extensions.create("cayenne", GradleCayenneExtension, project)
 
-        project.task('cgen', type: CayenneGeneratorTask)
-        project.task('cdbgen', type: DbGeneratorTask)
-        project.task('cdbimport', type: DbImporterTask)
+        project.task('cgen', type: CgenTask)
+        project.task('cdbgen', type: DbGenerateTask)
+        project.task('cdbimport', type: DbImportTask)
     }
 }

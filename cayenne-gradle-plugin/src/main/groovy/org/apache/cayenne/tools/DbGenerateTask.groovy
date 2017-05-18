@@ -31,10 +31,8 @@ import org.apache.cayenne.di.Injector
 import org.apache.cayenne.log.NoopJdbcEventLogger
 import org.apache.cayenne.map.DataMap
 import org.apache.cayenne.map.MapLoader
-import org.apache.cayenne.tools.tool.DbGeneratorExtension
+import org.apache.cayenne.tools.model.DataSourceConfig
 import org.apache.cayenne.util.Util
-import org.apache.cayenne.tools.tool.DbImportDataSourceConfig
-import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.tasks.TaskAction
 import org.xml.sax.InputSource
@@ -44,47 +42,29 @@ import java.sql.Driver
 /**
  * @since 4.0
  */
-class DbGeneratorTask extends DefaultTask {
+class DbGenerateTask extends BaseCayenneTask {
 
-    private File map
-    private String adapter
-    private DbImportDataSourceConfig dataSource
-    private boolean dropTables
-    private boolean dropPK
-    private boolean createTables
-    private boolean createPK
-    private boolean createFK
+    String adapter
+    DataSourceConfig dataSource
+    boolean dropTables
+    boolean dropPK
+    boolean createTables
+    boolean createPK
+    boolean createFK
 
-    DbImportDataSourceConfig getDataSource() {
+    DataSourceConfig dataSource(Closure closure) {
+        dataSource = new DataSourceConfig()
+        project.configure(dataSource, closure)
         return dataSource
     }
 
-    private def fillData() {
-        if (DbGeneratorExtension.map == null) {
-            throw new GradleException("Property 'map' must be set.")
-        }
-        this.map = new File(DbGeneratorExtension.map)
-        this.adapter = DbGeneratorExtension.adapter
-        this.dataSource = DbGeneratorExtension.dataSource
-        this.dropPK = DbGeneratorExtension.dropPK
-        this.dropTables = DbGeneratorExtension.dropTables
-        this.createTables = DbGeneratorExtension.createTables
-        this.createPK = DbGeneratorExtension.createPK
-        this.createFK = DbGeneratorExtension.createFK
-        if (this.dataSource.driver == null) {
-            throw new GradleException("Data source property 'driver' must be set.")
-        }
-        if (this.dataSource.url == null) {
-            throw new GradleException("Data source property 'url' must be set.")
-        }
-    }
-
+    //test generator, datasource with mock
+    //test generated-in-memory-db
     @TaskAction
     def generateDb() throws GradleException {
 
-        fillData()
         dataSource.validate()
-
+        File dataMapFile = getDataMapFile()
         Injector injector = DIBootstrap.createInjector(new DbSyncModule(), new ToolsModule(logger))
         AdhocObjectFactory objectFactory = injector.getInstance(AdhocObjectFactory.class)
 
@@ -100,7 +80,7 @@ class DbGeneratorTask extends DefaultTask {
                     objectFactory.newInstance(DbAdapter.class, JdbcAdapter.class.getName()) :
                     objectFactory.newInstance(DbAdapter.class, adapter)
 
-            DataMap dataMap = loadDataMap()
+            DataMap dataMap = loadDataMap(dataMapFile)
             DbGenerator generator = new DbGenerator(adapterInst, dataMap, NoopJdbcEventLogger.getInstance())
             generator.setShouldCreateFKConstraints(createFK)
             generator.setShouldCreatePKSupport(createPK)
@@ -126,8 +106,10 @@ class DbGeneratorTask extends DefaultTask {
 
     }
 
-    private def loadDataMap() throws Exception {
-        InputSource inputSource = new InputSource(map.getCanonicalPath())
+    private def loadDataMap(File dataMapFile) throws Exception {
+
+        InputSource inputSource = new InputSource(dataMapFile.getCanonicalPath())
         return new MapLoader().loadDataMap(inputSource)
     }
+
 }

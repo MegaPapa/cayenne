@@ -16,8 +16,9 @@
  *  specific language governing permissions and limitations
  *  under the License.
  ****************************************************************/
-group 'org.apache.cayenne'
+group 'org.apache.cayenne.plugins'
 version '4.0.M6-SNAPSHOT'
+def cayenneVersion = version
 
 apply plugin: 'java'
 apply plugin: 'groovy'
@@ -45,7 +46,21 @@ jar {
 
 
 dependencies {
-    compile group: 'org.apache.cayenne', name: 'cayenne-cgen', version: version
+    compile group: 'org.apache.cayenne', name: 'cayenne-cgen', version: cayenneVersion
     //extraLibs group: 'org.apache.cayenne', name: 'cayenne-cgen', version: version
     //configurations.compile.extendsFrom(configurations.extraLibs)
 }
+
+
+// Create file with cayenne-gradle-plugin version
+task versionFile {
+    def resourceOutputDir = file("$buildDir/resources/main/")
+    doFirst {
+        resourceOutputDir.exists() || resourceOutputDir.mkdirs()
+        // file name must be in sync with GradleCayenneExtension
+        def file = file("$buildDir/resources/main/cayenne.version")
+        file.write(cayenneVersion.toString())
+    }
+}
+
+processResources.dependsOn versionFile

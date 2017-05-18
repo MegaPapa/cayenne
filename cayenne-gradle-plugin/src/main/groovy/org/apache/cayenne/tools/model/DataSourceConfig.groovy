@@ -17,61 +17,31 @@
  *  under the License.
  ****************************************************************/
 
-package org.apache.cayenne.tools.tool
+package org.apache.cayenne.tools.model
 
-import org.gradle.api.GradleException
+import org.gradle.api.InvalidUserDataException
 
 /**
  * @since 4.0
  */
-class DbImportDataSourceConfig {
-
-    DbImportDataSourceConfig() {
-
-    }
+class DataSourceConfig {
 
     String driver
-
-    /**
-     * JDBC connection URL of a target database.
-     */
     String url
-
-    /**
-     * Database user name.
-     */
     String username
-
-    /**
-     * Database user password.
-     */
     String password
 
-    void validate() throws GradleException {
+    def validate() {
         if(driver == null && url == null && username == null && password == null) {
-            throw new GradleException("Missing <dataSource> configuration.")
+            throw new InvalidUserDataException("Missing dataSource configuration.")
         }
+
         if(driver == null) {
-            throw new GradleException("Missing <driver> parameter in <dataSource>.")
+            throw new InvalidUserDataException("Missing required 'driver' parameter in dataSource.")
         }
+
         if(url == null) {
-            throw new GradleException("Missing <url> parameter in <dataSource>.")
+            throw new InvalidUserDataException("Missing required 'url' parameter in dataSource.")
         }
-    }
-
-    String getDriver() {
-        return driver
-    }
-
-    String getUrl() {
-        return url
-    }
-
-    String getUsername() {
-        return username
-    }
-
-    String getPassword() {
-        return password
     }
 }

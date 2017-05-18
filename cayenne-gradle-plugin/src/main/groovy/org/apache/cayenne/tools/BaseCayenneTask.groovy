@@ -17,46 +17,37 @@
  *  under the License.
  ****************************************************************/
 
-package org.apache.cayenne.tools.tool
+package org.apache.cayenne.tools
+
+import org.gradle.api.DefaultTask
+import org.gradle.api.InvalidUserDataException
 
 /**
  * @since 4.0
  */
-class CgenConfigExtension {
+class BaseCayenneTask extends DefaultTask {
 
-    static String additionalMaps
+    File map
 
-    static boolean client = false
+    private String mapFileName
 
-    static String destDir
+    void setMap(String mapFileName) {
+        this.mapFileName = mapFileName
+    }
 
-    static String encoding
+    protected File getDataMapFile() {
+        if(map != null) {
+            return map
+        }
 
-    static String excludeEntities
+        if(mapFileName == null) {
+            mapFileName = getProject().extensions.getByType(GradleCayenneExtension).defaultDataMap
+        }
 
-    static String includeEntities
+        if(mapFileName != null) {
+            return getProject().file(mapFileName)
+        }
 
-    static boolean makePairs = true
-
-    static String map
-
-    static String mode = "entity"
-
-    static String outputPattern = "*.java"
-
-    static boolean overwrite = false
-
-    static String superPkg
-
-    static String superTemplate
-
-    static String template
-
-    static String embeddableSuperTemplate
-
-    static String embeddableTemplate
-
-    static boolean usePkgPath = true
-
-    static boolean createPropertyNames = false
+        throw new InvalidUserDataException("No datamap found in task or in cayenne.defaultDataMap.")
+    }
 }

@@ -21,10 +21,13 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>cayenne-gradle</artifactId>
+    <groupId>org.apache.cayenne.plugins</groupId>
+    <artifactId>cayenne-gradle-plugin</artifactId>
     <packaging>pom</packaging>
-    <name>cayenne-gradle: Cayenne Gradle Tasks</name>
+    <name>cayenne-gradle-plugin: Cayenne Gradle Plugin</name>
 
+
+    <!-- TODO !!! -->
     <repositories>
         <repository>
             <id>gradle</id>
