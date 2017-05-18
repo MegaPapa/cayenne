@@ -38,12 +38,14 @@ import org.apache.cayenne.modeler.event.EntityDisplayEvent;
 import org.apache.cayenne.modeler.event.ObjEntityDisplayListener;
 import org.apache.cayenne.modeler.event.TablePopupHandler;
 import org.apache.cayenne.modeler.pref.TableColumnPreferences;
+import org.apache.cayenne.modeler.util.CayenneAction;
 import org.apache.cayenne.modeler.util.CayenneTable;
 import org.apache.cayenne.modeler.util.CellRenderers;
 import org.apache.cayenne.modeler.util.DbRelationshipPathComboBoxEditor;
 import org.apache.cayenne.modeler.util.ModelerUtil;
 import org.apache.cayenne.modeler.util.PanelFactory;
 import org.apache.cayenne.modeler.util.UIUtil;
+import org.apache.cayenne.swing.components.image.FilteredIconFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,6 +60,7 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
+import javax.swing.UIManager;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
@@ -67,6 +70,7 @@ import javax.swing.table.TableColumn;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Collection;
@@ -128,11 +132,9 @@ public class ObjEntityRelationshipPanel extends JPanel implements ObjEntityDispl
                 ObjRelationshipTableModel.class,
                 "objEntity/relationshipTable");
 
-        /**
-         * Create and install a popup
-         */
-        Icon ico = ModelerUtil.buildIcon("icon-info.gif");
-        resolveMenu = new JMenuItem("Database Mapping", ico);
+        // Create and install a popup
+        Icon ico = ModelerUtil.buildIcon("icon-edit.png");
+        resolveMenu = new CayenneAction.CayenneMenuItem("Database Mapping", ico);
 
         JPopupMenu popup = new JPopupMenu();
         popup.add(resolveMenu);
@@ -384,7 +386,12 @@ public class ObjEntityRelationshipPanel extends JPanel implements ObjEntityDispl
                     row,
                     column);
 
-            setIcon(CellRenderers.iconForObject(oldValue));
+            Icon icon = CellRenderers.iconForObject(oldValue);
+            if(isSelected) {
+                icon = FilteredIconFactory.createIcon(icon, FilteredIconFactory.FilterType.SELECTION);
+                setForeground(UIManager.getColor("Table.selectionForeground"));
+            }
+            setIcon(icon);
             return this;
         }
     }
@@ -427,6 +434,7 @@ public class ObjEntityRelationshipPanel extends JPanel implements ObjEntityDispl
                         : table.getForeground());
             }
             setBorder(BorderFactory.createEmptyBorder(0,5,0,0));
+            setFont(UIManager.getFont("Label.font"));
 
             return this;
         }

@@ -21,6 +21,8 @@
 package org.apache.cayenne.modeler.util;
 
 import java.awt.event.ActionEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -35,6 +37,7 @@ import org.apache.cayenne.modeler.Application;
 import org.apache.cayenne.modeler.ProjectController;
 import org.apache.cayenne.modeler.dialog.ErrorDebugDialog;
 import org.apache.cayenne.project.Project;
+import org.apache.cayenne.swing.components.image.FilteredIconFactory;
 import org.apache.cayenne.util.Util;
 
 /**
@@ -170,7 +173,7 @@ public abstract class CayenneAction extends AbstractAction {
      * Factory method that creates a menu item hooked up to this action.
      */
     public JMenuItem buildMenu() {
-        return new JMenuItem(this);
+        return new CayenneMenuItem(this);
     }
     
     /**
@@ -184,7 +187,11 @@ public abstract class CayenneAction extends AbstractAction {
      * Factory method that creates a button hooked up to this action.
      */
     public JButton buildButton() {
-        return new CayenneToolbarButton(this);
+        return new CayenneToolbarButton(this, 0);
+    }
+
+    public JButton buildButton(int position) {
+        return new CayenneToolbarButton(this, position);
     }
 
     /**
@@ -219,19 +226,66 @@ public abstract class CayenneAction extends AbstractAction {
         }
     }
 
+    public static class CayenneMenuItem extends JMenuItem {
+
+        public CayenneMenuItem(String title) {
+            super(title);
+        }
+
+        public CayenneMenuItem(String title, Icon icon) {
+            super(title, icon);
+            updateActiveIcon();
+        }
+
+        public CayenneMenuItem(AbstractAction action) {
+            super(action);
+            updateActiveIcon();
+        }
+
+        protected void updateActiveIcon() {
+            final Icon icon = getIcon();
+            final Icon selectedIcon = FilteredIconFactory.createIcon(icon, FilteredIconFactory.FilterType.WHITE);
+            // this wouldn't work on MacOS, as it uses native menu
+            addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseEntered(MouseEvent e) {
+                    if(isEnabled()) {
+                        setIcon(selectedIcon);
+                    }
+                }
+
+                @Override
+                public void mouseExited(MouseEvent e) {
+                    setIcon(icon);
+                }
+            });
+        }
+    }
+
     /**
      * On changes in action text, will update toolbar tip instead.
      */
-    final class CayenneToolbarButton extends JButton {
+    public static final class CayenneToolbarButton extends JButton {
+
+        static private final String[] POSITIONS = {"only", "first", "middle", "last"};
 
         protected boolean showingText;
 
         /**
          * Constructor for CayenneMenuItem.
          */
-        public CayenneToolbarButton(Action a) {
+        public CayenneToolbarButton(Action a, int position) {
             super();
             setAction(a);
+            initView(position);
+        }
+
+        private void initView(int position) {
+            setDisabledIcon(FilteredIconFactory.createDisabledIcon(getIcon()));
+            setFocusPainted(false);
+            setFocusable(false);
+            putClientProperty("JButton.buttonType", "segmentedTextured");
+            putClientProperty("JButton.segmentPosition", POSITIONS[position]);
         }
 
         /**
@@ -263,8 +317,7 @@ public abstract class CayenneAction extends AbstractAction {
         public void setText(String text) {
             if (showingText) {
                 super.setText(text);
-            }
-            else {
+            } else {
                 super.setToolTipText(text);
             }
         }
