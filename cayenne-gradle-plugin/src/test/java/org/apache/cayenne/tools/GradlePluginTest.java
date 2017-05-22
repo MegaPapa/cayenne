@@ -12,7 +12,7 @@ import static org.junit.Assert.assertTrue;
 public class GradlePluginTest {
 
     @Test
-    public void generateTest() throws Exception {
+    public void apply() throws Exception {
         Project project = ProjectBuilder.builder().build();
         project.getPluginManager().apply("org.apache.cayenne");
 
