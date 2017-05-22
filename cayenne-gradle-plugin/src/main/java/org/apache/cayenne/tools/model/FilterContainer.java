@@ -57,7 +57,11 @@ public class FilterContainer {
         includeTables.add(ConfigureUtil.configure(closure, new IncludeTable()));
     }
 
-    public void includeTables(Collection<String> patterns) {
+    public void includeTable(String pattern, Closure<?> closure) {
+        includeTables.add(ConfigureUtil.configure(closure, new IncludeTable(pattern)));
+    }
+
+    public void includeTables(String... patterns) {
         for(String pattern: patterns) {
             includeTable(pattern);
         }
@@ -67,11 +71,7 @@ public class FilterContainer {
         addToCollection(excludeTables, pattern);
     }
 
-    public void excludeTable(Closure<?> closure) {
-        addToCollection(excludeTables, closure);
-    }
-
-    public void excludeTables(Collection<String> patterns) {
+    public void excludeTables(String... patterns) {
         for(String pattern: patterns) {
             excludeTable(pattern);
         }
@@ -81,11 +81,7 @@ public class FilterContainer {
         addToCollection(includeColumns, pattern);
     }
 
-    public void includeColumn(Closure<?> closure) {
-        addToCollection(includeColumns, closure);
-    }
-
-    public void includeColumns(Collection<String> patterns) {
+    public void includeColumns(String... patterns) {
         for(String pattern: patterns) {
             includeColumn(pattern);
         }
@@ -95,11 +91,7 @@ public class FilterContainer {
         addToCollection(excludeColumns, pattern);
     }
 
-    public void excludeColumn(Closure<?> closure) {
-        addToCollection(excludeColumns, closure);
-    }
-
-    public void excludeColumns(Collection<String> patterns) {
+    public void excludeColumns(String... patterns) {
         for(String pattern: patterns) {
             excludeColumn(pattern);
         }
@@ -109,11 +101,7 @@ public class FilterContainer {
         addToCollection(includeProcedures, pattern);
     }
 
-    public void includeProcedure(Closure<?> closure) {
-        addToCollection(includeProcedures, closure);
-    }
-
-    public void includeProcedures(Collection<String> patterns) {
+    public void includeProcedures(String... patterns) {
         for(String pattern: patterns) {
             includeProcedure(pattern);
         }
@@ -123,18 +111,10 @@ public class FilterContainer {
         addToCollection(excludeProcedures, pattern);
     }
 
-    public void excludeProcedure(Closure<?> closure) {
-        addToCollection(excludeProcedures, closure);
-    }
-
-    public void excludeProcedures(Collection<String> patterns) {
+    public void excludeProcedures(String... patterns) {
         for(String pattern: patterns) {
             excludeProcedure(pattern);
         }
-    }
-
-    private static void addToCollection(Collection<PatternParam> collection, Closure<?> closure) {
-        collection.add(ConfigureUtil.configure(closure, new PatternParam()));
     }
 
     private static void addToCollection(Collection<PatternParam> collection, String name) {

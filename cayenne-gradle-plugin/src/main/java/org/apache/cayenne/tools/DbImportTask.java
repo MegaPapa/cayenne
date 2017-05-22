@@ -19,6 +19,8 @@
 
 package org.apache.cayenne.tools;
 
+import java.io.File;
+
 import groovy.lang.Closure;
 import org.apache.cayenne.dbsync.DbSyncModule;
 import org.apache.cayenne.dbsync.reverse.configuration.ToolsModule;
@@ -33,8 +35,11 @@ import org.apache.cayenne.di.Injector;
 import org.apache.cayenne.tools.model.DataSourceConfig;
 import org.apache.cayenne.tools.model.DbImportConfig;
 import org.apache.cayenne.util.Util;
+import org.gradle.api.Task;
+import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.TaskExecutionException;
 import org.slf4j.Logger;
@@ -48,13 +53,21 @@ public class DbImportTask extends BaseCayenneTask {
     @Optional
     private String adapter;
 
-    @Input
     private DataSourceConfig dataSource = new DataSourceConfig();
 
-    @Input
     private DbImportConfig config = new DbImportConfig();
 
     private ReverseEngineering reverseEngineering;
+
+    public DbImportTask() {
+        // this task should be executed every invocation, so it is never up to date.
+        getOutputs().upToDateWhen(new Spec<Task>() {
+            @Override
+            public boolean isSatisfiedBy(Task task) {
+                return false;
+            }
+        });
+    }
 
     @TaskAction
     public void runImport() {
@@ -113,6 +126,11 @@ public class DbImportTask extends BaseCayenneTask {
         config.setUseJava7Types(reverseEngineering.isUseJava7Types());
 
         return config;
+    }
+
+    @OutputFile
+    public File getDataMapFile() {
+        return super.getDataMapFile();
     }
 
     public void dbImport(Closure<?> closure) {

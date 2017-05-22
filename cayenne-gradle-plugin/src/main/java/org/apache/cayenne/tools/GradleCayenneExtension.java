@@ -20,6 +20,7 @@
 package org.apache.cayenne.tools;
 
 import java.io.IOException;
+import java.net.URL;
 
 import org.codehaus.groovy.runtime.ResourceGroovyMethods;
 import org.gradle.api.GradleException;
@@ -40,7 +41,7 @@ public class GradleCayenneExtension {
     public static final String GROUP = "org.apache.cayenne";
     private static final String VERSION_FILE = "/cayenne.version";
 
-    private final String version;
+    private String version;
     private final DependencyHandler dependencies;
 
     /**
@@ -85,7 +86,12 @@ public class GradleCayenneExtension {
     public GradleCayenneExtension(Project project) {
         this.dependencies = project.getDependencies();
         try {
-            this.version = ResourceGroovyMethods.getText(getClass().getResource(VERSION_FILE)).trim();
+            URL versionFileUrl = getClass().getResource(VERSION_FILE);
+            if(versionFileUrl == null) {
+                this.version = project.getVersion().toString();
+            } else {
+                this.version = ResourceGroovyMethods.getText(versionFileUrl).trim();
+            }
         } catch (IOException ex) {
             throw new GradleException("Cayenne version not found", ex);
         }

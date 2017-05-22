@@ -25,7 +25,6 @@ import java.util.LinkedList;
 import groovy.lang.Closure;
 import org.apache.cayenne.dbsync.reverse.dbimport.Catalog;
 import org.apache.cayenne.dbsync.reverse.dbimport.Schema;
-import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.gradle.util.ConfigureUtil;
 
 /**
@@ -48,6 +47,10 @@ public class SchemaContainer extends FilterContainer {
 
     public void schema(Closure<?> closure) {
         schemas.add(ConfigureUtil.configure(closure, new FilterContainer()));
+    }
+
+    public void schema(String name, Closure<?> closure) {
+        schemas.add(ConfigureUtil.configure(closure, new FilterContainer(name)));
     }
 
     Catalog toCatalog() {

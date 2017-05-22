@@ -22,10 +22,6 @@ package org.apache.cayenne.tools.model;
 import java.util.Collection;
 import java.util.LinkedList;
 
-import groovy.lang.Closure;
-import org.codehaus.groovy.runtime.DefaultGroovyMethods;
-import org.gradle.util.ConfigureUtil;
-
 /**
  * @since 4.0
  */
@@ -49,11 +45,7 @@ public class IncludeTable extends PatternParam {
         includeColumns.add(new PatternParam(pattern));
     }
 
-    public void includeColumn(Closure<?> closure) {
-        includeColumns.add(ConfigureUtil.configure(closure, new PatternParam()));
-    }
-
-    public void includeColumns(Collection<String> patterns) {
+    public void includeColumns(String... patterns) {
         for(String pattern: patterns) {
             includeColumn(pattern);
         }
@@ -63,11 +55,7 @@ public class IncludeTable extends PatternParam {
         excludeColumns.add(new PatternParam(pattern));
     }
 
-    public void excludeColumn(Closure<?> closure) {
-        excludeColumns.add(ConfigureUtil.configure(closure, new PatternParam()));
-    }
-
-    public void excludeColumns(Collection<String> patterns) {
+    public void excludeColumns(String... patterns) {
         for(String pattern: patterns) {
             excludeColumn(pattern);
         }

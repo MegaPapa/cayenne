@@ -19,13 +19,13 @@
 
 package org.apache.cayenne.tools.model;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
 
 import groovy.lang.Closure;
 import org.apache.cayenne.dbsync.reverse.dbimport.ReverseEngineering;
 import org.apache.cayenne.dbsync.reverse.dbimport.Schema;
-import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.gradle.util.ConfigureUtil;
 
 /**
@@ -118,6 +118,10 @@ public class DbImportConfig extends SchemaContainer {
 
     public void catalog(Closure<?> closure) {
         catalogs.add(ConfigureUtil.configure(closure, new SchemaContainer()));
+    }
+
+    public void catalog(String name, Closure<?> closure) {
+        catalogs.add(ConfigureUtil.configure(closure, new SchemaContainer(name)));
     }
 
     public ReverseEngineering toReverseEngineering() {
@@ -263,7 +267,7 @@ public class DbImportConfig extends SchemaContainer {
         tableTypes.add(tableType);
     }
 
-    public void tableTypes(Collection<String> tableTypes) {
-        this.tableTypes.addAll(tableTypes);
+    public void tableTypes(String... tableTypes) {
+        this.tableTypes.addAll(Arrays.asList(tableTypes));
     }
 }

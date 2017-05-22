@@ -23,18 +23,21 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.util.Set;
 
-import groovy.lang.Closure;
 import groovy.lang.Reference;
 import org.apache.cayenne.dbsync.filter.NamePatternMatcher;
 import org.apache.cayenne.gen.ClassGenerationAction;
 import org.apache.cayenne.gen.ClientClassGenerationAction;
 import org.apache.cayenne.map.DataMap;
-import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.plugins.JavaPlugin;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputDirectory;
+import org.gradle.api.tasks.InputFile;
+import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskAction;
 
@@ -47,36 +50,59 @@ public class CgenTask extends BaseCayenneTask {
 
     private File additionalMaps;
 
+    @Input
     private boolean client;
 
     private File destDir;
 
+    @Input
+    @Optional
     private String encoding;
 
+    @Input
+    @Optional
     private String excludeEntities;
 
+    @Input
+    @Optional
     private String includeEntities;
 
+    @Input
     private boolean makePairs = true;
 
+    @Input
     private String mode = "entity";
 
+    @Input
     private String outputPattern = "*.java";
 
+    @Input
     private boolean overwrite;
 
+    @Input
+    @Optional
     private String superPkg;
 
+    @Input
+    @Optional
     private String superTemplate;
 
+    @Input
+    @Optional
     private String template;
 
+    @Input
+    @Optional
     private String embeddableSuperTemplate;
 
+    @Input
+    @Optional
     private String embeddableTemplate;
 
+    @Input
     private boolean usePkgPath = true;
 
+    @Input
     private boolean createPropertyNames;
 
     private String destDirName;
@@ -147,6 +173,7 @@ public class CgenTask extends BaseCayenneTask {
         return action;
     }
 
+    @OutputDirectory
     protected File getDestDirFile() {
         final Reference<File> javaSourceDir = new Reference<>(null);
 
@@ -164,20 +191,17 @@ public class CgenTask extends BaseCayenneTask {
                     Set<File> sourceDirs = (directories == null ? null : directories.getFiles());
                     if (sourceDirs != null && !sourceDirs.isEmpty()) {
                         // find java directory, if there is no such dir, take first
-                        javaSourceDir.set(DefaultGroovyMethods.find(sourceDirs, new Closure<Boolean>(this, this) {
-                            public Boolean doCall(File it) {
-                                return it.getName().endsWith("java");
+                        for(File dir : sourceDirs) {
+                            if(dir.getName().endsWith("java")) {
+                                javaSourceDir.set(dir);
+                                break;
                             }
-                            public Boolean doCall() {
-                                return doCall(null);
-                            }
-                        }));
+                        }
 
                         if (javaSourceDir.get() == null) {
-                            javaSourceDir.set(DefaultGroovyMethods.first(sourceDirs));
+                            javaSourceDir.set(sourceDirs.iterator().next());
                         }
                     }
-
                 }
             });
         }
@@ -193,10 +217,27 @@ public class CgenTask extends BaseCayenneTask {
         return javaSourceDir.get();
     }
 
+    @InputFile
+    public File getDataMapFile() {
+        return super.getDataMapFile();
+    }
+
+    @Optional
+    @OutputDirectory
+    public File getDestDir() {
+        return destDir;
+    }
+
+    public void setDestDir(File destDir) {
+        this.destDir = destDir;
+    }
+
     public void setDestDir(String destDir) {
         this.destDirName = destDir;
     }
 
+    @Optional
+    @InputDirectory
     public File getAdditionalMaps() {
         return additionalMaps;
     }
@@ -215,10 +256,6 @@ public class CgenTask extends BaseCayenneTask {
 
     public void setClient(boolean client) {
         this.client = client;
-    }
-
-    public File getDestDir() {
-        return destDir;
     }
 
     public String getEncoding() {
