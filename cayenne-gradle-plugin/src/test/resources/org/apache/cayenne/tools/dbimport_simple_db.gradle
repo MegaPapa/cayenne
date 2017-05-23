@@ -17,29 +17,19 @@
  *  under the License.
  ****************************************************************/
 
-package org.apache.cayenne.tools;
+plugins {
+    id 'org.apache.cayenne'
+}
 
-import org.gradle.api.Project;
-import org.gradle.testfixtures.ProjectBuilder;
-import org.junit.Test;
+cdbimport {
+    map 'datamap.map.xml'
 
-import static org.junit.Assert.assertTrue;
+    adapter 'org.apache.cayenne.dba.derby.DerbyAdapter'
 
-/**
- * @since 4.0
- */
-public class GradlePluginTest {
-
-    @Test
-    public void apply() throws Exception {
-        Project project = ProjectBuilder.builder().build();
-        project.getPluginManager().apply("org.apache.cayenne");
-
-        assertTrue(project.getTasks().getByName("cgen") instanceof CgenTask);
-        assertTrue(project.getTasks().getByName("cdbimport") instanceof DbImportTask);
-        assertTrue(project.getTasks().getByName("cdbgen") instanceof DbGenerateTask);
-
-        assertTrue(project.getExtensions().getByName("cayenne") instanceof GradleCayenneExtension);
-
+    dataSource {
+        username 'sa'
+        password ''
+        url dbUrl
+        driver 'org.apache.derby.jdbc.EmbeddedDriver'
     }
 }
