@@ -73,6 +73,7 @@
                             <arguments>
                                 <argument>clean</argument>
                                 <argument>build</argument>
+                                <argument>-PprojectVersion=${project.version}</argument>
                             </arguments>
                         </configuration>
                         <goals>
@@ -111,7 +112,6 @@
         <dependency>
             <groupId>org.apache.cayenne</groupId>
             <artifactId>cayenne-cgen</artifactId>
-            <version>4.0.M6-SNAPSHOT</version>
         </dependency>
         <!-- GROOVY DEPENDENCIES -->
         <dependency>

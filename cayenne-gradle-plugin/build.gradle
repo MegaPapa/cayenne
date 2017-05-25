@@ -21,7 +21,7 @@ plugins {
 }
 
 group 'org.apache.cayenne.plugins'
-version '4.0.M6-SNAPSHOT'
+version projectVersion
 def cayenneVersion = version
 
 apply plugin: 'java'
@@ -34,18 +34,6 @@ repositories {
     mavenCentral()
 }
 
-/*configurations {
-    // configuration that holds jars to include in the jar
-    extraLibs
-}
-
-jar {
-    from {
-        configurations.extraLibs.collect { it.isDirectory() ? it : zipTree(it) }
-    }
-}*/
-
-
 dependencies {
     compile gradleApi()
     compile localGroovy()
@@ -54,10 +42,7 @@ dependencies {
     testCompile group: 'org.mockito', name: 'mockito-all', version: '1.9.5'
     compile group: 'org.apache.derby', name: 'derby', version: '10.12.1.1'
     testCompile group: 'org.apache.cayenne.build-tools', name: 'cayenne-test-utilities', version: cayenneVersion
-    //extraLibs group: 'org.apache.cayenne', name: 'cayenne-cgen', version: version
-    //configurations.compile.extendsFrom(configurations.extraLibs)
 }
-
 
 // Create file with cayenne-gradle-plugin version
 task versionFile {
