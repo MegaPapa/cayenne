@@ -41,7 +41,7 @@ public class CgenTaskIT extends BaseTaskIT {
         GradleRunner runner = createRunner(
                 "cgen_default_config",
                 "cgen",
-                "-PdataMap=" + getClass().getResource("./datamap/cgen_datamap.map.xml").getFile()
+                "-PdataMap=" + getClass().getResource("test_datamap.map.xml").getFile()
         );
         BuildResult result = runner.build();
 
@@ -63,7 +63,7 @@ public class CgenTaskIT extends BaseTaskIT {
         GradleRunner runner = createRunner(
                 "cgen_custom_config",
                 "cgen",
-                "-PdataMap=" + getClass().getResource("./datamap/cgen_datamap.map.xml").getFile()
+                "-PdataMap=" + getClass().getResource("test_datamap.map.xml").getFile()
         );
         BuildResult result = runner.build();
 

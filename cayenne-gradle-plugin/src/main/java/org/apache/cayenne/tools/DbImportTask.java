@@ -38,11 +38,11 @@ import org.apache.cayenne.util.Util;
 import org.gradle.api.Task;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.TaskExecutionException;
-import org.slf4j.Logger;
 
 /**
  * @since 4.0
@@ -53,10 +53,13 @@ public class DbImportTask extends BaseCayenneTask {
     @Optional
     private String adapter;
 
+    @Internal
     private DataSourceConfig dataSource = new DataSourceConfig();
 
+    @Internal
     private DbImportConfig config = new DbImportConfig();
 
+    @Internal
     private ReverseEngineering reverseEngineering;
 
     public DbImportTask() {
@@ -72,11 +75,9 @@ public class DbImportTask extends BaseCayenneTask {
     @TaskAction
     public void runImport() {
         dataSource.validate();
-        reverseEngineering = config.toReverseEngineering();
 
-        getLogger().warn(reverseEngineering.toString());
+        DbImportConfiguration config = createConfig();
 
-        DbImportConfiguration config = createConfig(getLogger());
         Injector injector = DIBootstrap.createInjector(new DbSyncModule(), new ToolsModule(getLogger()), new DbImportModule());
 
         DbImportConfigurationValidator validator = new DbImportConfigurationValidator(reverseEngineering, config, injector);
@@ -102,7 +103,9 @@ public class DbImportTask extends BaseCayenneTask {
         }
     }
 
-    DbImportConfiguration createConfig(Logger logger) {
+    DbImportConfiguration createConfig() {
+
+        reverseEngineering = config.toReverseEngineering();
 
         DbImportConfiguration config = new DbImportConfiguration();
         config.setAdapter(adapter);
@@ -111,7 +114,7 @@ public class DbImportTask extends BaseCayenneTask {
         config.setFiltersConfig(new FiltersConfigBuilder(reverseEngineering).build());
         config.setForceDataMapCatalog(reverseEngineering.isForceDataMapCatalog());
         config.setForceDataMapSchema(reverseEngineering.isForceDataMapSchema());
-        config.setLogger(logger);
+        config.setLogger(getLogger());
         config.setMeaningfulPkTables(reverseEngineering.getMeaningfulPkTables());
         config.setNamingStrategy(reverseEngineering.getNamingStrategy());
         config.setPassword(dataSource.getPassword());

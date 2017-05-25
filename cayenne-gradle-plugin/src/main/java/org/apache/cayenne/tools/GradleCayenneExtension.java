@@ -86,14 +86,18 @@ public class GradleCayenneExtension {
     public GradleCayenneExtension(Project project) {
         this.dependencies = project.getDependencies();
         try {
-            URL versionFileUrl = getClass().getResource(VERSION_FILE);
-            if(versionFileUrl == null) {
-                this.version = project.getVersion().toString();
-            } else {
-                this.version = ResourceGroovyMethods.getText(versionFileUrl).trim();
-            }
+            readVersion(project);
         } catch (IOException ex) {
             throw new GradleException("Cayenne version not found", ex);
+        }
+    }
+
+    private void readVersion(Project project) throws IOException {
+        URL versionFileUrl = getClass().getResource(VERSION_FILE);
+        if(versionFileUrl == null) {
+            this.version = project.getVersion().toString();
+        } else {
+            this.version = ResourceGroovyMethods.getText(versionFileUrl).trim();
         }
     }
 

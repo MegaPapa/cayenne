@@ -154,11 +154,7 @@ public class CgenTask extends BaseCayenneTask {
     }
 
     ClassGenerationAction newGeneratorInstance() {
-        if (client) {
-            return new ClientClassGenerationAction();
-        } else {
-            return new ClassGenerationAction();
-        }
+        return client ? new ClientClassGenerationAction() : new ClassGenerationAction();
     }
 
     ClassGenerationAction createGenerator() {

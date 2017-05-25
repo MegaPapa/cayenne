@@ -66,7 +66,6 @@ public class CgenTaskTest {
     public void testGeneratorCreation() {
         ClassGenerationAction action = mock(ClassGenerationAction.class);
         CgenTask task = createCgenTaskMock(action);
-        File destDir = mock(File.class);
 
         task.setEmbeddableSuperTemplate("superTemplate");
         task.setEmbeddableTemplate("template");
@@ -82,7 +81,6 @@ public class CgenTaskTest {
         task.setCreatePropertyNames(true);
         task.setOverwrite(true);
         task.setUsePkgPath(true);
-
 
         ClassGenerationAction createdAction = task.createGenerator();
         assertSame(action, createdAction);
@@ -100,6 +98,5 @@ public class CgenTaskTest {
         verify(action).setSuperTemplate("*.java");
         verify(action).setTemplate("*.java");
     }
-
 
 }

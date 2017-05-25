@@ -32,4 +32,8 @@ cdbimport {
         url dbUrl
         driver 'org.apache.derby.jdbc.EmbeddedDriver'
     }
+
+    dbImport {
+        excludeTable 'PAINTING1'
+    }
 }

@@ -26,6 +26,8 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 import org.apache.cayenne.test.jdbc.SQLReader;
@@ -35,9 +37,7 @@ import org.gradle.testkit.runner.GradleRunner;
 import org.gradle.testkit.runner.TaskOutcome;
 import org.junit.Test;
 
-import static junit.framework.Assert.assertTrue;
-import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.assertNotNull;
+import static org.junit.Assert.*;
 
 /**
  * @since 4.0
@@ -53,7 +53,7 @@ public class DbImportIT extends BaseTaskIT {
         assertNotNull(result.task(":cdbimport"));
         assertEquals(TaskOutcome.FAILED, result.task(":cdbimport").getOutcome());
 
-        assertTrue(result.getOutput().contains("No datamap found in task or in cayenne.defaultDataMap"));
+        assertTrue(result.getOutput().contains("No datamap configured in task or in cayenne.defaultDataMap"));
     }
 
     @Test
@@ -68,6 +68,33 @@ public class DbImportIT extends BaseTaskIT {
         File dataMap = new File(projectDir.getAbsolutePath() + "/datamap.map.xml");
         assertTrue(dataMap.exists());
         assertTrue(result.getOutput().contains("Detected changes: No changes to import."));
+    }
+
+    private void testWithGradleVersion(String version) throws Exception {
+        String dbUrl = "jdbc:derby:" + projectDir.getAbsolutePath() + "/build/" + version.replace('.', '_');
+        dbUrl += ";create=true";
+        GradleRunner runner = createRunner("dbimport_simple_db", "cdbimport", "--info", "-PdbUrl=" + dbUrl);
+        runner.withGradleVersion(version);
+        runner.build();
+    }
+
+    @Test
+    public void testGradleVersionsCompatibility() throws Exception {
+        String[] versions = {"3.5", "3.3", "3.0", "2.12", "2.8"};
+        List<String> failedVersions = new ArrayList<>();
+        for(String version : versions) {
+            try {
+                testWithGradleVersion(version);
+            } catch(Throwable th) {
+                failedVersions.add(version);
+            }
+        }
+
+        StringBuilder versionString = new StringBuilder("Failed versions:");
+        for(String version : failedVersions) {
+            versionString.append(" ").append(version);
+        }
+        assertTrue(versionString.toString(), failedVersions.isEmpty());
     }
 
     @Test
@@ -88,6 +115,8 @@ public class DbImportIT extends BaseTaskIT {
         assertTrue(result.getOutput().contains("Db Relationship : toOne  (EXHIBIT.GALLERY_ID, GALLERY.GALLERY_ID)"));
         assertTrue(result.getOutput().contains("Db Relationship : toMany (GALLERY.GALLERY_ID, PAINTING.GALLERY_ID)"));
         assertTrue(result.getOutput().contains("Create Table         ARTIST"));
+        assertFalse(result.getOutput().contains("Create Table         PAINTING1"));
+        assertTrue(result.getOutput().contains("Skip relation: '.APP.ARTIST.ARTIST_ID <- .APP.PAINTING1.ARTIST_ID # 1'"));
         assertTrue(result.getOutput().contains("Migration Complete Successfully."));
     }
 

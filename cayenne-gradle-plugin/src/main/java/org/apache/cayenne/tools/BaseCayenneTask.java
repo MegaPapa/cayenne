@@ -23,19 +23,19 @@ import java.io.File;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.tasks.InputFile;
-import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.Internal;
 
 /**
  * @since 4.0
  */
 public class BaseCayenneTask extends DefaultTask {
 
+    @Internal
     private File map;
+
+    @Internal
     private String mapFileName;
 
-    @Optional
-    @InputFile
     public File getMap() {
         return map;
     }
@@ -56,7 +56,7 @@ public class BaseCayenneTask extends DefaultTask {
         setMap(mapFile);
     }
 
-    @InputFile
+    @Internal
     public File getDataMapFile() {
         if (map != null) {
             return map;
@@ -70,6 +70,6 @@ public class BaseCayenneTask extends DefaultTask {
             return getProject().file(mapFileName);
         }
 
-        throw new InvalidUserDataException("No datamap found in task or in cayenne.defaultDataMap.");
+        throw new InvalidUserDataException("No datamap configured in task or in cayenne.defaultDataMap.");
     }
 }

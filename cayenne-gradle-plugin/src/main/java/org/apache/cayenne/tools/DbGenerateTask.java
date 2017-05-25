@@ -21,7 +21,7 @@ package org.apache.cayenne.tools;
 
 import groovy.lang.Closure;
 import org.apache.cayenne.access.DbGenerator;
-import org.apache.cayenne.datasource.DriverDataSource;
+import org.apache.cayenne.datasource.DataSourceBuilder;
 import org.apache.cayenne.dba.DbAdapter;
 import org.apache.cayenne.dba.JdbcAdapter;
 import org.apache.cayenne.dbsync.DbSyncModule;
@@ -35,64 +35,68 @@ import org.apache.cayenne.map.MapLoader;
 import org.apache.cayenne.tools.model.DataSourceConfig;
 import org.apache.cayenne.util.Util;
 import org.gradle.api.GradleException;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputFile;
+import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
 import org.xml.sax.InputSource;
 
 import java.io.File;
-import java.sql.Driver;
+import javax.sql.DataSource;
 
 /**
  * @since 4.0
  */
 public class DbGenerateTask extends BaseCayenneTask {
 
+    @Input
+    @Optional
     private String adapter;
-    private DataSourceConfig dataSource;
-    private boolean dropTables;
-    private boolean dropPK;
-    private boolean createTables;
-    private boolean createPK;
-    private boolean createFK;
 
-    public DataSourceConfig dataSource(Closure closure) {
-        dataSource = new DataSourceConfig();
-        getProject().configure(dataSource, closure);
-        return dataSource;
+    @Internal
+    private DataSourceConfig dataSource = new DataSourceConfig();
+
+    @Input
+    @Optional
+    private boolean dropTables;
+
+    @Input
+    @Optional
+    private boolean dropPK;
+
+    @Input
+    @Optional
+    private boolean createTables = true;
+
+    @Input
+    @Optional
+    private boolean createPK = true;
+
+    @Input
+    @Optional
+    private boolean createFK = true;
+
+    @InputFile
+    public File getDataMapFile() {
+        return super.getDataMapFile();
     }
 
     @TaskAction
     public void generateDb() throws GradleException {
 
         dataSource.validate();
-        File dataMapFile = getDataMapFile();
-        Injector injector = DIBootstrap.createInjector(new DbSyncModule(), new ToolsModule(getLogger()));
-        AdhocObjectFactory objectFactory = injector.getInstance(AdhocObjectFactory.class);
 
-        getLogger().info(String.format("connection settings - [driver: %s, url: %s, username: %s]",
-                dataSource.getDriver(), dataSource.getUrl(), dataSource.getUsername()));
+        getLogger().info("connection settings - [driver: {}, url: {}, username: {}]",
+                dataSource.getDriver(), dataSource.getUrl(), dataSource.getUsername());
 
-        getLogger().info(String.format(
-                "generator options - [dropTables: %s, dropPK: %s, createTables: %s, createPK: %s, createFK: %s]",
-                dropTables, dropPK, createTables, createPK, createFK));
+        getLogger().info("generator options - " +
+                        "[dropTables: {}, dropPK: {}, createTables: {}, createPK: {}, createFK: {}]",
+                dropTables, dropPK, createTables, createPK, createFK);
 
         try {
-            final DbAdapter adapterInst = (adapter == null) ? objectFactory.newInstance(
-                    DbAdapter.class, JdbcAdapter.class.getName()) : objectFactory.newInstance(DbAdapter.class, adapter
-            );
-
-            DataMap dataMap = loadDataMap(dataMapFile);
-            DbGenerator generator = new DbGenerator(adapterInst, dataMap, NoopJdbcEventLogger.getInstance());
-            generator.setShouldCreateFKConstraints(createFK);
-            generator.setShouldCreatePKSupport(createPK);
-            generator.setShouldCreateTables(createTables);
-            generator.setShouldDropPKSupport(dropPK);
-            generator.setShouldDropTables(dropTables);
-
-            DriverDataSource driverDataSource = new DriverDataSource((Driver) Class.class.forName(
-                    dataSource.getDriver()).newInstance(), dataSource.getUrl(), dataSource.getUsername(),
-                    dataSource.getPassword());
-
-            generator.runGenerator(driverDataSource);
+            DbGenerator generator = createGenerator(loadDataMap());
+            generator.runGenerator(createDataSource());
         } catch (Exception ex) {
             Throwable th = Util.unwindException(ex);
             String message = "Error generating database";
@@ -103,15 +107,42 @@ public class DbGenerateTask extends BaseCayenneTask {
             getLogger().error(message);
             throw new GradleException(message, th);
         }
-
-
     }
 
-    private DataMap loadDataMap(File dataMapFile) throws Exception {
+    DbGenerator createGenerator(DataMap dataMap) {
+        DbGenerator generator = new DbGenerator(createDbAdapter(), dataMap, NoopJdbcEventLogger.getInstance());
+        generator.setShouldCreateFKConstraints(createFK);
+        generator.setShouldCreatePKSupport(createPK);
+        generator.setShouldCreateTables(createTables);
+        generator.setShouldDropPKSupport(dropPK);
+        generator.setShouldDropTables(dropTables);
+        return generator;
+    }
 
+    DbAdapter createDbAdapter() {
+        Injector injector = DIBootstrap.createInjector(new DbSyncModule(), new ToolsModule(getLogger()));
+        AdhocObjectFactory objectFactory = injector.getInstance(AdhocObjectFactory.class);
+
+        return (adapter == null)
+                ? objectFactory.newInstance(DbAdapter.class, JdbcAdapter.class.getName())
+                : objectFactory.newInstance(DbAdapter.class, adapter);
+    }
+
+    DataSource createDataSource() {
+        return DataSourceBuilder.url(dataSource.getUrl())
+                .driver(dataSource.getDriver())
+                .userName(dataSource.getUsername())
+                .password(dataSource.getPassword())
+                .build();
+    }
+
+    DataMap loadDataMap() throws Exception {
+        File dataMapFile = getDataMapFile();
         InputSource inputSource = new InputSource(dataMapFile.getCanonicalPath());
         return new MapLoader().loadDataMap(inputSource);
     }
+
+    // setters and getters that will be used by .gradle scripts
 
     public String getAdapter() {
         return adapter;
@@ -119,6 +150,10 @@ public class DbGenerateTask extends BaseCayenneTask {
 
     public void setAdapter(String adapter) {
         this.adapter = adapter;
+    }
+
+    public void adapter(String adapter) {
+        setAdapter(adapter);
     }
 
     public DataSourceConfig getDataSource() {
@@ -129,8 +164,10 @@ public class DbGenerateTask extends BaseCayenneTask {
         this.dataSource = dataSource;
     }
 
-    public boolean getDropTables() {
-        return dropTables;
+    public DataSourceConfig dataSource(Closure closure) {
+        dataSource = new DataSourceConfig();
+        getProject().configure(dataSource, closure);
+        return dataSource;
     }
 
     public boolean isDropTables() {
@@ -141,8 +178,8 @@ public class DbGenerateTask extends BaseCayenneTask {
         this.dropTables = dropTables;
     }
 
-    public boolean getDropPK() {
-        return dropPK;
+    public void dropTables(boolean dropTables) {
+        setDropTables(dropTables);
     }
 
     public boolean isDropPK() {
@@ -153,8 +190,8 @@ public class DbGenerateTask extends BaseCayenneTask {
         this.dropPK = dropPK;
     }
 
-    public boolean getCreateTables() {
-        return createTables;
+    public void dropPK(boolean dropPK) {
+        setDropPK(dropPK);
     }
 
     public boolean isCreateTables() {
@@ -165,8 +202,8 @@ public class DbGenerateTask extends BaseCayenneTask {
         this.createTables = createTables;
     }
 
-    public boolean getCreatePK() {
-        return createPK;
+    public void createTables(boolean createTables) {
+        setCreateTables(createTables);
     }
 
     public boolean isCreatePK() {
@@ -177,8 +214,8 @@ public class DbGenerateTask extends BaseCayenneTask {
         this.createPK = createPK;
     }
 
-    public boolean getCreateFK() {
-        return createFK;
+    public void createPK(boolean createPK) {
+        setCreatePK(createPK);
     }
 
     public boolean isCreateFK() {
@@ -188,5 +225,8 @@ public class DbGenerateTask extends BaseCayenneTask {
     public void setCreateFK(boolean createFK) {
         this.createFK = createFK;
     }
-}
 
+    public void createFK(boolean createFK) {
+        setCreateFK(createFK);
+    }
+}
