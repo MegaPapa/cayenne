@@ -26,8 +26,6 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 
 import org.apache.cayenne.test.jdbc.SQLReader;
@@ -68,33 +66,6 @@ public class DbImportIT extends BaseTaskIT {
         File dataMap = new File(projectDir.getAbsolutePath() + "/datamap.map.xml");
         assertTrue(dataMap.exists());
         assertTrue(result.getOutput().contains("Detected changes: No changes to import."));
-    }
-
-    private void testWithGradleVersion(String version) throws Exception {
-        String dbUrl = "jdbc:derby:" + projectDir.getAbsolutePath() + "/build/" + version.replace('.', '_');
-        dbUrl += ";create=true";
-        GradleRunner runner = createRunner("dbimport_simple_db", "cdbimport", "--info", "-PdbUrl=" + dbUrl);
-        runner.withGradleVersion(version);
-        runner.build();
-    }
-
-    @Test
-    public void testGradleVersionsCompatibility() throws Exception {
-        String[] versions = {"3.5", "3.3", "3.0", "2.12", "2.8"};
-        List<String> failedVersions = new ArrayList<>();
-        for(String version : versions) {
-            try {
-                testWithGradleVersion(version);
-            } catch(Throwable th) {
-                failedVersions.add(version);
-            }
-        }
-
-        StringBuilder versionString = new StringBuilder("Failed versions:");
-        for(String version : failedVersions) {
-            versionString.append(" ").append(version);
-        }
-        assertTrue(versionString.toString(), failedVersions.isEmpty());
     }
 
     @Test
