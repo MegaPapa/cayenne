@@ -97,7 +97,6 @@
 				<include>org.apache.cayenne:cayenne-jgroups</include>
 				<include>org.apache.cayenne:cayenne-jms</include>
 				<include>org.apache.cayenne:cayenne-xmpp</include>
-				<include>org.apache.cayenne:cayenne-gradle-plugin</include>
 			</includes>
 		</dependencySet>
 		<dependencySet>
