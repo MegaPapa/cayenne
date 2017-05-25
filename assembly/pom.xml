@@ -44,7 +44,7 @@
 
 		<dependency>
 			<groupId>org.apache.cayenne</groupId>
-			<artifactId>cayenne-gradle</artifactId>
+			<artifactId>cayenne-gradle-plugin</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 
@@ -165,7 +165,7 @@
 	</build>
 
 	<profiles>
-		<!-- SOURCE assembly - the base assembly of a release build -->
+		<!-- SOURCE assembly - the base assembly of a relebuilduild -->
 		<profile>
 			<id>src</id>
 			<build>
