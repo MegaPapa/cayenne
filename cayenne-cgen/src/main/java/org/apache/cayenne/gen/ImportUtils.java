@@ -263,7 +263,7 @@ public class ImportUtils {
 			// if this isn't the first import,
 			if (null != lastStringPrefix) {
 				// and it's different from the last import
-				if (!thisStringPrefix.equals(lastStringPrefix)) {
+				if (false == thisStringPrefix.equals(lastStringPrefix)) {
 					// output a newline; force UNIX style per comment above
 					outputBuffer.append("\n");
 				}
