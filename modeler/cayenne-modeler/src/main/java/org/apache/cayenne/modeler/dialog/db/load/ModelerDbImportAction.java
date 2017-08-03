@@ -22,6 +22,7 @@ import org.apache.cayenne.configuration.DataChannelDescriptorLoader;
 import org.apache.cayenne.configuration.DataMapLoader;
 import org.apache.cayenne.configuration.server.DataSourceFactory;
 import org.apache.cayenne.configuration.server.DbAdapterFactory;
+import org.apache.cayenne.configuration.xml.DataChannelMetaData;
 import org.apache.cayenne.dbsync.merge.factory.MergerTokenFactoryProvider;
 import org.apache.cayenne.di.Inject;
 import org.apache.cayenne.map.DataMap;
@@ -42,6 +43,9 @@ public class ModelerDbImportAction extends DefaultDbImportAction {
                                  @Inject DataSourceFactory dataSourceFactory,
                                  @Inject DbAdapterFactory adapterFactory,
                                  @Inject DataMapLoader mapLoader,
+                                 @Inject MergerTokenFactoryProvider mergerTokenFactoryProvider,
+                                 @Inject DataChannelMetaData metaData) {
+        super(logger, projectSaver, dataSourceFactory, adapterFactory, mapLoader, mergerTokenFactoryProvider, metaData);
                                  @Inject MergerTokenFactoryProvider mergerTokenFactoryProvider,
                                  @Inject DataChannelDescriptorLoader dataChannelDescriptorLoader) {
         super(logger, projectSaver, dataSourceFactory, adapterFactory, mapLoader, mergerTokenFactoryProvider, dataChannelDescriptorLoader);

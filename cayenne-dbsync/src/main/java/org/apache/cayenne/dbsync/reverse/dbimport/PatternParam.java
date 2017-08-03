@@ -35,6 +35,10 @@ public class PatternParam {
         this.pattern = pattern;
     }
 
+    public PatternParam(PatternParam original) {
+        this.setPattern(original.getPattern());
+    }
+
     public String getPattern() {
         return pattern;
     }
