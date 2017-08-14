@@ -34,7 +34,7 @@ import java.util.Iterator;
  * 
  * @since 3.0
  */
-class CayenneGeneratorEntityFilterAction {
+public class CayenneGeneratorEntityFilterAction {
 
     private NameFilter nameFilter;
     private boolean client;
@@ -75,7 +75,7 @@ class CayenneGeneratorEntityFilterAction {
         return entities;
     }
 
-    void setClient(boolean client) {
+    public void setClient(boolean client) {
         this.client = client;
     }
 

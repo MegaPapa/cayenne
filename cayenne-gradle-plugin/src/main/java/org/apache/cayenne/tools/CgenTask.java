@@ -21,15 +21,20 @@ package org.apache.cayenne.tools;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.net.MalformedURLException;
 import java.util.Set;
 
 import groovy.lang.Reference;
+import org.apache.cayenne.configuration.xml.DataChannelMetaData;
 import org.apache.cayenne.dbsync.filter.NamePatternMatcher;
 import org.apache.cayenne.dbsync.reverse.configuration.ToolsModule;
+import org.apache.cayenne.dbsync.reverse.dbimport.ReverseEngineering;
 import org.apache.cayenne.di.DIBootstrap;
 import org.apache.cayenne.di.Injector;
+import org.apache.cayenne.gen.CgenModule;
 import org.apache.cayenne.gen.ClassGenerationAction;
 import org.apache.cayenne.gen.ClientClassGenerationAction;
+import org.apache.cayenne.gen.xml.CgenConfiguration;
 import org.apache.cayenne.map.DataMap;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
@@ -109,25 +114,50 @@ public class CgenTask extends BaseCayenneTask {
     private boolean createPropertyNames;
 
     private String destDirName;
+    private ClassGenerationAction generator;
+    private CayenneGeneratorMapLoaderAction loaderAction;
+    private DataMap dataMap;
+    private File dataMapFile;
 
     @TaskAction
     public void generate() {
-        File dataMapFile = getDataMapFile();
+        System.out.println("0");
+        dataMapFile = getDataMapFile();
+        generator = this.createGenerator();
 
-        Injector injector = DIBootstrap.createInjector(new ToolsModule(LoggerFactory.getLogger(CgenTask.class)));
-
-        CayenneGeneratorMapLoaderAction loaderAction = new CayenneGeneratorMapLoaderAction(injector);
+        Injector injector = DIBootstrap.createInjector(new CgenModule());
+        loaderAction = new CayenneGeneratorMapLoaderAction(injector);
         loaderAction.setMainDataMapFile(dataMapFile);
+        try {
+            dataMap = loaderAction.getMainDataMap();
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+        System.out.println("1");
 
+        DataChannelMetaData metaData = injector.getInstance(DataChannelMetaData.class);
+        CgenConfiguration dataMapConfiguration = metaData.get(dataMap, CgenConfiguration.class);
+
+        System.out.println("2");
+        if (dataMapConfiguration != null) {
+            File destDir = dataMapConfiguration.getDestDir();
+            System.out.println(destDir.getName());
+            dataMapConfiguration.getAction().setDestDir(getDestDirFile(destDir, destDir.getName()));
+            executeGeneratorAction(dataMapConfiguration.getAdditionalMaps(), dataMapConfiguration.getIncludeEntities(),
+                    dataMapConfiguration.getExcludeEntities(), dataMapConfiguration.isClient());
+        } else {
+            System.out.println("UZAEM IZ GRADLE!!!");
+        }
+    }
+
+    private void executeGeneratorAction(File additionalMaps, String includeEntities, String excludeEntities,
+                                        boolean client) {
         CayenneGeneratorEntityFilterAction filterAction = new CayenneGeneratorEntityFilterAction();
         filterAction.setClient(client);
         filterAction.setNameFilter(NamePatternMatcher.build(getLogger(), includeEntities, excludeEntities));
 
         try {
-            loaderAction.setAdditionalDataMapFiles(convertAdditionalDataMaps());
-
-            ClassGenerationAction generator = this.createGenerator();
-            DataMap dataMap = loaderAction.getMainDataMap();
+            loaderAction.setAdditionalDataMapFiles(convertAdditionalDataMaps(additionalMaps));
 
             generator.setLogger(getLogger());
             generator.setTimestamp(dataMapFile.lastModified());
@@ -141,7 +171,7 @@ public class CgenTask extends BaseCayenneTask {
         }
     }
 
-    private File[] convertAdditionalDataMaps() throws Exception {
+    private File[] convertAdditionalDataMaps(File additionalMaps) throws Exception {
         if (additionalMaps == null) {
             return NO_FILES;
         }
@@ -166,7 +196,7 @@ public class CgenTask extends BaseCayenneTask {
     ClassGenerationAction createGenerator() {
         ClassGenerationAction action = newGeneratorInstance();
 
-        action.setDestDir(getDestDirFile());
+        action.setDestDir(getDestDirFile(destDir, destDirName));
         action.setEncoding(encoding);
         action.setMakePairs(makePairs);
         action.setArtifactsGenerationMode(mode);
@@ -184,7 +214,7 @@ public class CgenTask extends BaseCayenneTask {
     }
 
     @OutputDirectory
-    protected File getDestDirFile() {
+    protected File getDestDirFile(File destDir, String destDirName) {
         final Reference<File> javaSourceDir = new Reference<>(null);
 
         if (destDir != null) {
