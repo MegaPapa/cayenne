@@ -234,7 +234,7 @@ public class CgenTask extends BaseCayenneTask {
     }
 
     @OutputDirectory
-    private File getDestDirFile(File destDir, String destDirName) {
+    File getDestDirFile(File destDir, String destDirName) {
         final Reference<File> javaSourceDir = new Reference<>(null);
 
         if (destDir != null) {
