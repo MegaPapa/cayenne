@@ -20,6 +20,7 @@
 package org.apache.cayenne.tools;
 
 import org.apache.cayenne.gen.ClassGenerationAction;
+import org.apache.cayenne.gen.xml.CgenConfiguration;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -40,6 +41,7 @@ public class CgenTaskTest {
     private CgenTask createCgenTaskMock(ClassGenerationAction action) {
         CgenTask mock = mock(CgenTask.class);
 
+        doCallRealMethod().when(mock).setDestDir(anyString());
         doCallRealMethod().when(mock).setClient(anyBoolean());
         doCallRealMethod().when(mock).setAdditionalMaps(any(File.class));
         doCallRealMethod().when(mock).setCreatePropertyNames(anyBoolean());
@@ -56,7 +58,7 @@ public class CgenTaskTest {
         doCallRealMethod().when(mock).setOverwrite(anyBoolean());
         doCallRealMethod().when(mock).setUsePkgPath(anyBoolean());
         doCallRealMethod().when(mock).setTemplate(anyString());
-        when(mock.newGeneratorInstance()).thenReturn(action);
+        when(mock.newGeneratorInstance(anyBoolean())).thenReturn(action);
         when(mock.createGenerator()).thenCallRealMethod();
 
         return mock;
