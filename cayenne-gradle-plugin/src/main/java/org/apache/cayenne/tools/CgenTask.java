@@ -28,7 +28,6 @@ import groovy.lang.Reference;
 import org.apache.cayenne.configuration.xml.DataChannelMetaData;
 import org.apache.cayenne.dbsync.filter.NamePatternMatcher;
 import org.apache.cayenne.dbsync.reverse.configuration.ToolsModule;
-import org.apache.cayenne.dbsync.reverse.dbimport.ReverseEngineering;
 import org.apache.cayenne.di.DIBootstrap;
 import org.apache.cayenne.di.Injector;
 import org.apache.cayenne.gen.CgenModule;
@@ -47,7 +46,6 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskAction;
-import org.slf4j.LoggerFactory;
 
 /**
  * @since 4.0
@@ -118,14 +116,13 @@ public class CgenTask extends BaseCayenneTask {
     private CayenneGeneratorMapLoaderAction loaderAction;
     private DataMap dataMap;
     private File dataMapFile;
+    private boolean useGradleConfig;
 
     @TaskAction
     public void generate() {
-        System.out.println("0");
         dataMapFile = getDataMapFile();
-        generator = this.createGenerator();
 
-        Injector injector = DIBootstrap.createInjector(new CgenModule());
+        Injector injector = DIBootstrap.createInjector(new CgenModule(), new ToolsModule(getLogger()));
         loaderAction = new CayenneGeneratorMapLoaderAction(injector);
         loaderAction.setMainDataMapFile(dataMapFile);
         try {
@@ -133,20 +130,23 @@ public class CgenTask extends BaseCayenneTask {
         } catch (MalformedURLException e) {
             e.printStackTrace();
         }
-        System.out.println("1");
 
         DataChannelMetaData metaData = injector.getInstance(DataChannelMetaData.class);
         CgenConfiguration dataMapConfiguration = metaData.get(dataMap, CgenConfiguration.class);
 
-        System.out.println("2");
-        if (dataMapConfiguration != null) {
+        if (useGradleConfig) {
+            getLogger().warn("Found several cgen configurations. Configuration selected from 'build.gradle' file.");
+        }
+
+        if ((dataMapConfiguration != null) && (!useGradleConfig)) {
+            generator = createGenerator(dataMapConfiguration);
             File destDir = dataMapConfiguration.getDestDir();
-            System.out.println(destDir.getName());
             dataMapConfiguration.getAction().setDestDir(getDestDirFile(destDir, destDir.getName()));
             executeGeneratorAction(dataMapConfiguration.getAdditionalMaps(), dataMapConfiguration.getIncludeEntities(),
                     dataMapConfiguration.getExcludeEntities(), dataMapConfiguration.isClient());
         } else {
-            System.out.println("UZAEM IZ GRADLE!!!");
+            generator = createGenerator();
+            executeGeneratorAction(additionalMaps, includeEntities, excludeEntities, isClient());
         }
     }
 
@@ -189,12 +189,32 @@ public class CgenTask extends BaseCayenneTask {
         return additionalMaps.listFiles(mapFilter);
     }
 
-    ClassGenerationAction newGeneratorInstance() {
+    ClassGenerationAction newGeneratorInstance(boolean client) {
         return client ? new ClientClassGenerationAction() : new ClassGenerationAction();
     }
 
+    private ClassGenerationAction createGenerator(CgenConfiguration configuration) {
+        ClassGenerationAction action = newGeneratorInstance(configuration.isClient());
+
+        action.setDestDir(getDestDirFile(configuration.getDestDir(), configuration.getDestDir().getName()));
+        action.setEncoding(configuration.getEncoding());
+        action.setMakePairs(configuration.isMakePairs());
+        action.setArtifactsGenerationMode(configuration.getArtifactsGenerationMode().getLabel());
+        action.setOutputPattern(configuration.getOutputPattern());
+        action.setOverwrite(configuration.isOverwrite());
+        action.setSuperPkg(configuration.getSuperPkg());
+        action.setSuperTemplate(configuration.getSuperTemplate());
+        action.setTemplate(configuration.getTemplate());
+        action.setEmbeddableSuperTemplate(configuration.getEmbeddableSuperTemplate());
+        action.setEmbeddableTemplate(configuration.getEmbeddableTemplate());
+        action.setUsePkgPath(configuration.isUsePkgPath());
+        action.setCreatePropertyNames(configuration.isCreatePropertyNames());
+
+        return action;
+    }
+
     ClassGenerationAction createGenerator() {
-        ClassGenerationAction action = newGeneratorInstance();
+        ClassGenerationAction action = newGeneratorInstance(client);
 
         action.setDestDir(getDestDirFile(destDir, destDirName));
         action.setEncoding(encoding);
@@ -214,7 +234,7 @@ public class CgenTask extends BaseCayenneTask {
     }
 
     @OutputDirectory
-    protected File getDestDirFile(File destDir, String destDirName) {
+    private File getDestDirFile(File destDir, String destDirName) {
         final Reference<File> javaSourceDir = new Reference<>(null);
 
         if (destDir != null) {
@@ -269,10 +289,12 @@ public class CgenTask extends BaseCayenneTask {
 
     public void setDestDir(File destDir) {
         this.destDir = destDir;
+        useGradleConfig = true;
     }
 
     public void setDestDir(String destDir) {
         this.destDirName = destDir;
+        useGradleConfig = true;
     }
 
     public void destDir(String destDir) {
@@ -291,6 +313,7 @@ public class CgenTask extends BaseCayenneTask {
 
     public void setAdditionalMaps(File additionalMaps) {
         this.additionalMaps = additionalMaps;
+        useGradleConfig = true;
     }
 
     public void additionalMaps(File additionalMaps) {
@@ -303,6 +326,7 @@ public class CgenTask extends BaseCayenneTask {
 
     public void setClient(boolean client) {
         this.client = client;
+        useGradleConfig = true;
     }
 
     public void client(boolean client) {
@@ -315,6 +339,7 @@ public class CgenTask extends BaseCayenneTask {
 
     public void setEncoding(String encoding) {
         this.encoding = encoding;
+        useGradleConfig = true;
     }
 
     public void encoding(String encoding) {
@@ -327,6 +352,7 @@ public class CgenTask extends BaseCayenneTask {
 
     public void setExcludeEntities(String excludeEntities) {
         this.excludeEntities = excludeEntities;
+        useGradleConfig = true;
     }
 
     public void excludeEntities(String excludeEntities) {
@@ -339,6 +365,7 @@ public class CgenTask extends BaseCayenneTask {
 
     public void setIncludeEntities(String includeEntities) {
         this.includeEntities = includeEntities;
+        useGradleConfig = true;
     }
 
     public void includeEntities(String includeEntities) {
@@ -351,6 +378,7 @@ public class CgenTask extends BaseCayenneTask {
 
     public void setMakePairs(boolean makePairs) {
         this.makePairs = makePairs;
+        useGradleConfig = true;
     }
 
     public void makePairs(boolean makePairs) {
@@ -363,6 +391,7 @@ public class CgenTask extends BaseCayenneTask {
 
     public void setMode(String mode) {
         this.mode = mode;
+        useGradleConfig = true;
     }
 
     public void mode(String mode) {
@@ -375,6 +404,7 @@ public class CgenTask extends BaseCayenneTask {
 
     public void setOutputPattern(String outputPattern) {
         this.outputPattern = outputPattern;
+        useGradleConfig = true;
     }
 
     public void outputPattern(String outputPattern) {
@@ -387,6 +417,7 @@ public class CgenTask extends BaseCayenneTask {
 
     public void setOverwrite(boolean overwrite) {
         this.overwrite = overwrite;
+        useGradleConfig = true;
     }
 
     public void overwrite(boolean overwrite) {
@@ -399,6 +430,7 @@ public class CgenTask extends BaseCayenneTask {
 
     public void setSuperPkg(String superPkg) {
         this.superPkg = superPkg;
+        useGradleConfig = true;
     }
 
     public void superPkg(String superPkg) {
@@ -411,6 +443,7 @@ public class CgenTask extends BaseCayenneTask {
 
     public void setSuperTemplate(String superTemplate) {
         this.superTemplate = superTemplate;
+        useGradleConfig = true;
     }
 
     public void superTemplate(String superTemplate) {
@@ -423,6 +456,7 @@ public class CgenTask extends BaseCayenneTask {
 
     public void setTemplate(String template) {
         this.template = template;
+        useGradleConfig = true;
     }
 
     public void template(String template) {
@@ -435,6 +469,7 @@ public class CgenTask extends BaseCayenneTask {
 
     public void setEmbeddableSuperTemplate(String embeddableSuperTemplate) {
         this.embeddableSuperTemplate = embeddableSuperTemplate;
+        useGradleConfig = true;
     }
 
     public void embeddableSuperTemplate(String embeddableSuperTemplate) {
@@ -447,6 +482,7 @@ public class CgenTask extends BaseCayenneTask {
 
     public void setEmbeddableTemplate(String embeddableTemplate) {
         this.embeddableTemplate = embeddableTemplate;
+        useGradleConfig = true;
     }
 
     public void embeddableTemplate(String embeddableTemplate) {
@@ -459,6 +495,7 @@ public class CgenTask extends BaseCayenneTask {
 
     public void setUsePkgPath(boolean usePkgPath) {
         this.usePkgPath = usePkgPath;
+        useGradleConfig = true;
     }
 
     public void usePkgPath(boolean usePkgPath) {
@@ -471,6 +508,7 @@ public class CgenTask extends BaseCayenneTask {
 
     public void setCreatePropertyNames(boolean createPropertyNames) {
         this.createPropertyNames = createPropertyNames;
+        useGradleConfig = true;
     }
 
     public void createPropertyNames(boolean createPropertyNames) {

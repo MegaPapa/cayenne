@@ -19,6 +19,7 @@
 
 package org.apache.cayenne.gen.xml;
 
+import org.apache.cayenne.configuration.ConfigurationNodeVisitor;
 import org.apache.cayenne.configuration.xml.DataChannelMetaData;
 import org.apache.cayenne.di.Inject;
 import org.apache.cayenne.project.Project;
@@ -44,5 +45,10 @@ public class CgenExtension implements ProjectExtension {
     @Override
     public SaverDelegate createSaverDelegate() {
         return new CgenSaverDelegate(metaData);
+    }
+
+    @Override
+    public ConfigurationNodeVisitor<String> createNamingDelegate() {
+        return null;
     }
 }

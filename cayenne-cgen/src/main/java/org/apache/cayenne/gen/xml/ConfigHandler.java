@@ -77,7 +77,6 @@ public class ConfigHandler extends NamespaceAwareNestedTagHandler {
 
     @Override
     protected void processCharData(String localName, String data) {
-        System.out.println(data);
         switch (localName) {
             case ADDITIONAL_MAPS_TAG:
                 createAdditionalMaps(data);
@@ -321,8 +320,16 @@ public class ConfigHandler extends NamespaceAwareNestedTagHandler {
         }
     }
 
+    private void initConfiguration() {
+        configuration.setArtifactsGenerationMode("entity");
+        configuration.setOutputPattern("*.java");
+        configuration.setUsePkgPath(true);
+        configuration.setMakePairs(true);
+    }
+
     private void createConfig() {
         configuration = new CgenConfiguration();
+        initConfiguration();
         loaderContext.addDataMapListener(new DataMapLoaderListener() {
             @Override
             public void onDataMapLoaded(DataMap dataMap) {

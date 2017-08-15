@@ -19,21 +19,12 @@
 
 package org.apache.cayenne.gen;
 
-import org.apache.cayenne.configuration.ConfigurationNameMapper;
-import org.apache.cayenne.configuration.DataMapLoader;
-import org.apache.cayenne.configuration.DefaultConfigurationNameMapper;
 import org.apache.cayenne.configuration.xml.DataChannelMetaData;
 import org.apache.cayenne.configuration.xml.DefaultDataChannelMetaData;
-import org.apache.cayenne.configuration.xml.DefaultHandlerFactory;
-import org.apache.cayenne.configuration.xml.HandlerFactory;
-import org.apache.cayenne.configuration.xml.XMLDataMapLoader;
 import org.apache.cayenne.di.Binder;
 import org.apache.cayenne.di.Module;
 import org.apache.cayenne.gen.xml.CgenExtension;
-import org.apache.cayenne.project.FileProjectSaver;
 import org.apache.cayenne.project.ProjectModule;
-import org.apache.cayenne.project.ProjectSaver;
-import org.apache.cayenne.project.extension.ExtensionAwareHandlerFactory;
 
 /**
  * @since 4.1
@@ -42,12 +33,7 @@ public class CgenModule implements Module {
 
     @Override
     public void configure(Binder binder) {
-        binder.bind(ProjectSaver.class).to(FileProjectSaver.class);
-        binder.bind(ConfigurationNameMapper.class).to(DefaultConfigurationNameMapper.class);
-        binder.bind(DataMapLoader.class).to(XMLDataMapLoader.class);
-        binder.bind(HandlerFactory.class).to(DefaultHandlerFactory.class);
         binder.bind(DataChannelMetaData.class).to(DefaultDataChannelMetaData.class);
-        binder.bind(HandlerFactory.class).to(ExtensionAwareHandlerFactory.class);
-        ProjectModule.contributeExtension(binder).add(CgenExtension.class);
+        ProjectModule.contributeExtensions(binder).add(CgenExtension.class);
     }
 }
