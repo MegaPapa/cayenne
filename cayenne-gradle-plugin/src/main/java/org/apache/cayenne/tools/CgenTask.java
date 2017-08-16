@@ -134,7 +134,7 @@ public class CgenTask extends BaseCayenneTask {
         DataChannelMetaData metaData = injector.getInstance(DataChannelMetaData.class);
         CgenConfiguration dataMapConfiguration = metaData.get(dataMap, CgenConfiguration.class);
 
-        if (useGradleConfig) {
+        if ((useGradleConfig) && ((dataMapConfiguration != null))) {
             getLogger().warn("Found several cgen configurations. Configuration selected from 'build.gradle' file.");
         }
 
