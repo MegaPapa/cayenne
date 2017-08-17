@@ -63,7 +63,7 @@ public class CayenneGeneratorMojo extends AbstractMojo {
 	 * Persistence application. Default is <code>false</code>.
 	 */
 	@Parameter
-	private boolean client = false;
+	private boolean client;
 
 	/**
 	 * Destination directory for Java classes (ignoring their package names).
@@ -100,8 +100,8 @@ public class CayenneGeneratorMojo extends AbstractMojo {
 	 * with all generated code included in superclass (default is
 	 * <code>true</code>).
 	 */
-	@Parameter
-	private boolean makePairs = true;
+	@Parameter(defaultValue = "true")
+	private boolean makePairs;
 
 	/**
 	 * DataMap XML file to use as a base for class generation.
@@ -115,21 +115,21 @@ public class CayenneGeneratorMojo extends AbstractMojo {
 	 * iteration per datamap (This is always one iteration since cgen currently
 	 * supports specifying one-and-only-one datamap). (Default is &quot;entity&quot;)
 	 */
-	@Parameter
-	private String mode = "entity";
+	@Parameter(defaultValue = "entity")
+	private String mode;
 
 	/**
 	 * Name of file for generated output. (Default is &quot;*.java&quot;)
 	 */
-	@Parameter
-	private String outputPattern = "*.java";
+	@Parameter(defaultValue = "*.java")
+	private String outputPattern;
 
 	/**
 	 * If set to <code>true</code>, will overwrite older versions of generated
 	 * classes. Ignored unless makepairs is set to <code>false</code>.
 	 */
-	@Parameter
-	private boolean overwrite = false;
+	@Parameter(defaultValue = "false")
+	private boolean overwrite;
 
 	/**
 	 * Java package name of generated superclasses. Ignored unless
@@ -178,15 +178,15 @@ public class CayenneGeneratorMojo extends AbstractMojo {
 	 * <code>false</code>, classes will be generated in &quot;destDir&quot;
 	 * ignoring their package.
 	 */
-	@Parameter
-	private boolean usePkgPath = true;
+	@Parameter(defaultValue = "true")
+	private boolean usePkgPath;
 
     /**
      * If set to <code>true</code>, will generate String Property names.
      * Default is <code>false</code>.
      */
-    @Parameter
-    private boolean createPropertyNames = false;
+    @Parameter(defaultValue = "false")
+    private boolean createPropertyNames;
 
     private transient Injector injector;
     private boolean useMavenConfig;
@@ -207,10 +207,7 @@ public class CayenneGeneratorMojo extends AbstractMojo {
 		Logger logger = new MavenLogger(this);
 		CayenneGeneratorMapLoaderAction loaderAction = new CayenneGeneratorMapLoaderAction(injector);
 		loaderAction.setMainDataMapFile(map);
-
-		CayenneGeneratorEntityFilterAction filterAction = new CayenneGeneratorEntityFilterAction();
-		filterAction.setClient(client);
-		filterAction.setNameFilter(NamePatternMatcher.build(logger, includeEntities, excludeEntities));
+		CayenneGeneratorEntityFilterAction filterAction;
 
 		try {
 			loaderAction.setAdditionalDataMapFiles(convertAdditionalDataMaps(additionalMaps));
@@ -219,6 +216,7 @@ public class CayenneGeneratorMojo extends AbstractMojo {
 			DataChannelMetaData metaData = injector.getInstance(DataChannelMetaData.class);
 			CgenConfiguration dataMapConfiguration = metaData.get(dataMap, CgenConfiguration.class);
 			if (dataMapConfiguration != null) {
+				reviewMavenConfig();
 				File metaAdditionalDataMaps = dataMapConfiguration.getAdditionalMaps();
 				loaderAction.setAdditionalDataMapFiles(convertAdditionalDataMaps(metaAdditionalDataMaps));
 				dataMap = loaderAction.getMainDataMap();
@@ -227,13 +225,15 @@ public class CayenneGeneratorMojo extends AbstractMojo {
 
 
 			if ((useMavenConfig) && (dataMapConfiguration != null)) {
-				LoggerFactory.getLogger(CayenneGeneratorMojo.class).warn("Found several cgen configurations. " +
-						"Configuration selected from 'pom.xml' file.");
+				logger.warn("Found several cgen configurations. Configuration selected from 'pom.xml' file.");
 			}
 
 			if ((dataMapConfiguration != null) && (!useMavenConfig)) {
+				filterAction = createFilterAction(dataMapConfiguration.isClient(), dataMapConfiguration.getIncludeEntities(),
+						dataMapConfiguration.getExcludeEntities(), logger);
 				generator = createGenerator(dataMapConfiguration);
 			} else {
+				filterAction = createFilterAction(client, includeEntities, excludeEntities, logger);
 				generator = createGenerator();
 			}
 			generator.setLogger(logger);
@@ -250,6 +250,50 @@ public class CayenneGeneratorMojo extends AbstractMojo {
 		} catch (Exception e) {
 			throw new MojoExecutionException("Error generating classes: ", e);
 		}
+	}
+
+	private void reviewMavenConfig() {
+		if (additionalMaps != null) {
+			useMavenConfig = true;
+		} else if (client) {
+			useMavenConfig = true;
+		} else if (encoding != null) {
+			useMavenConfig = true;
+		} else if (excludeEntities != null) {
+			useMavenConfig = true;
+		} else if (includeEntities != null) {
+			useMavenConfig = true;
+		} else if (!makePairs) {
+			useMavenConfig = true;
+		} else if (!mode.equals("entity")) {
+			useMavenConfig = true;
+		} else if (!outputPattern.equals("*.java")) {
+			useMavenConfig = true;
+		} else if (overwrite) {
+			useMavenConfig = true;
+		} else if (superPkg != null) {
+			useMavenConfig = true;
+		} else if (superTemplate != null) {
+			useMavenConfig = true;
+		} else if (template != null) {
+			useMavenConfig = true;
+		} else if (embeddableSuperTemplate != null) {
+			useMavenConfig = true;
+		} else if (embeddableTemplate != null) {
+			useMavenConfig = true;
+		} else if (!usePkgPath) {
+			useMavenConfig = true;
+		} else if (createPropertyNames) {
+			useMavenConfig = true;
+		}
+	}
+
+	private CayenneGeneratorEntityFilterAction createFilterAction(boolean client, String includeEntities, String excludeEntities,
+																  Logger logger) {
+		CayenneGeneratorEntityFilterAction filterAction = new CayenneGeneratorEntityFilterAction();
+		filterAction.setClient(client);
+		filterAction.setNameFilter(NamePatternMatcher.build(logger, includeEntities, excludeEntities));
+		return filterAction;
 	}
 
 	/**
@@ -338,81 +382,65 @@ public class CayenneGeneratorMojo extends AbstractMojo {
 
 	public void setAdditionalMaps(File additionalMaps) {
 		this.additionalMaps = additionalMaps;
-		useMavenConfig = true;
 	}
 
 	public void setClient(boolean client) {
 		this.client = client;
-		useMavenConfig = true;
 	}
 
 	public void setEncoding(String encoding) {
 		this.encoding = encoding;
-		useMavenConfig = true;
 	}
 
 	public void setExcludeEntities(String excludeEntities) {
 		this.excludeEntities = excludeEntities;
-		useMavenConfig = true;
 	}
 
 	public void setIncludeEntities(String includeEntities) {
 		this.includeEntities = includeEntities;
-		useMavenConfig = true;
 	}
 
 	public void setMakePairs(boolean makePairs) {
 		this.makePairs = makePairs;
-		useMavenConfig = true;
 	}
 
 	public void setMode(String mode) {
 		this.mode = mode;
-		useMavenConfig = true;
 	}
 
 	public void setOutputPattern(String outputPattern) {
 		this.outputPattern = outputPattern;
-		useMavenConfig = true;
 	}
 
 	public void setOverwrite(boolean overwrite) {
 		this.overwrite = overwrite;
-		useMavenConfig = true;
 	}
 
 	public void setSuperPkg(String superPkg) {
 		this.superPkg = superPkg;
-		useMavenConfig = true;
 	}
 
 	public void setSuperTemplate(String superTemplate) {
 		this.superTemplate = superTemplate;
-		useMavenConfig = true;
 	}
 
 	public void setTemplate(String template) {
 		this.template = template;
-		useMavenConfig = true;
 	}
 
 	public void setEmbeddableSuperTemplate(String embeddableSuperTemplate) {
 		this.embeddableSuperTemplate = embeddableSuperTemplate;
-		useMavenConfig = true;
 	}
 
 	public void setEmbeddableTemplate(String embeddableTemplate) {
 		this.embeddableTemplate = embeddableTemplate;
-		useMavenConfig = true;
 	}
 
 	public void setUsePkgPath(boolean usePkgPath) {
 		this.usePkgPath = usePkgPath;
-		useMavenConfig = true;
 	}
 
 	public void setCreatePropertyNames(boolean createPropertyNames) {
 		this.createPropertyNames = createPropertyNames;
-		useMavenConfig = true;
 	}
 }

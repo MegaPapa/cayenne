@@ -16,16 +16,20 @@
  *  specific language governing permissions and limitations
  *  under the License.
  ****************************************************************/
+
 package org.apache.cayenne.tools;
 
 import foundrylogic.vpp.VPPConfig;
+import org.apache.cayenne.configuration.xml.DataChannelMetaData;
 import org.apache.cayenne.dbsync.filter.NamePatternMatcher;
 import org.apache.cayenne.dbsync.reverse.configuration.ToolsModule;
 import org.apache.cayenne.di.DIBootstrap;
 import org.apache.cayenne.di.Injector;
 import org.apache.cayenne.gen.ArtifactsGenerationMode;
+import org.apache.cayenne.gen.CgenModule;
 import org.apache.cayenne.gen.ClassGenerationAction;
 import org.apache.cayenne.gen.ClientClassGenerationAction;
+import org.apache.cayenne.gen.xml.CgenConfiguration;
 import org.apache.cayenne.map.DataMap;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.types.Path;
@@ -33,6 +37,7 @@ import org.apache.velocity.VelocityContext;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.FilenameFilter;
 
 /**
  * An Ant task to perform class generation based on CayenneDataMap.
@@ -40,6 +45,8 @@ import java.io.File;
  * @since 3.0
  */
 public class CayenneGeneratorTask extends CayenneTask {
+
+    private static final File[] NO_FILES = new File[0];
 
     protected String includeEntitiesPattern;
     protected String excludeEntitiesPattern;
@@ -64,6 +71,8 @@ public class CayenneGeneratorTask extends CayenneTask {
     protected boolean usepkgpath;
     protected boolean createpropertynames;
 
+    private boolean useAntConfiguration;
+
     public CayenneGeneratorTask() {
         this.makepairs = true;
         this.mode = ArtifactsGenerationMode.ENTITY.getLabel();
@@ -76,8 +85,35 @@ public class CayenneGeneratorTask extends CayenneTask {
         return vppConfig.getVelocityContext();
     }
 
+    ClassGenerationAction newGeneratorInstance(boolean client) {
+        return client ? new ClientClassGenerationAction() : new ClassGenerationAction();
+    }
+
+    private ClassGenerationAction createGeneratorAction(CgenConfiguration configuration) {
+        ClassGenerationAction action = newGeneratorInstance(configuration.isClient());
+
+        action.setContext(getVppContext());
+        action.setDestDir(configuration.getDestDir());
+        action.setEncoding(configuration.getEncoding());
+        action.setMakePairs(configuration.isMakePairs());
+        action.setArtifactsGenerationMode(configuration.getArtifactsGenerationMode().getLabel());
+        action.setOutputPattern(configuration.getOutputPattern());
+        action.setOverwrite(configuration.isOverwrite());
+        action.setSuperPkg(configuration.getSuperPkg());
+        action.setSuperTemplate(configuration.getSuperTemplate());
+        action.setTemplate(configuration.getTemplate());
+        action.setEmbeddableSuperTemplate(configuration.getEmbeddableSuperTemplate());
+        action.setEmbeddableTemplate(configuration.getEmbeddableTemplate());
+        action.setQueryTemplate(configuration.getTemplate());
+        action.setQuerySuperTemplate(configuration.getSuperTemplate());
+        action.setUsePkgPath(configuration.isUsePkgPath());
+        action.setCreatePropertyNames(configuration.isCreatePropertyNames());
+
+        return action;
+    }
+
     protected ClassGenerationAction createGeneratorAction() {
-        ClassGenerationAction action = client ? new ClientClassGenerationAction() : new ClassGenerationAction();
+        ClassGenerationAction action = newGeneratorInstance(client);
 
         action.setContext(getVppContext());
         action.setDestDir(destDir);
@@ -104,25 +140,51 @@ public class CayenneGeneratorTask extends CayenneTask {
      */
     @Override
     public void execute() throws BuildException {
+        if (destDir != null) {
+            if (!destDir.exists()) {
+                destDir.mkdirs();
+            }
+        }
+
         validateAttributes();
 
-        Injector injector = DIBootstrap.createInjector(new ToolsModule(LoggerFactory.getLogger(CayenneGeneratorTask.class)));
+        Injector injector = DIBootstrap.createInjector(new ToolsModule(LoggerFactory.getLogger(CayenneGeneratorTask.class)),
+                                                        new CgenModule());
 
         AntLogger logger = new AntLogger(this);
         CayenneGeneratorMapLoaderAction loadAction = new CayenneGeneratorMapLoaderAction(injector);
 
         loadAction.setMainDataMapFile(map);
-        loadAction.setAdditionalDataMapFiles(additionalMaps);
 
-        CayenneGeneratorEntityFilterAction filterAction = new CayenneGeneratorEntityFilterAction();
-        filterAction.setClient(client);
-        filterAction.setNameFilter(NamePatternMatcher.build(logger, includeEntitiesPattern, excludeEntitiesPattern));
+        CayenneGeneratorEntityFilterAction filterAction;
 
         try {
+            loadAction.setAdditionalDataMapFiles(additionalMaps);
 
             DataMap dataMap = loadAction.getMainDataMap();
+            DataChannelMetaData metaData = injector.getInstance(DataChannelMetaData.class);
+            CgenConfiguration dataMapConfiguration = metaData.get(dataMap, CgenConfiguration.class);
+            ClassGenerationAction generatorAction;
 
-            ClassGenerationAction generatorAction = createGeneratorAction();
+            if (dataMapConfiguration != null) {
+                File metaAdditionalDataMaps = dataMapConfiguration.getAdditionalMaps();
+                loadAction.setAdditionalDataMapFiles(convertAdditionalDataMaps(metaAdditionalDataMaps));
+                dataMap = loadAction.getMainDataMap();
+            }
+
+            if ((useAntConfiguration) && (dataMapConfiguration != null)) {
+                logger.warn("Found several cgen configurations. Configuration selected from build file.");
+            }
+
+            if ((dataMapConfiguration != null) && (!useAntConfiguration)) {
+                filterAction = createFilterAction(dataMapConfiguration.isClient(), dataMapConfiguration.getIncludeEntities(),
+                        dataMapConfiguration.getExcludeEntities(), logger);
+                generatorAction = createGeneratorAction(dataMapConfiguration);
+            } else {
+                filterAction = createFilterAction(client, includeEntitiesPattern, excludeEntitiesPattern, logger);
+                generatorAction = createGeneratorAction();
+            }
+
             generatorAction.setLogger(logger);
             generatorAction.setTimestamp(map.lastModified());
             generatorAction.setDataMap(dataMap);
@@ -134,6 +196,35 @@ public class CayenneGeneratorTask extends CayenneTask {
         catch (Exception e) {
             throw new BuildException(e);
         }
+    }
+
+    private CayenneGeneratorEntityFilterAction createFilterAction(boolean client, String includeEntities, String excludeEntities,
+                                                                  AntLogger logger) {
+        CayenneGeneratorEntityFilterAction filterAction = new CayenneGeneratorEntityFilterAction();
+        filterAction.setClient(client);
+        filterAction.setNameFilter(NamePatternMatcher.build(logger, includeEntities, excludeEntities));
+        return filterAction;
+    }
+
+    protected File[] convertAdditionalDataMaps(File additionalMaps) throws Exception {
+
+        if (additionalMaps == null) {
+            return NO_FILES;
+        }
+
+        if (!additionalMaps.isDirectory()) {
+            throw new BuildException(
+                    "'additionalMaps' must be a directory.");
+        }
+
+        FilenameFilter mapFilter = new FilenameFilter() {
+            @Override
+            public boolean accept(File dir, String name) {
+                return name != null &&
+                        name.toLowerCase().endsWith(".map.xml");
+            }
+        };
+        return additionalMaps.listFiles(mapFilter);
     }
 
     /**
@@ -174,6 +265,7 @@ public class CayenneGeneratorTask extends CayenneTask {
      */
     public void setDestDir(File destDir) {
         this.destDir = destDir;
+        useAntConfiguration = true;
     }
 
     /**
@@ -181,6 +273,7 @@ public class CayenneGeneratorTask extends CayenneTask {
      */
     public void setOverwrite(boolean overwrite) {
         this.overwrite = overwrite;
+        useAntConfiguration = true;
     }
 
     /**
@@ -188,6 +281,7 @@ public class CayenneGeneratorTask extends CayenneTask {
      */
     public void setMakepairs(boolean makepairs) {
         this.makepairs = makepairs;
+        useAntConfiguration = true;
     }
 
     /**
@@ -195,6 +289,7 @@ public class CayenneGeneratorTask extends CayenneTask {
      */
     public void setTemplate(String template) {
         this.template = template;
+        useAntConfiguration = true;
     }
 
     /**
@@ -202,6 +297,7 @@ public class CayenneGeneratorTask extends CayenneTask {
      */
     public void setSupertemplate(String supertemplate) {
         this.supertemplate = supertemplate;
+        useAntConfiguration = true;
     }
 
     /**
@@ -209,6 +305,7 @@ public class CayenneGeneratorTask extends CayenneTask {
      */
     public void setQueryTemplate(String querytemplate) {
         this.querytemplate = querytemplate;
+        useAntConfiguration = true;
     }
 
     /**
@@ -216,6 +313,7 @@ public class CayenneGeneratorTask extends CayenneTask {
      */
     public void setQuerySupertemplate(String querysupertemplate) {
         this.querysupertemplate = querysupertemplate;
+        useAntConfiguration = true;
     }
 
     /**
@@ -223,6 +321,7 @@ public class CayenneGeneratorTask extends CayenneTask {
      */
     public void setUsepkgpath(boolean usepkgpath) {
         this.usepkgpath = usepkgpath;
+        useAntConfiguration = true;
     }
 
     /**
@@ -230,6 +329,7 @@ public class CayenneGeneratorTask extends CayenneTask {
      */
     public void setSuperpkg(String superpkg) {
         this.superpkg = superpkg;
+        useAntConfiguration = true;
     }
 
     /**
@@ -237,6 +337,7 @@ public class CayenneGeneratorTask extends CayenneTask {
      */
     public void setClient(boolean client) {
         this.client = client;
+        useAntConfiguration = true;
     }
 
     /**
@@ -245,6 +346,7 @@ public class CayenneGeneratorTask extends CayenneTask {
      */
     public void setEncoding(String encoding) {
         this.encoding = encoding;
+        useAntConfiguration = true;
     }
 
     /**
@@ -252,6 +354,7 @@ public class CayenneGeneratorTask extends CayenneTask {
      */
     public void setExcludeEntities(String excludeEntitiesPattern) {
         this.excludeEntitiesPattern = excludeEntitiesPattern;
+        useAntConfiguration = true;
     }
 
     /**
@@ -259,6 +362,7 @@ public class CayenneGeneratorTask extends CayenneTask {
      */
     public void setIncludeEntities(String includeEntitiesPattern) {
         this.includeEntitiesPattern = includeEntitiesPattern;
+        useAntConfiguration = true;
     }
 
     /**
@@ -266,6 +370,7 @@ public class CayenneGeneratorTask extends CayenneTask {
      */
     public void setOutputPattern(String outputPattern) {
         this.outputPattern = outputPattern;
+        useAntConfiguration = true;
     }
 
     /**
@@ -273,6 +378,7 @@ public class CayenneGeneratorTask extends CayenneTask {
      */
     public void setMode(String mode) {
         this.mode = mode;
+        useAntConfiguration = true;
     }
 
     /**
@@ -280,14 +386,17 @@ public class CayenneGeneratorTask extends CayenneTask {
      */
     public void setCreatepropertynames(boolean createpropertynames) {
         this.createpropertynames = createpropertynames;
+        useAntConfiguration = true;
     }
 
     public void setEmbeddabletemplate(String embeddabletemplate) {
         this.embeddabletemplate = embeddabletemplate;
+        useAntConfiguration = true;
     }
 
     public void setEmbeddablesupertemplate(String embeddablesupertemplate) {
         this.embeddablesupertemplate = embeddablesupertemplate;
+        useAntConfiguration = true;
     }
 
     /**
