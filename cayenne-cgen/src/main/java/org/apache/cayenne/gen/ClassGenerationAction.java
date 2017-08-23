@@ -303,11 +303,19 @@ public class ClassGenerationAction {
 		this.destDir = destDir;
 	}
 
+	public File getDestDir() {
+		return this.destDir;
+	}
+
 	/**
 	 * Sets <code>overwrite</code> property.
 	 */
 	public void setOverwrite(boolean overwrite) {
 		this.overwrite = overwrite;
+	}
+
+	public boolean getOverwrite() {
+		return this.overwrite;
 	}
 
 	/**
@@ -317,6 +325,10 @@ public class ClassGenerationAction {
 		this.makePairs = makePairs;
 	}
 
+	public boolean getMakePairs() {
+		return this.makePairs;
+	}
+
 	/**
 	 * Sets <code>template</code> property.
 	 */
@@ -324,11 +336,19 @@ public class ClassGenerationAction {
 		this.template = template;
 	}
 
+	public String getTemplate() {
+		return this.template;
+	}
+
 	/**
 	 * Sets <code>superTemplate</code> property.
 	 */
 	public void setSuperTemplate(String superTemplate) {
 		this.superTemplate = superTemplate;
+	}
+
+	public String getSuperTemplate() {
+		return this.superTemplate;
 	}
 
 	public void setQueryTemplate(String queryTemplate) {
@@ -346,6 +366,10 @@ public class ClassGenerationAction {
 		this.usePkgPath = usePkgPath;
 	}
 
+	public boolean getUsePkgPath() {
+		return this.usePkgPath;
+	}
+
 	/**
 	 * Sets <code>outputPattern</code> property.
 	 */
@@ -353,11 +377,19 @@ public class ClassGenerationAction {
 		this.outputPattern = outputPattern;
 	}
 
+	public String getOutputPattern() {
+		return this.outputPattern;
+	}
+
 	/**
 	 * Sets <code>createPropertyNames</code> property.
 	 */
 	public void setCreatePropertyNames(boolean createPropertyNames) {
 		this.createPropertyNames = createPropertyNames;
+	}
+
+	public boolean getCreatePropertyNames() {
+		return this.createPropertyNames;
 	}
 
 	/**
@@ -503,12 +535,20 @@ public class ClassGenerationAction {
 		this.superPkg = superPkg;
 	}
 
+	public String getSuperPkg() {
+		return this.superPkg;
+	}
+
 	/**
 	 * @param dataMap
 	 *            The dataMap to set.
 	 */
 	public void setDataMap(DataMap dataMap) {
 		this.dataMap = dataMap;
+	}
+
+	public DataMap getDataMap() {
+		return this.dataMap;
 	}
 
 	/**
@@ -589,5 +629,9 @@ public class ClassGenerationAction {
 		} else {
 			this.artifactsGenerationMode = ArtifactsGenerationMode.ALL;
 		}
+	}
+
+	public String getArtifactsGenerationMode() {
+		return this.artifactsGenerationMode.getLabel();
 	}
 }

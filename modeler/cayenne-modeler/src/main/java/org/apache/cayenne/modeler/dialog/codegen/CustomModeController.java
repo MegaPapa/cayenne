@@ -20,6 +20,7 @@
 package org.apache.cayenne.modeler.dialog.codegen;
 
 import org.apache.cayenne.gen.ClassGenerationAction;
+import org.apache.cayenne.gen.xml.CgenConfiguration;
 import org.apache.cayenne.map.DataMap;
 import org.apache.cayenne.modeler.CodeTemplateManager;
 import org.apache.cayenne.modeler.dialog.pref.PreferenceDialog;
@@ -28,8 +29,9 @@ import org.apache.cayenne.swing.BindingBuilder;
 import org.apache.cayenne.swing.ObjectBinding;
 import org.apache.cayenne.util.Util;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JComboBox;
+import java.awt.Component;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -69,6 +71,9 @@ public class CustomModeController extends GeneratorController {
 	protected ObjectBinding subTemplate;
 
 	private CustomPreferencesUpdater preferencesUpdater;
+	private String metaSubTemplate;
+	private String metaSuperTemplate;
+	private boolean client;
 
 	public CustomPreferencesUpdater getCustomPreferencesUpdater() {
 		return preferencesUpdater;
@@ -138,7 +143,57 @@ public class CustomModeController extends GeneratorController {
 		builder.bindToStateChange(view.getCreatePropertyNames(), "customPreferencesUpdater.createPropertyNames")
 				.updateView();
 
+		getConfigFromMetaData();
 		updateTemplates();
+	}
+
+	private int getGenerationModeIndex(String mode) {
+		String modeLabel = "";
+		switch (mode) {
+			case MODE_ALL:
+				modeLabel = ALL_MODE_LABEL;
+				break;
+			case MODE_DATAMAP:
+				modeLabel = DATA_MAP_MODE_LABEL;
+				break;
+			case MODE_ENTITY:
+				modeLabel = ENTITY_MODE_LABEL;
+				break;
+		}
+		return getElementIndexByName(view.generationMode, modeLabel);
+	}
+
+	private int getElementIndexByName(JComboBox comboBox, String name) {
+		int count = comboBox.getItemCount();
+		for (int i = 0; i < count; i++) {
+			if (comboBox.getItemAt(i).equals(name)) {
+				return i;
+			}
+		}
+		return 0;
+	}
+
+	private void getConfigFromMetaData() {
+		Collection<DataMap> dataMaps = getParentController().getDataMaps();
+		for (DataMap dataMap : dataMaps) {
+			CgenConfiguration configuration = getApplication().getMetaData().get(dataMap, CgenConfiguration.class);
+			if (configuration != null) {
+				client = configuration.isClient();
+				metaSubTemplate = configuration.getTemplate();
+				metaSuperTemplate = configuration.getSuperTemplate();
+				view.generationMode.setSelectedIndex(getGenerationModeIndex(configuration.getArtifactsGenerationMode().getLabel()));
+				view.outputPattern.setText(configuration.getOutputPattern());
+				view.createPropertyNames.setSelected(configuration.isCreatePropertyNames());
+				view.overwrite.setSelected(configuration.isOverwrite());
+				view.pairs.setSelected(configuration.isMakePairs());
+				view.usePackagePath.setSelected(configuration.isUsePkgPath());
+				if (configuration.isMakePairs()) {
+					view.overwrite.setEnabled(false);
+				} else {
+					view.getSuperclassTemplate().setEnabled(false);
+				}
+			}
+		}
 	}
 
 	protected void createDefaults() {
@@ -148,7 +203,13 @@ public class CustomModeController extends GeneratorController {
 			DataMapDefaults preferences;
 			preferences = getApplication().getFrameController().getProjectController()
 					.getDataMapPreferences(this.getClass().getName().replace(".", "/"), dataMap);
-			preferences.setSuperclassPackage("");
+			CgenConfiguration configuration = getApplication().getMetaData().get(dataMap, CgenConfiguration.class);
+			if (configuration != null) {
+				preferences.setSuperclassPackage(configuration.getSuperPkg());
+			} else {
+				preferences.setSuperclassPackage("");
+			}
+
 			preferences.updateSuperclassPackage(dataMap, false);
 
 			map.put(dataMap, preferences);
@@ -191,15 +252,46 @@ public class CustomModeController extends GeneratorController {
 		Collections.sort(customTemplates);
 
 		List<String> superTemplates = new ArrayList<>(templateManager.getStandardSuperclassTemplates());
+		if ((metaSuperTemplate != null) && (!templateManager.isDefaultTemplate(metaSuperTemplate))) {
+			templateManager.getCustomTemplates().put(metaSuperTemplate, metaSuperTemplate);
+			superTemplates.add(metaSuperTemplate);
+		}
 		Collections.sort(superTemplates);
 		superTemplates.addAll(customTemplates);
 
 		List<String> subTemplates = new ArrayList<>(templateManager.getStandardSubclassTemplates());
+		if ((metaSubTemplate != null) && (!templateManager.isDefaultTemplate(metaSubTemplate))) {
+			templateManager.getCustomTemplates().put(metaSubTemplate, metaSuperTemplate);
+			subTemplates.add(metaSubTemplate);
+		}
 		Collections.sort(subTemplates);
 		subTemplates.addAll(customTemplates);
 
 		this.view.getSubclassTemplate().setModel(new DefaultComboBoxModel(subTemplates.toArray()));
 		this.view.getSuperclassTemplate().setModel(new DefaultComboBoxModel(superTemplates.toArray()));
+
+		if ((!client) && (metaSubTemplate == null) && (metaSuperTemplate == null)) {
+			view.getSuperclassTemplate().setSelectedIndex(getElementIndexByName(
+					view.getSuperclassTemplate(), CodeTemplateManager.STANDARD_SERVER_SUPERCLASS)
+			);
+			view.getSubclassTemplate().setSelectedIndex(getElementIndexByName(
+					view.getSubclassTemplate(), CodeTemplateManager.STANDARD_SERVER_SUBCLASS)
+			);
+		} else {
+			view.getSuperclassTemplate().setSelectedIndex(getElementIndexByName(
+					view.getSuperclassTemplate(), CodeTemplateManager.STANDARD_CLIENT_SUPERCLASS)
+			);
+			view.getSubclassTemplate().setSelectedIndex(getElementIndexByName(
+					view.getSubclassTemplate(), CodeTemplateManager.STANDARD_CLIENT_SUBCLASS)
+			);
+		}
+
+		if ((metaSubTemplate != null) && (!templateManager.isDefaultTemplate(metaSubTemplate)))  {
+			view.getSubclassTemplate().setSelectedIndex(getElementIndexByName(view.getSubclassTemplate(), metaSubTemplate));
+		}
+		if ((metaSuperTemplate != null) && (!templateManager.isDefaultTemplate(metaSuperTemplate))) {
+			view.getSuperclassTemplate().setSelectedIndex(getElementIndexByName(view.getSuperclassTemplate(), metaSuperTemplate));
+		}
 
 		superTemplate.updateView();
 		subTemplate.updateView();

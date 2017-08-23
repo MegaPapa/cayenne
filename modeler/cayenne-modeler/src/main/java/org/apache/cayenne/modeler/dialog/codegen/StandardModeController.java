@@ -21,6 +21,7 @@ package org.apache.cayenne.modeler.dialog.codegen;
 
 import org.apache.cayenne.gen.ArtifactsGenerationMode;
 import org.apache.cayenne.gen.ClassGenerationAction;
+import org.apache.cayenne.gen.xml.CgenConfiguration;
 import org.apache.cayenne.map.DataMap;
 import org.apache.cayenne.modeler.pref.DataMapDefaults;
 import org.apache.cayenne.swing.BindingBuilder;
@@ -51,7 +52,12 @@ public class StandardModeController extends GeneratorController {
                     .getProjectController()
                     .getDataMapPreferences(dataMap);
 
-            preferences.setSuperclassPackage("");
+            CgenConfiguration configuration = getApplication().getMetaData().get(dataMap, CgenConfiguration.class);
+            if (configuration != null) {
+                preferences.setSuperclassPackage(configuration.getSuperPkg());
+            } else {
+                preferences.setSuperclassPackage("");
+            }
             preferences.updateSuperclassPackage(dataMap, false);
 
             treeMap.put(dataMap, preferences);

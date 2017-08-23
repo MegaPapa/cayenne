@@ -39,8 +39,8 @@ public class CodeTemplateManager {
 
 	public static final String STANDARD_SERVER_SUPERCLASS = "Standard Server Superclass";
 	public static final String STANDARD_SERVER_SUBCLASS = "Standard Server Subclass";
-	static final String STANDARD_CLIENT_SUPERCLASS = "Standard Client Superclass";
-	static final String STANDARD_CLIENT_SUBCLASS = "Standard Client Subclass";
+	public static final String STANDARD_CLIENT_SUPERCLASS = "Standard Client Superclass";
+	public static final String STANDARD_CLIENT_SUBCLASS = "Standard Client Subclass";
 
 	public static final String NODE_NAME = "codeTemplateManager";
 
@@ -103,6 +103,23 @@ public class CodeTemplateManager {
 
 		value = standardTemplates.get(name);
 		return value != null ? value.toString() : null;
+	}
+
+	public boolean isDefaultTemplate(String templatePath) {
+		for (String element : standardSubclassTemplates) {
+			if (templatePath.equals(getTemplatePath(element))) {
+				return true;
+			}
+		}
+		for (String element : standardSuperclassTemplates) {
+			if (templatePath.equals(getTemplatePath(element))) {
+				return true;
+			}
+		}
+		if (customTemplates.containsValue(templatePath)) {
+			return true;
+		}
+		return false;
 	}
 
 	public Map<String, String> getCustomTemplates() {

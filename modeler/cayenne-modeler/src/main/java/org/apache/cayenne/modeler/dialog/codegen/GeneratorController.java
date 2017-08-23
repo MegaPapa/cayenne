@@ -22,6 +22,7 @@ package org.apache.cayenne.modeler.dialog.codegen;
 import org.apache.cayenne.CayenneRuntimeException;
 import org.apache.cayenne.gen.ArtifactsGenerationMode;
 import org.apache.cayenne.gen.ClassGenerationAction;
+import org.apache.cayenne.gen.xml.CgenConfiguration;
 import org.apache.cayenne.map.DataMap;
 import org.apache.cayenne.map.Embeddable;
 import org.apache.cayenne.map.EmbeddableAttribute;
@@ -71,7 +72,17 @@ public abstract class GeneratorController extends CayenneController {
 
         createDefaults();
         createView();
+        setConfigFromMetaData();
         initBindings(new BindingBuilder(getApplication().getBindingFactory(), this));
+    }
+
+    private void setConfigFromMetaData() {
+        for (DataMap map : getParentController().getDataMaps()) {
+            CgenConfiguration configuration = getApplication().getMetaData().get(map, CgenConfiguration.class);
+            if ((configuration != null) && (configuration.getDestDir() != null)) {
+                outputPath = configuration.getDestDir().getPath();
+            }
+        }
     }
 
     public String getOutputPath() {

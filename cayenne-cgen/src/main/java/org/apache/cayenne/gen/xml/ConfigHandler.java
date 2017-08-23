@@ -22,6 +22,7 @@ package org.apache.cayenne.gen.xml;
 import org.apache.cayenne.configuration.xml.DataChannelMetaData;
 import org.apache.cayenne.configuration.xml.DataMapLoaderListener;
 import org.apache.cayenne.configuration.xml.NamespaceAwareNestedTagHandler;
+import org.apache.cayenne.gen.ArtifactsGenerationMode;
 import org.apache.cayenne.map.DataMap;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
@@ -54,9 +55,12 @@ public class ConfigHandler extends NamespaceAwareNestedTagHandler {
     private static final String OUTPUT_PATTERN_TAG = "outputPattern";
 
     private static final String TRUE = "true";
+    private static final String DEFAULT_OUTPUT_PATTERN = "*.java";
+    private static final String DEFAULT_MODE = "entity";
 
     private CgenConfiguration configuration;
     private DataChannelMetaData metaData;
+    private int configTypeCounter;
 
     ConfigHandler(NamespaceAwareNestedTagHandler parentHandler, DataChannelMetaData metaData) {
         super(parentHandler);
@@ -138,6 +142,9 @@ public class ConfigHandler extends NamespaceAwareNestedTagHandler {
         }
 
         if (configuration != null) {
+            if (!ouputPattern.equals(DEFAULT_OUTPUT_PATTERN)) {
+                configTypeCounter += 2;
+            }
             configuration.setOutputPattern(ouputPattern);
         }
     }
@@ -149,6 +156,7 @@ public class ConfigHandler extends NamespaceAwareNestedTagHandler {
 
         if (configuration != null) {
             if (createPropertyNames.equals(TRUE)) {
+                configTypeCounter += 2;
                 configuration.setCreatePropertyNames(true);
             } else {
                 configuration.setCreatePropertyNames(false);
@@ -165,6 +173,7 @@ public class ConfigHandler extends NamespaceAwareNestedTagHandler {
             if (usePkgPath.equals(TRUE)) {
                 configuration.setUsePkgPath(true);
             } else {
+                configTypeCounter += 2;
                 configuration.setUsePkgPath(false);
             }
         }
@@ -176,6 +185,7 @@ public class ConfigHandler extends NamespaceAwareNestedTagHandler {
         }
 
         if (configuration != null) {
+            configTypeCounter += 2;
             configuration.setTemplate(template);
         }
     }
@@ -186,6 +196,7 @@ public class ConfigHandler extends NamespaceAwareNestedTagHandler {
         }
 
         if (configuration != null) {
+            configTypeCounter += 2;
             configuration.setSuperTemplate(superTemplate);
         }
     }
@@ -207,6 +218,7 @@ public class ConfigHandler extends NamespaceAwareNestedTagHandler {
 
         if (configuration != null) {
             if (overwrite.equals(TRUE)) {
+                configTypeCounter += 2;
                 configuration.setOverwrite(true);
             } else {
                 configuration.setOverwrite(false);
@@ -220,6 +232,9 @@ public class ConfigHandler extends NamespaceAwareNestedTagHandler {
         }
 
         if (configuration != null) {
+            if (!mode.equals(DEFAULT_MODE)) {
+                configTypeCounter += 2;
+            }
             configuration.setArtifactsGenerationMode(mode);
         }
     }
@@ -233,6 +248,7 @@ public class ConfigHandler extends NamespaceAwareNestedTagHandler {
             if (makePairs.equals(TRUE)) {
                 configuration.setMakePairs(true);
             } else {
+                configTypeCounter += 2;
                 configuration.setMakePairs(false);
             }
         }
@@ -244,6 +260,7 @@ public class ConfigHandler extends NamespaceAwareNestedTagHandler {
         }
 
         if (configuration != null) {
+            configTypeCounter += 2;
             configuration.setIncludeEntities(includeEntities);
         }
     }
@@ -254,6 +271,7 @@ public class ConfigHandler extends NamespaceAwareNestedTagHandler {
         }
 
         if (configuration != null) {
+            configTypeCounter += 2;
             configuration.setExcludeEntities(excludeEntities);
         }
     }
@@ -264,6 +282,7 @@ public class ConfigHandler extends NamespaceAwareNestedTagHandler {
         }
 
         if (configuration != null) {
+            configTypeCounter += 2;
             configuration.setEncoding(encoding);
         }
     }
@@ -274,6 +293,7 @@ public class ConfigHandler extends NamespaceAwareNestedTagHandler {
         }
 
         if (configuration != null) {
+            configTypeCounter += 2;
             configuration.setEmbeddableSuperTemplate(embeddableSuperTemplate);
         }
     }
@@ -284,6 +304,7 @@ public class ConfigHandler extends NamespaceAwareNestedTagHandler {
         }
 
         if (configuration != null) {
+            configTypeCounter += 2;
             configuration.setEmbeddableTemplate(embeddableTemplate);
         }
     }
@@ -305,6 +326,7 @@ public class ConfigHandler extends NamespaceAwareNestedTagHandler {
 
         if (configuration != null) {
             if (client.equals(TRUE)) {
+                configTypeCounter++;
                 configuration.setClient(true);
             }
         }
@@ -316,13 +338,14 @@ public class ConfigHandler extends NamespaceAwareNestedTagHandler {
         }
 
         if (configuration != null) {
+            configTypeCounter += 2;
             configuration.setAdditionalMaps(new File(additionalMaps));
         }
     }
 
     private void initConfiguration() {
-        configuration.setArtifactsGenerationMode("entity");
-        configuration.setOutputPattern("*.java");
+        configuration.setArtifactsGenerationMode(DEFAULT_MODE);
+        configuration.setOutputPattern(DEFAULT_OUTPUT_PATTERN);
         configuration.setUsePkgPath(true);
         configuration.setMakePairs(true);
     }
@@ -334,6 +357,11 @@ public class ConfigHandler extends NamespaceAwareNestedTagHandler {
             @Override
             public void onDataMapLoaded(DataMap dataMap) {
                 configuration.setDataMap(dataMap);
+                if (configTypeCounter == 1) {
+                    configuration.setConfigurationType(CgenConfiguration.CLIENT_CONFIG);
+                } else if (configTypeCounter > 1) {
+                    configuration.setConfigurationType(CgenConfiguration.ADVANCED_CONFIG);
+                }
                 ConfigHandler.this.metaData.add(dataMap, configuration);
             }
         });

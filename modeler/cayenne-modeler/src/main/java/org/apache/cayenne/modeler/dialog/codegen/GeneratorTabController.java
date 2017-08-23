@@ -20,6 +20,7 @@
 package org.apache.cayenne.modeler.dialog.codegen;
 
 import org.apache.cayenne.gen.ClassGenerationAction;
+import org.apache.cayenne.gen.xml.CgenConfiguration;
 import org.apache.cayenne.modeler.util.CayenneController;
 import org.apache.cayenne.pref.CayenneProjectPreferences;
 import org.apache.cayenne.pref.PreferenceDetail;
@@ -35,9 +36,9 @@ import java.util.Map;
  */
 public class GeneratorTabController extends CayenneController {
 
-    private static final String STANDARD_OBJECTS_MODE = "Standard Persistent Objects";
-    private static final String CLIENT_OBJECTS_MODE = "Client Persistent Objects";
-    private static final String ADVANCED_MODE = "Advanced";
+    protected static final String STANDARD_OBJECTS_MODE = "Standard Persistent Objects";
+    protected static final String CLIENT_OBJECTS_MODE = "Client Persistent Objects";
+    protected static final String ADVANCED_MODE = "Advanced";
 
     public static final String GENERATOR_PROPERTY = "generator";
 
@@ -117,8 +118,35 @@ public class GeneratorTabController extends CayenneController {
         return (GeneratorController) controllers.get(name);
     }
 
+    private void updateConfiguration(ClassGenerationAction generator) {
+        CgenConfiguration configuration = getApplication().getMetaData().get(generator.getDataMap(), CgenConfiguration.class);
+        if (configuration == null) {
+            configuration = new CgenConfiguration();
+            getApplication().getMetaData().add(generator.getDataMap(), configuration);
+        }
+        configuration.setOutputPattern(generator.getOutputPattern());
+        configuration.setDestDir(generator.getDestDir());
+        configuration.setCreatePropertyNames(generator.getCreatePropertyNames());
+        configuration.setUsePkgPath(generator.getUsePkgPath());
+        configuration.setTemplate(generator.getTemplate());
+        configuration.setSuperTemplate(generator.getSuperTemplate());
+        configuration.setSuperPkg(generator.getSuperPkg());
+        configuration.setOverwrite(generator.getOverwrite());
+        configuration.setArtifactsGenerationMode(generator.getArtifactsGenerationMode());
+        configuration.setMakePairs(generator.getMakePairs());
+    }
+
     public Collection<ClassGenerationAction> getGenerator() {
         GeneratorController modeController = getGeneratorController();
-        return (modeController != null) ? modeController.createGenerator() : null;
+        Collection<ClassGenerationAction> generators = null;
+        if (modeController != null) {
+            generators = modeController.createGenerator();
+            for (ClassGenerationAction generator : generators) {
+                if (generator != null) {
+                    updateConfiguration(generator);
+                }
+            }
+        }
+        return generators;
     }
 }

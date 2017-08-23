@@ -21,6 +21,7 @@ package org.apache.cayenne.modeler.dialog.codegen;
 
 import org.apache.cayenne.gen.ClassGenerationAction;
 import org.apache.cayenne.gen.ClientClassGenerationAction;
+import org.apache.cayenne.gen.xml.CgenConfiguration;
 import org.apache.cayenne.map.DataMap;
 import org.apache.cayenne.map.ObjEntity;
 import org.apache.cayenne.modeler.pref.DataMapDefaults;
@@ -75,7 +76,12 @@ public class ClientModeController extends StandardModeController {
                     .getProjectController()
                     .getDataMapPreferences(this.getClass().getName().replace(".", "/"), dataMap);
 
-            preferences.setSuperclassPackage("");
+            CgenConfiguration configuration = getApplication().getMetaData().get(dataMap, CgenConfiguration.class);
+            if (configuration != null) {
+                preferences.setSuperclassPackage(configuration.getSuperPkg());
+            } else {
+                preferences.setSuperclassPackage("");
+            }
             preferences.updateSuperclassPackage(dataMap, true);
 
             map.put(dataMap, preferences);

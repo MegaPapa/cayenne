@@ -20,6 +20,7 @@
 package org.apache.cayenne.modeler.dialog.codegen;
 
 import org.apache.cayenne.gen.ClassGenerationAction;
+import org.apache.cayenne.gen.xml.CgenConfiguration;
 import org.apache.cayenne.map.DataMap;
 import org.apache.cayenne.modeler.dialog.ErrorDebugDialog;
 import org.apache.cayenne.modeler.util.CayenneController;
@@ -59,18 +60,45 @@ public class CodeGeneratorController extends CodeGeneratorControllerBase {
         return view;
     }
 
+    // CGEN MAIN WINDOW!!!
     public void startup() {
         // show dialog even on empty DataMap, as custom generation may still take
         // advantage of it
 
         view = new CodeGeneratorDialog(generatorSelector.getView(), classesSelector.getView());
         initBindings();
+        setModeFromMetaData();
 
         view.pack();
         view.setModal(true);
         centerView();
         makeCloseableOnEscape();
         view.setVisible(true);
+    }
+
+    private int getConfigIndexByName(String name) {
+        int size = generatorSelector.view.generationMode.getItemCount();
+        for (int i = 0; i < size; i++) {
+            if (generatorSelector.view.generationMode.getItemAt(i).equals(name)) {
+                return i;
+            }
+        }
+        return 0;
+    }
+
+    private void setModeFromMetaData() {
+        for (DataMap dataMap : dataMaps) {
+            CgenConfiguration configuration = getApplication().getMetaData().get(dataMap, CgenConfiguration.class);
+            if (configuration != null) {
+                if (configuration.getConfigurationType() == CgenConfiguration.STANDART_CONFIG) {
+                    generatorSelector.view.generationMode.setSelectedIndex(getConfigIndexByName(GeneratorTabController.STANDARD_OBJECTS_MODE));
+                } else if (configuration.getConfigurationType() == CgenConfiguration.CLIENT_CONFIG) {
+                    generatorSelector.view.generationMode.setSelectedIndex(getConfigIndexByName(GeneratorTabController.CLIENT_OBJECTS_MODE));
+                } else if (configuration.getConfigurationType() == CgenConfiguration.ADVANCED_CONFIG) {
+                    generatorSelector.view.generationMode.setSelectedIndex(getConfigIndexByName(GeneratorTabController.ADVANCED_MODE));
+                }
+            }
+        }
     }
 
     protected void initBindings() {

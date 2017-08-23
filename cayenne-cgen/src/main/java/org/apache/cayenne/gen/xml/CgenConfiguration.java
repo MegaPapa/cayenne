@@ -19,17 +19,24 @@
 
 package org.apache.cayenne.gen.xml;
 
+import org.apache.cayenne.configuration.ConfigurationNodeVisitor;
 import org.apache.cayenne.gen.ArtifactsGenerationMode;
 import org.apache.cayenne.gen.ClassGenerationAction;
 import org.apache.cayenne.gen.ClientClassGenerationAction;
 import org.apache.cayenne.map.DataMap;
+import org.apache.cayenne.util.XMLEncoder;
+import org.apache.cayenne.util.XMLSerializable;
 
 import java.io.File;
 
 /**
  * @since 4.1
  */
-public class CgenConfiguration {
+public class CgenConfiguration implements XMLSerializable {
+
+    public static final byte STANDART_CONFIG = 0;
+    public static final byte CLIENT_CONFIG = 1;
+    public static final byte ADVANCED_CONFIG = 2;
 
     private ClassGenerationAction action;
     private DataMap dataMap;
@@ -52,6 +59,8 @@ public class CgenConfiguration {
     private String includeEntities;
     private String excludeEntities;
     private boolean client;
+
+    private byte configurationType = STANDART_CONFIG;
     
     private void packActionData(ClassGenerationAction action) {
         action.setCreatePropertyNames(this.isCreatePropertyNames());
@@ -227,5 +236,37 @@ public class CgenConfiguration {
 
     public void setOutputPattern(String outputPattern) {
         this.outputPattern = outputPattern;
+    }
+
+    public byte getConfigurationType() {
+        return configurationType;
+    }
+
+    public void setConfigurationType(byte configurationType) {
+        this.configurationType = configurationType;
+    }
+
+    @Override
+    public void encodeAsXML(XMLEncoder encoder, ConfigurationNodeVisitor delegate) {
+        encoder.start("cgen:config")
+                .attribute("xmlns:cgen", CgenExtension.NAMESPACE)
+                .simpleTag("cgen:additionalMaps", (additionalMaps != null) ? additionalMaps.getAbsolutePath() : null)
+                .simpleTag("cgen:client", Boolean.toString(client))
+                .simpleTag("cgen:destDir", (destDir != null) ? destDir.getAbsolutePath() : null)
+                .simpleTag("cgen:embeddableTemplate", embeddableTemplate)
+                .simpleTag("cgen:embeddableSuperTemplate", embeddableSuperTemplate)
+                .simpleTag("cgen:encoding", encoding)
+                .simpleTag("cgen:excludeEntities", excludeEntities)
+                .simpleTag("cgen:includeEntities", includeEntities)
+                .simpleTag("cgen:makePairs", Boolean.toString(makePairs))
+                .simpleTag("cgen:mode", artifactsGenerationMode.getLabel())
+                .simpleTag("cgen:overwrite", Boolean.toString(overwrite))
+                .simpleTag("cgen:superPkg", superPkg)
+                .simpleTag("cgen:superTemplate", superTemplate)
+                .simpleTag("cgen:template", template)
+                .simpleTag("cgen:usePkgPath", Boolean.toString(usePkgPath))
+                .simpleTag("cgen:createPropertyNames", Boolean.toString(createPropertyNames))
+                .simpleTag("cgen:outputPattern", outputPattern)
+                .end();
     }
 }
