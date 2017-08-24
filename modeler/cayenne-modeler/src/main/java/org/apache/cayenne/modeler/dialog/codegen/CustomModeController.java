@@ -247,7 +247,15 @@ public class CustomModeController extends GeneratorController {
 
 	protected void updateTemplates() {
 		this.templateManager = getApplication().getCodeTemplateManager();
+		boolean subIsCustomTemplate = false;
+		boolean superIsCustomTemplate = false;
 
+		if (templateManager.getCustomTemplates().containsValue(metaSubTemplate)) {
+			subIsCustomTemplate = true;
+		}
+		if (templateManager.getCustomTemplates().containsValue(metaSuperTemplate)) {
+			superIsCustomTemplate = true;
+		}
 		List<String> customTemplates = new ArrayList<>(templateManager.getCustomTemplates().keySet());
 		Collections.sort(customTemplates);
 
@@ -286,10 +294,20 @@ public class CustomModeController extends GeneratorController {
 			);
 		}
 
-		if ((metaSubTemplate != null) && (!templateManager.isDefaultTemplate(metaSubTemplate)))  {
+		if (subIsCustomTemplate) {
+			view.getSubclassTemplate().setSelectedIndex(getElementIndexByName(
+					view.getSubclassTemplate(), templateManager.getCustomTemplateName(metaSubTemplate))
+			);
+		}
+		if (superIsCustomTemplate) {
+			view.getSuperclassTemplate().setSelectedIndex(getElementIndexByName(
+					view.getSuperclassTemplate(), templateManager.getCustomTemplateName(metaSuperTemplate))
+			);
+		}
+		if ((metaSubTemplate != null) && (!subIsCustomTemplate))  {
 			view.getSubclassTemplate().setSelectedIndex(getElementIndexByName(view.getSubclassTemplate(), metaSubTemplate));
 		}
-		if ((metaSuperTemplate != null) && (!templateManager.isDefaultTemplate(metaSuperTemplate))) {
+		if ((metaSuperTemplate != null) && (!superIsCustomTemplate)) {
 			view.getSuperclassTemplate().setSelectedIndex(getElementIndexByName(view.getSuperclassTemplate(), metaSuperTemplate));
 		}
 

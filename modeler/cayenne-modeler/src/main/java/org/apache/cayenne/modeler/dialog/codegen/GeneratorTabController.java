@@ -118,12 +118,23 @@ public class GeneratorTabController extends CayenneController {
         return (GeneratorController) controllers.get(name);
     }
 
+    private void getClientSupport(CgenConfiguration configuration) {
+        if (getGeneratorController() instanceof CustomModeController) {
+            configuration.setClient(configuration.isClient());
+        } else if (getGeneratorController() instanceof ClientModeController) {
+            configuration.setClient(true);
+        } else {
+            configuration.setClient(false);
+        }
+    }
+
     private void updateConfiguration(ClassGenerationAction generator) {
         CgenConfiguration configuration = getApplication().getMetaData().get(generator.getDataMap(), CgenConfiguration.class);
         if (configuration == null) {
             configuration = new CgenConfiguration();
             getApplication().getMetaData().add(generator.getDataMap(), configuration);
         }
+        getClientSupport(configuration);
         configuration.setOutputPattern(generator.getOutputPattern());
         configuration.setDestDir(generator.getDestDir());
         configuration.setCreatePropertyNames(generator.getCreatePropertyNames());
@@ -141,9 +152,11 @@ public class GeneratorTabController extends CayenneController {
         Collection<ClassGenerationAction> generators = null;
         if (modeController != null) {
             generators = modeController.createGenerator();
-            for (ClassGenerationAction generator : generators) {
-                if (generator != null) {
-                    updateConfiguration(generator);
+            if (generators != null) {
+                for (ClassGenerationAction generator : generators) {
+                    if (generator != null) {
+                        updateConfiguration(generator);
+                    }
                 }
             }
         }

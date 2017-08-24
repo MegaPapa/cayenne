@@ -105,6 +105,15 @@ public class CodeTemplateManager {
 		return value != null ? value.toString() : null;
 	}
 
+	public String getCustomTemplateName(String path) {
+		for (Map.Entry<String, String> entry : customTemplates.entrySet()) {
+			if (entry.getValue().equals(path)) {
+				return entry.getKey();
+			}
+		}
+		return "";
+	}
+
 	public boolean isDefaultTemplate(String templatePath) {
 		for (String element : standardSubclassTemplates) {
 			if (templatePath.equals(getTemplatePath(element))) {

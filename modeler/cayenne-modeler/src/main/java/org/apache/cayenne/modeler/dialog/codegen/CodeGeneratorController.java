@@ -60,7 +60,6 @@ public class CodeGeneratorController extends CodeGeneratorControllerBase {
         return view;
     }
 
-    // CGEN MAIN WINDOW!!!
     public void startup() {
         // show dialog even on empty DataMap, as custom generation may still take
         // advantage of it
@@ -170,6 +169,7 @@ public class CodeGeneratorController extends CodeGeneratorControllerBase {
                 for (ClassGenerationAction generator : generators) {
                     generator.execute();
                 }
+                application.getFrameController().getProjectController().setDirty(true);
                 JOptionPane.showMessageDialog(
                         this.getView(),
                         "Class generation finished");
