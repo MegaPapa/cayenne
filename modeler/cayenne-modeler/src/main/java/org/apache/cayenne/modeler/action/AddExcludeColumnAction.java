@@ -19,43 +19,21 @@
 
 package org.apache.cayenne.modeler.action;
 
-import java.util.Iterator;
-
-import javax.swing.tree.TreePath;
-
-import org.apache.cayenne.configuration.DataChannelDescriptor;
-import org.apache.cayenne.map.DbEntity;
-import org.apache.cayenne.map.Entity;
-import org.apache.cayenne.map.ObjEntity;
 import org.apache.cayenne.modeler.Application;
 
-public class DbEntityCounterpartAction extends BaseViewEntityAction {
+/**
+ * @since 4.1
+ */
+public class AddExcludeColumnAction extends AddPatternParamAction {
 
-    public static String getActionName() {
-        return "View related ObjEntity";
-    }
+    private static final String ACTION_NAME = "Add Exclude Column";
+    private static final String ICON_NAME = "icon-move_up.png";
 
-    public DbEntityCounterpartAction(Application application) {
-        super(getActionName(), application);
+    public AddExcludeColumnAction(Application application) {
+        super(ACTION_NAME, application);
     }
 
     public String getIconName() {
-        return "icon-move_up.png";
+        return ICON_NAME;
     }
-
-    @Override
-    protected Entity getEntity() {
-        DbEntity dbEntity = getProjectController().getCurrentDbEntity();
-        if (dbEntity == null) {
-            return null;
-        }
-
-        Iterator<ObjEntity> it = dbEntity.getDataMap().getMappedEntities(dbEntity).iterator();
-        if (!it.hasNext()) {
-            return null;
-        }
-
-        return it.next();
-    }
-
 }

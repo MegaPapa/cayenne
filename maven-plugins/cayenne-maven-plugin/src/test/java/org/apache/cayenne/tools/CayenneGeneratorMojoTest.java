@@ -64,6 +64,5 @@ public class CayenneGeneratorMojoTest extends AbstractMojoTestCase {
         assertTrue(content.contains("public static final Property<List<TestRelEntity>> ADDITIONAL_REL = Property.create(\"additionalRel\", List.class);"));
         assertTrue(content.contains("public void addToAdditionalRel(TestRelEntity obj)"));
         assertTrue(content.contains("public void removeFromAdditionalRel(TestRelEntity obj)"));
-        assertTrue(content.contains("* comment for test attribute"));
     }
 }
