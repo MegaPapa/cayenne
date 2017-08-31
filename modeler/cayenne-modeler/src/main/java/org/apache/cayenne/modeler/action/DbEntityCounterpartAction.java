@@ -22,10 +22,8 @@ package org.apache.cayenne.modeler.action;
 import java.awt.event.ActionEvent;
 import java.util.Iterator;
 
-import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
 
-import org.apache.cayenne.configuration.ConfigurationNode;
 import org.apache.cayenne.configuration.DataChannelDescriptor;
 import org.apache.cayenne.map.DbEntity;
 import org.apache.cayenne.map.Entity;

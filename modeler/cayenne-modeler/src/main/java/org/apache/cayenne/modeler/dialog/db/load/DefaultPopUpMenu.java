@@ -30,6 +30,7 @@ import org.apache.cayenne.dbsync.reverse.dbimport.IncludeTable;
 import org.apache.cayenne.dbsync.reverse.dbimport.PatternParam;
 import org.apache.cayenne.dbsync.reverse.dbimport.ReverseEngineering;
 import org.apache.cayenne.dbsync.reverse.dbimport.Schema;
+import org.apache.cayenne.modeler.ProjectController;
 
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -49,6 +50,7 @@ public class DefaultPopUpMenu extends JPopupMenu {
     protected DbImportTreeNode selectedElement;
     protected DbImportTreeNode parentElement;
     protected JTree tree;
+    protected ProjectController projectController;
 
     public DefaultPopUpMenu() {
         rename = new JMenuItem("Rename");
@@ -194,5 +196,9 @@ public class DefaultPopUpMenu extends JPopupMenu {
 
     public void setTree(JTree tree) {
         this.tree = tree;
+    }
+
+    public void setProjectController(ProjectController projectController) {
+        this.projectController = projectController;
     }
 }

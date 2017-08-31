@@ -31,7 +31,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
  */
 public class DbImportTreeNode extends DefaultMutableTreeNode {
 
-    DbImportTreeNode() {
+    public DbImportTreeNode() {
         this(null);
     }
 
@@ -42,7 +42,7 @@ public class DbImportTreeNode extends DefaultMutableTreeNode {
         parent = null;
     }
 
-    DbImportTreeNode(Object userObject) {
+    public DbImportTreeNode(Object userObject) {
         this(userObject, true);
     }
 
