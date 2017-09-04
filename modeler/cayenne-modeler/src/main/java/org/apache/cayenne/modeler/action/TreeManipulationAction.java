@@ -52,6 +52,7 @@ public abstract class TreeManipulationAction extends CayenneAction {
 
     protected void updateModel() {
         DefaultTreeModel model = (DefaultTreeModel) tree.getModel();
+        getProjectController().setDirty(true);
         model.reload(selectedElement);
     }
 
