@@ -45,6 +45,7 @@ import org.apache.cayenne.modeler.action.AddPatternParamAction;
 import org.apache.cayenne.modeler.action.AddSchemaAction;
 import org.apache.cayenne.modeler.action.DeleteNodeAction;
 import org.apache.cayenne.modeler.action.EditNodeAction;
+import org.apache.cayenne.modeler.action.ReverseEngineeringAction;
 import org.apache.cayenne.modeler.action.TreeManipulationAction;
 import org.apache.cayenne.modeler.dialog.db.load.CatalogPopUpMenu;
 import org.apache.cayenne.modeler.dialog.db.load.DbImportTreeNode;
@@ -86,7 +87,7 @@ import java.util.Vector;
  */
 public class DbImportView extends JPanel {
 
-    private static final String MAIN_LAYOUT = "fill:350dlu, 5dlu, fill:350dlu";
+    private static final String MAIN_LAYOUT = "fill:250dlu, 5dlu, fill:350dlu";
     private static final String DATA_FIELDS_LAYOUT = "right:pref, 3dlu, fill:235dlu";
     private static final int DEFAULT_LEVEL = -1;
     private static final int FIRST_LEVEL = 0;
@@ -119,6 +120,7 @@ public class DbImportView extends JPanel {
     private JButton excludeProcedureButton;
     private JButton editButton;
     private JButton deleteButton;
+    private JButton generateButton;
 
     private ProjectController projectController;
     private Map<Class, DefaultPopUpMenu> popups;
@@ -232,36 +234,42 @@ public class DbImportView extends JPanel {
             @Override
             public void actionPerformed(ActionEvent e) {
                 getReverseEngineeringBySelectedMap().setSkipRelationshipsLoading(skipRelationshipsLoading.isSelected());
+                projectController.setDirty(true);
             }
         });
         skipPrimaryKeyLoading.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 getReverseEngineeringBySelectedMap().setSkipPrimaryKeyLoading(skipPrimaryKeyLoading.isSelected());
+                projectController.setDirty(true);
             }
         });
         forceDataMapCatalog.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 getReverseEngineeringBySelectedMap().setForceDataMapCatalog(forceDataMapCatalog.isSelected());
+                projectController.setDirty(true);
             }
         });
         forceDataMapSchema.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 getReverseEngineeringBySelectedMap().setForceDataMapSchema(forceDataMapSchema.isSelected());
+                projectController.setDirty(true);
             }
         });
         usePrimitives.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 getReverseEngineeringBySelectedMap().setUsePrimitives(usePrimitives.isSelected());
+                projectController.setDirty(true);
             }
         });
         useJava7Types.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 getReverseEngineeringBySelectedMap().setUseJava7Types(useJava7Types.isSelected());
+                projectController.setDirty(true);
             }
         });
     }
@@ -378,6 +386,13 @@ public class DbImportView extends JPanel {
 
     private void initFormElements() {
         strategyCombo = new JComboBox<>();
+        strategyCombo.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                getReverseEngineeringBySelectedMap().setNamingStrategy(DbImportView.this.getNamingStrategy());
+                projectController.setDirty(true);
+            }
+        });
         includeTables = new JTree(new DbImportTreeNode());
         // Deleting tree icons
         DefaultTreeCellRenderer renderer = (DefaultTreeCellRenderer) includeTables.getCellRenderer();
@@ -388,6 +403,7 @@ public class DbImportView extends JPanel {
         meaningfulPk = new TextAdapter(new JTextField()) {
             protected void updateModel(String text) {
                 getReverseEngineeringBySelectedMap().setMeaningfulPkTables(text);
+                projectController.setDirty(true);
             }
         };
         meaningfulPk.getComponent().setToolTipText("<html>Regular expression to filter tables with meaningful primary keys.<br>" +
@@ -396,6 +412,7 @@ public class DbImportView extends JPanel {
         stripFromTableNames = new TextAdapter(new JTextField()) {
             protected void updateModel(String text) {
                 getReverseEngineeringBySelectedMap().setStripFromTableNames(text);
+                projectController.setDirty(true);
             }
         };
         stripFromTableNames.getComponent().setToolTipText("<html>Regex that matches the part of the table name that needs to be stripped off " +
@@ -404,6 +421,7 @@ public class DbImportView extends JPanel {
         defaultPackage = new TextAdapter(new JTextField()) {
             protected void updateModel(String text) {
                 getReverseEngineeringBySelectedMap().setDefaultPackage(text);
+                projectController.setDirty(true);
             }
         };
         defaultPackage.getComponent().setToolTipText("<html>A Java package that will be set as the imported DataMap default and a package " +
@@ -429,6 +447,10 @@ public class DbImportView extends JPanel {
         excludeProcedureButton = createButton(AddExcludeProcedureAction.class, 3, ExcludeProcedure.class);
         editButton = createButton(EditNodeAction.class, 0);
         deleteButton = createButton(DeleteNodeAction.class, 0);
+        ReverseEngineeringAction reverseEngineeringAction = projectController.getApplication().getActionManager().
+                getAction(ReverseEngineeringAction.class);
+        reverseEngineeringAction.setView(this);
+        generateButton = reverseEngineeringAction.buildButton(0);
 
         buttons = new JButton[]{catalogButton, schemaButton, includeTableButton, excludeTableButton,
                 includeProcedureButton, excludeProcedureButton ,includeColumnButton, excludeColumnButton};
@@ -446,6 +468,9 @@ public class DbImportView extends JPanel {
         treeToolBar.add(editButton);
         treeToolBar.addSeparator();
         treeToolBar.add(deleteButton);
+        treeToolBar.addSeparator();
+        treeToolBar.addSeparator();
+        treeToolBar.add(generateButton);
         initStrategy();
 
         FormLayout panelLayout = new FormLayout(DATA_FIELDS_LAYOUT);
@@ -473,6 +498,46 @@ public class DbImportView extends JPanel {
         builder.append(dataPanel);
         this.setLayout(new BorderLayout());
         add(builder.getPanel(), BorderLayout.CENTER);
+    }
+
+    public boolean isSkipRelationshipsLoading() {
+        return skipRelationshipsLoading.isSelected();
+    }
+
+    public boolean isSkipPrimaryKeyLoading() {
+        return skipPrimaryKeyLoading.isSelected();
+    }
+
+    public boolean isForceDataMapCatalog() {
+        return forceDataMapCatalog.isSelected();
+    }
+
+    public boolean isForceDataMapSchema() {
+        return forceDataMapSchema.isSelected();
+    }
+
+    public boolean isUsePrimitives() {
+        return usePrimitives.isSelected();
+    }
+
+    public boolean isUseJava7Typed() {
+        return useJava7Types.isSelected();
+    }
+
+    public String getMeaningfulPk() {
+        return "".equals(meaningfulPk.getComponent().getText()) ? null : meaningfulPk.getComponent().getText();
+    }
+
+    public String getNamingStrategy() {
+        return (String) strategyCombo.getSelectedItem();
+    }
+
+    public String getStripFromTableNames() {
+        return stripFromTableNames.getComponent().getText();
+    }
+
+    public String getDefaultPackage() {
+        return defaultPackage.getComponent().getText();
     }
 
 }

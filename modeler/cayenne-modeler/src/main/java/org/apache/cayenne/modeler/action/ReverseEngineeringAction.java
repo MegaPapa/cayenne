@@ -22,10 +22,9 @@ package org.apache.cayenne.modeler.action;
 import org.apache.cayenne.modeler.Application;
 import org.apache.cayenne.modeler.dialog.db.DataSourceWizard;
 import org.apache.cayenne.modeler.dialog.db.DbActionOptionsDialog;
-import org.apache.cayenne.modeler.dialog.db.load.AdvancedConfigurationDialog;
 import org.apache.cayenne.modeler.dialog.db.load.DbLoaderContext;
-import org.apache.cayenne.modeler.dialog.db.load.DbLoaderOptionsDialog;
 import org.apache.cayenne.modeler.dialog.db.load.LoadDataMapTask;
+import org.apache.cayenne.modeler.editor.DbImportView;
 
 import java.awt.event.ActionEvent;
 import java.sql.SQLException;
@@ -38,12 +37,21 @@ import javax.swing.JOptionPane;
  */
 public class ReverseEngineeringAction extends DBWizardAction<DbActionOptionsDialog> {
 
+    private static final String ACTION_NAME = "Reengineer Database Schema";
+    private static final String ICON_NAME = "icon-move_up.png";
+
+    private DbImportView view;
+
+    public String getIconName() {
+        return ICON_NAME;
+    }
+
     ReverseEngineeringAction(Application application) {
         super(getActionName(), application);
     }
 
     public static String getActionName() {
-        return "Reengineer Database Schema";
+        return ACTION_NAME;
     }
 
     /**
@@ -56,7 +64,6 @@ public class ReverseEngineeringAction extends DBWizardAction<DbActionOptionsDial
         if(connectWizard == null) {
             return;
         }
-
         context.setProjectController(getProjectController());
         try {
             context.setConnection(connectWizard.getDataSource().getConnection());
@@ -68,9 +75,7 @@ public class ReverseEngineeringAction extends DBWizardAction<DbActionOptionsDial
                     JOptionPane.ERROR_MESSAGE);
             return;
         }
-
-        final DbActionOptionsDialog loaderOptionsDialog = loaderOptionDialog(connectWizard);
-        if(!context.buildConfig(connectWizard, loaderOptionsDialog)) {
+        if(!context.buildConfig(connectWizard, view)) {
             try {
                 context.getConnection().close();
             } catch (SQLException ignored) {}
@@ -99,32 +104,14 @@ public class ReverseEngineeringAction extends DBWizardAction<DbActionOptionsDial
         th.start();
     }
 
-    private DbLoaderOptionsDialog getOptionsDialog(Collection<String> catalogs, Collection<String> schemas,
-                                                   String currentCatalog, String currentSchema) {
-        final DbLoaderContext context = new DbLoaderContext(application.getMetaData());
-        context.setProjectController(getProjectController());
-
-        return new DbLoaderOptionsDialog(catalogs, schemas, currentCatalog, currentSchema, context);
-    }
-
-    private AdvancedConfigurationDialog getAdvancedConfigurationDialog(Collection<String> catalogs, Collection<String> schemas,
-                                                                       String currentCatalog, String currentSchema) {
-        final DbLoaderContext context = new DbLoaderContext(application.getMetaData());
-        context.setProjectController(getProjectController());
-
-        return new AdvancedConfigurationDialog(catalogs, schemas, currentCatalog, currentSchema, context);
-    }
-
     @Override
     protected DbActionOptionsDialog createDialog(Collection<String> catalogs, Collection<String> schemas,
                                                  String currentCatalog, String currentSchema, int command) {
-        switch (command) {
-            case DbActionOptionsDialog.SIMPLE_CONFIG:
-                return getOptionsDialog(catalogs, schemas, currentCatalog, currentSchema);
-            case DbActionOptionsDialog.ADVANCED_CONFIG:
-                return getAdvancedConfigurationDialog(catalogs, schemas, currentCatalog, currentSchema);
-            default:
-                return null;
-        }
+        // NOOP
+        return null;
+    }
+
+    public void setView(DbImportView view) {
+        this.view = view;
     }
 }

@@ -110,6 +110,7 @@ public class DeleteNodeAction extends TreeManipulationAction {
     private void updateParentChilds() {
         DefaultTreeModel model = (DefaultTreeModel)tree.getModel();
         model.removeNodeFromParent(selectedElement);
+        getProjectController().setDirty(true);
         model.reload(parentElement);
     }
 
