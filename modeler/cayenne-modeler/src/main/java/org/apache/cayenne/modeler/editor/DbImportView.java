@@ -43,6 +43,8 @@ import org.apache.cayenne.modeler.action.AddIncludeProcedureAction;
 import org.apache.cayenne.modeler.action.AddIncludeTableAction;
 import org.apache.cayenne.modeler.action.AddPatternParamAction;
 import org.apache.cayenne.modeler.action.AddSchemaAction;
+import org.apache.cayenne.modeler.action.DeleteNodeAction;
+import org.apache.cayenne.modeler.action.EditNodeAction;
 import org.apache.cayenne.modeler.action.TreeManipulationAction;
 import org.apache.cayenne.modeler.dialog.db.load.CatalogPopUpMenu;
 import org.apache.cayenne.modeler.dialog.db.load.DbImportTreeNode;
@@ -86,11 +88,11 @@ public class DbImportView extends JPanel {
 
     private static final String MAIN_LAYOUT = "fill:350dlu, 5dlu, fill:350dlu";
     private static final String DATA_FIELDS_LAYOUT = "right:pref, 3dlu, fill:235dlu";
-    private static int DEFAULT_LEVEL = -1;
-    private static int FIRST_LEVEL = 0;
-    private static int SECOND_LEVEL = 1;
-    private static int THIRD_LEVEL = 5;
-    private static int FOURTH_LEVEL = 7;
+    private static final int DEFAULT_LEVEL = -1;
+    private static final int FIRST_LEVEL = 0;
+    private static final int SECOND_LEVEL = 1;
+    private static final int THIRD_LEVEL = 5;
+    private static final int FOURTH_LEVEL = 7;
     private static final int ALL_LINE_SPAN = 2;
 
     private JComboBox<String> strategyCombo;
@@ -115,6 +117,8 @@ public class DbImportView extends JPanel {
     private JButton excludeColumnButton;
     private JButton includeProcedureButton;
     private JButton excludeProcedureButton;
+    private JButton editButton;
+    private JButton deleteButton;
 
     private ProjectController projectController;
     private Map<Class, DefaultPopUpMenu> popups;
@@ -139,6 +143,8 @@ public class DbImportView extends JPanel {
         excludeColumnButton.setEnabled(state);
         includeProcedureButton.setEnabled(state);
         excludeProcedureButton.setEnabled(state);
+        editButton.setEnabled(state);
+        deleteButton.setEnabled(state);
     }
 
     private void initLevels() {
@@ -162,6 +168,10 @@ public class DbImportView extends JPanel {
 
     private void lockButtons(Object userObject) {
         changeToolbarButtonsState(true);
+        if (levels.get(userObject.getClass()) == DEFAULT_LEVEL) {
+            editButton.setEnabled(false);
+            deleteButton.setEnabled(false);
+        }
         lockButtonsOnLevel(levels.get(userObject.getClass()));
     }
 
@@ -178,6 +188,8 @@ public class DbImportView extends JPanel {
                         reverseEngineering = new ReverseEngineering();
                         DbImportView.this.projectController.getApplication().getMetaData().add(map, reverseEngineering);
                     }
+                    editButton.setEnabled(false);
+                    deleteButton.setEnabled(false);
                     fillCheckboxes(reverseEngineering);
                     initializeTextFields(reverseEngineering);
                     translateReverseEngineeringToTree(reverseEngineering);
@@ -189,6 +201,10 @@ public class DbImportView extends JPanel {
             public void valueChanged(TreeSelectionEvent e) {
                 if (includeTables.getLastSelectedPathComponent() != null) {
                     lockButtons(((DbImportTreeNode) includeTables.getLastSelectedPathComponent()).getUserObject());
+                } else {
+                    changeToolbarButtonsState(true);
+                    editButton.setEnabled(false);
+                    deleteButton.setEnabled(false);
                 }
             }
         });
@@ -357,7 +373,7 @@ public class DbImportView extends JPanel {
         AddPatternParamAction action = projectController.getApplication().getActionManager().getAction(actionClass);
         action.setTree(includeTables);
         action.setParamClass(paramClass);
-        return action.buildButton();
+        return action.buildButton(position);
     }
 
     private void initFormElements() {
@@ -411,6 +427,8 @@ public class DbImportView extends JPanel {
         excludeColumnButton = createButton(AddExcludeColumnAction.class, 2, ExcludeColumn.class);
         includeProcedureButton = createButton(AddIncludeProcedureAction.class, 2, IncludeProcedure.class);
         excludeProcedureButton = createButton(AddExcludeProcedureAction.class, 3, ExcludeProcedure.class);
+        editButton = createButton(EditNodeAction.class, 0);
+        deleteButton = createButton(DeleteNodeAction.class, 0);
 
         buttons = new JButton[]{catalogButton, schemaButton, includeTableButton, excludeTableButton,
                 includeProcedureButton, excludeProcedureButton ,includeColumnButton, excludeColumnButton};
@@ -425,6 +443,9 @@ public class DbImportView extends JPanel {
         treeToolBar.add(excludeColumnButton);
         treeToolBar.add(includeProcedureButton);
         treeToolBar.add(excludeProcedureButton);
+        treeToolBar.add(editButton);
+        treeToolBar.addSeparator();
+        treeToolBar.add(deleteButton);
         initStrategy();
 
         FormLayout panelLayout = new FormLayout(DATA_FIELDS_LAYOUT);
@@ -448,10 +469,8 @@ public class DbImportView extends JPanel {
         builder.setDefaultDialogBorder();
         builder.appendSeparator("Database Import Configuration");
         builder.append(treeToolBar, ALL_LINE_SPAN);
-        JButton button = new JButton("Generate");
         builder.append(scrollPane);
         builder.append(dataPanel);
-        builder.append(button);
         this.setLayout(new BorderLayout());
         add(builder.getPanel(), BorderLayout.CENTER);
     }

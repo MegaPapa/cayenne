@@ -63,7 +63,7 @@ public class DbImportTreeNode extends DefaultMutableTreeNode {
         return "";
     }
 
-    String getSimpleNodeName() {
+    public String getSimpleNodeName() {
         if (userObject instanceof FilterContainer) {
             return ((FilterContainer) userObject).getName();
         } else if (userObject instanceof PatternParam) {
