@@ -22,6 +22,7 @@ package org.apache.cayenne.modeler.action;
 import org.apache.cayenne.modeler.Application;
 import org.apache.cayenne.modeler.dialog.db.load.DbImportTreeNode;
 import org.apache.cayenne.modeler.util.CayenneAction;
+import org.apache.cayenne.util.Util;
 
 import javax.swing.JOptionPane;
 import javax.swing.JTree;
@@ -37,6 +38,7 @@ public abstract class TreeManipulationAction extends CayenneAction {
     protected JTree tree;
     protected DbImportTreeNode selectedElement;
     protected DbImportTreeNode parentElement;
+    private String insertableNodeName;
 
     public TreeManipulationAction(String name, Application application) {
         super(name, application);
@@ -51,18 +53,25 @@ public abstract class TreeManipulationAction extends CayenneAction {
     }
 
     protected void updateModel() {
+        insertableNodeName = null;
         DefaultTreeModel model = (DefaultTreeModel) tree.getModel();
         getProjectController().setDirty(true);
         model.reload(selectedElement);
     }
 
     protected String getNewName(String oldValue) {
-        String name = JOptionPane.showInputDialog(tree, "Name:", oldValue != null ? oldValue : "");
-        return name != null ? name : "";
+        insertableNodeName = JOptionPane.showInputDialog(tree, "Name:", oldValue != null ? oldValue : "");
+        return insertableNodeName != null ? insertableNodeName : "";
     }
 
     protected String getNewName() {
-        String name = JOptionPane.showInputDialog(tree, "Name:");
-        return name != null ? name : "";
+        if (Util.isEmptyString(insertableNodeName)) {
+            insertableNodeName = JOptionPane.showInputDialog(tree, "Name:");
+        }
+        return insertableNodeName != null ? insertableNodeName : "";
+    }
+
+    public void setInsertableNodeName(String nodeName) {
+        this.insertableNodeName = nodeName;
     }
 }
