@@ -41,7 +41,6 @@ import org.apache.cayenne.modeler.action.MoveImportNodeAction;
 import org.apache.cayenne.modeler.action.TreeManipulationAction;
 import org.apache.cayenne.modeler.dialog.db.load.DbImportTreeNode;
 import org.apache.cayenne.modeler.dialog.db.load.TransferableNode;
-import org.apache.cayenne.modeler.util.CayenneAction;
 
 import javax.swing.DropMode;
 import javax.swing.JButton;
@@ -212,23 +211,6 @@ public class DraggableTreePanel extends JScrollPane {
         renderer.setLeafIcon(null);
         renderer.setClosedIcon(null);
         renderer.setOpenIcon(null);
-
-        // ---------------------------- TEST DATA -------------------------------------------------
-        root.add(new TransferableNode(new Schema("TestSchema")));
-        root.add(new TransferableNode(new IncludeTable("IncludeTable")));
-        root.add(new TransferableNode(new ExcludeTable("ExcludeTable")));
-        root.add(new TransferableNode(new IncludeColumn("IncludeColumn")));
-        root.add(new TransferableNode(new ExcludeColumn("ExcludeColumn")));
-        root.add(new TransferableNode(new IncludeProcedure("IncludeProcedure")));
-        root.add(new TransferableNode(new ExcludeProcedure("ExcludeProcedure")));
-        for (int i = 0; i < 100; i++) {
-            TransferableNode node = new TransferableNode(new Catalog("SimpleCatalog_" + i));
-            TransferableNode childNode = new TransferableNode(new IncludeTable("Inc"));
-            childNode.add(new TransferableNode(new IncludeColumn("Col")));
-            node.add(childNode);
-            root.add(node);
-        }
-        // ------------------------------------------------------------------------------------------
     }
 
     private void initLevels() {

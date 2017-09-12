@@ -57,7 +57,6 @@ public class MoveImportNodeAction extends CayenneAction {
                 action.setTree(targetTree);
                 action.actionPerformed(e);
             }
-            //panel.canBeMoved();
         }
     }
 
