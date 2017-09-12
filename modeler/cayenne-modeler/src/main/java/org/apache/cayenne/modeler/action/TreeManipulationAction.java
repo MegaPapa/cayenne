@@ -64,9 +64,28 @@ public abstract class TreeManipulationAction extends CayenneAction {
         return insertableNodeName != null ? insertableNodeName : "";
     }
 
+    private boolean insertableNodeExist() {
+        if (tree.getSelectionPath() == null) {
+            selectedElement = (DbImportTreeNode) tree.getModel().getRoot();
+        } else {
+            selectedElement = (DbImportTreeNode) tree.getSelectionPath().getLastPathComponent();
+        }
+        int childCount = selectedElement.getChildCount();
+        for (int i = 0; i < childCount; i++) {
+            if (insertableNodeName.equals(((DbImportTreeNode) selectedElement.getChildAt(i)).getSimpleNodeName())) {
+                insertableNodeName = null;
+                return true;
+            }
+        }
+        return false;
+    }
+
     protected String getNewName() {
         if (Util.isEmptyString(insertableNodeName)) {
             insertableNodeName = JOptionPane.showInputDialog(tree, "Name:");
+        }
+        if (insertableNodeExist()) {
+            return "";
         }
         return insertableNodeName != null ? insertableNodeName : "";
     }
