@@ -40,6 +40,6 @@ public class IncludeProcedure extends PatternParam implements XMLSerializable {
 
     @Override
     public void encodeAsXML(XMLEncoder encoder, ConfigurationNodeVisitor delegate) {
-        encoder.simpleTag("dbi:includeProcedure", this.getPattern());
+        encoder.simpleTag("includeProcedure", this.getPattern());
     }
 }

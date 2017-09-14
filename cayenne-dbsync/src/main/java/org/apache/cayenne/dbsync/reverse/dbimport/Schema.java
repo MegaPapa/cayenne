@@ -47,14 +47,14 @@ public class Schema extends FilterContainer implements XMLSerializable {
 
     @Override
     public void encodeAsXML(XMLEncoder encoder, ConfigurationNodeVisitor delegate) {
-        encoder.start("dbi:schema")
+        encoder.start("schema")
             .nested(this.getIncludeTables(), delegate)
             .nested(this.getExcludeTables(), delegate)
             .nested(this.getIncludeColumns(), delegate)
             .nested(this.getExcludeColumns(), delegate)
             .nested(this.getIncludeProcedures(), delegate)
             .nested(this.getExcludeProcedures(), delegate)
-            .simpleTag("dbi:name", this.getName())
+            .simpleTag("name", this.getName())
         .end();
     }
 }
