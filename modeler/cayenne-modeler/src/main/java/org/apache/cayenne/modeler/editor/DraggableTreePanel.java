@@ -71,15 +71,15 @@ public class DraggableTreePanel extends JScrollPane {
     private static final int FOURTH_LEVEL = 2;
     private static final int FIFTH_LEVEL = 3;
 
-    private JTree sourceTree;
-    private JTree targetTree;
+    private DbImportTree sourceTree;
+    private DbImportTree targetTree;
     private JButton moveButton;
 
     private ProjectController projectController;
     private Map<Class, Integer> levels;
     private Map<Class, Class> actions;
 
-    public DraggableTreePanel(ProjectController projectController, JTree sourceTree, JTree targetTree) {
+    public DraggableTreePanel(ProjectController projectController, DbImportTree sourceTree, DbImportTree targetTree) {
         super(sourceTree);
         this.targetTree = targetTree;
         this.sourceTree = sourceTree;
@@ -170,7 +170,6 @@ public class DraggableTreePanel extends JScrollPane {
     }
 
     private void initElement() {
-        DbImportTreeNode root = (DbImportTreeNode) sourceTree.getModel().getRoot();
         sourceTree.setDragEnabled(true);
         sourceTree.setDropMode(DropMode.INSERT);
         sourceTree.setTransferHandler(new TransferHandler() {
@@ -261,5 +260,9 @@ public class DraggableTreePanel extends JScrollPane {
             return action;
         }
         return null;
+    }
+
+    public DbImportTree getSourceTree() {
+        return sourceTree;
     }
 }

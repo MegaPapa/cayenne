@@ -23,11 +23,9 @@ import org.apache.cayenne.dbsync.reverse.dbimport.Catalog;
 import org.apache.cayenne.dbsync.reverse.dbimport.ExcludeColumn;
 import org.apache.cayenne.dbsync.reverse.dbimport.ExcludeProcedure;
 import org.apache.cayenne.dbsync.reverse.dbimport.ExcludeTable;
-import org.apache.cayenne.dbsync.reverse.dbimport.FilterContainer;
 import org.apache.cayenne.dbsync.reverse.dbimport.IncludeColumn;
 import org.apache.cayenne.dbsync.reverse.dbimport.IncludeProcedure;
 import org.apache.cayenne.dbsync.reverse.dbimport.IncludeTable;
-import org.apache.cayenne.dbsync.reverse.dbimport.PatternParam;
 import org.apache.cayenne.dbsync.reverse.dbimport.ReverseEngineering;
 import org.apache.cayenne.dbsync.reverse.dbimport.Schema;
 import org.apache.cayenne.map.DataMap;
@@ -40,15 +38,12 @@ import org.apache.cayenne.modeler.dialog.db.load.RootPopUpMenu;
 import org.apache.cayenne.modeler.dialog.db.load.SchemaPopUpMenu;
 
 import javax.swing.JScrollPane;
-import javax.swing.JTree;
 import javax.swing.SwingUtilities;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultTreeCellRenderer;
-import javax.swing.tree.DefaultTreeModel;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -57,13 +52,13 @@ import java.util.Map;
  */
 class ReverseEngineeringTreePanel extends JScrollPane {
 
-    private JTree reverseEngineeringTree;
+    private DbImportTree reverseEngineeringTree;
 
     private ProjectController projectController;
     private TreeToolbarPanel treeToolbar;
     private Map<Class, DefaultPopUpMenu> popups;
 
-    ReverseEngineeringTreePanel(ProjectController projectController, JTree reverseEngineeringTree) {
+    ReverseEngineeringTreePanel(ProjectController projectController, DbImportTree reverseEngineeringTree) {
         super(reverseEngineeringTree);
         this.projectController = projectController;
         this.reverseEngineeringTree = reverseEngineeringTree;
@@ -73,7 +68,7 @@ class ReverseEngineeringTreePanel extends JScrollPane {
     }
 
     void updateTree() {
-        translateReverseEngineeringToTree(getReverseEngineeringBySelectedMap());
+        reverseEngineeringTree.translateReverseEngineeringToTree(getReverseEngineeringBySelectedMap(), false);
     }
 
     private void initPopupMenus() {
@@ -121,63 +116,6 @@ class ReverseEngineeringTreePanel extends JScrollPane {
     private ReverseEngineering getReverseEngineeringBySelectedMap() {
         DataMap dataMap = projectController.getCurrentDataMap();
         return projectController.getApplication().getMetaData().get(dataMap, ReverseEngineering.class);
-    }
-
-    private void translateReverseEngineeringToTree(ReverseEngineering reverseEngineering) {
-        DefaultTreeModel model = (DefaultTreeModel)reverseEngineeringTree.getModel();
-        DbImportTreeNode root = (DbImportTreeNode) model.getRoot();
-        root.removeAllChildren();
-        root.setUserObject(reverseEngineering);
-        printCatalogs(reverseEngineering.getCatalogs(), root);
-        printSchemas(reverseEngineering.getSchemas(), root);
-        printIncludeTables(reverseEngineering.getIncludeTables(), root);
-        printParams(reverseEngineering.getExcludeTables(), root);
-        printParams(reverseEngineering.getIncludeColumns(), root);
-        printParams(reverseEngineering.getExcludeColumns(), root);
-        printParams(reverseEngineering.getIncludeProcedures(), root);
-        printParams(reverseEngineering.getExcludeProcedures(), root);
-        model.reload();
-    }
-
-    private <T extends PatternParam> void printParams(Collection<T> collection, DbImportTreeNode parent) {
-        for (T element : collection) {
-            parent.add(new DbImportTreeNode(element));
-        }
-    }
-
-    private void printIncludeTables(Collection<IncludeTable> collection, DbImportTreeNode parent) {
-        for (IncludeTable includeTable : collection) {
-            DbImportTreeNode node = new DbImportTreeNode(includeTable);
-            printParams(includeTable.getIncludeColumns(), node);
-            printParams(includeTable.getExcludeColumns(), node);
-            parent.add(node);
-        }
-    }
-
-    private void printChildren(FilterContainer container, DbImportTreeNode parent) {
-        printIncludeTables(container.getIncludeTables(), parent);
-        printParams(container.getExcludeTables(), parent);
-        printParams(container.getIncludeColumns(), parent);
-        printParams(container.getExcludeColumns(), parent);
-        printParams(container.getIncludeProcedures(), parent);
-        printParams(container.getExcludeProcedures(), parent);
-    }
-
-    private void printSchemas(Collection<Schema> schemas, DbImportTreeNode parent) {
-        for (Schema schema : schemas) {
-            DbImportTreeNode node = new DbImportTreeNode(schema);
-            printChildren(schema, node);
-            parent.add(node);
-        }
-    }
-
-    private void printCatalogs(Collection<Catalog> catalogs, DbImportTreeNode parent) {
-        for (Catalog catalog : catalogs) {
-            DbImportTreeNode node = new DbImportTreeNode(catalog);
-            printSchemas(catalog.getSchemas(), node);
-            printChildren(catalog, node);
-            parent.add(node);
-        }
     }
 
     private void changeIcons() {

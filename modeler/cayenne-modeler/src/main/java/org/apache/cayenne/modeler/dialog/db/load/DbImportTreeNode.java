@@ -46,7 +46,7 @@ public class DbImportTreeNode extends DefaultMutableTreeNode {
         this(userObject, true);
     }
 
-    private String getFormattedName(String className, String nodeName) {
+    protected String getFormattedName(String className, String nodeName) {
         if (nodeName == null) {
             return className;
         } else {
@@ -54,7 +54,7 @@ public class DbImportTreeNode extends DefaultMutableTreeNode {
         }
     }
 
-    private String getNodeName() {
+    protected String getNodeName() {
         if (userObject instanceof FilterContainer) {
             return getFormattedName(userObject.getClass().getSimpleName(), ((FilterContainer) userObject).getName());
         } else if (userObject instanceof PatternParam) {
