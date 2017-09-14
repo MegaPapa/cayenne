@@ -108,6 +108,7 @@ public class DefaultActionManager implements ActionManager {
         registerAction(new EditNodeAction(application)).setAlwaysOn(true);
         registerAction(new DeleteNodeAction(application)).setAlwaysOn(true);
         registerAction(new MoveImportNodeAction(application)).setAlwaysOn(true);
+        registerAction(new LoadDbSchemaAction(application)).setAlwaysOn(true);
         registerAction(new AboutAction(application)).setAlwaysOn(true);
         registerAction(new DocumentationAction(application)).setAlwaysOn(true);
         registerAction(new ConfigurePreferencesAction(application)).setAlwaysOn(true);

@@ -20,8 +20,10 @@
 package org.apache.cayenne.modeler.dialog.db.load;
 
 import org.apache.cayenne.dbsync.reverse.dbimport.Catalog;
+import org.apache.cayenne.dbsync.reverse.dbimport.FilterContainer;
 import org.apache.cayenne.dbsync.reverse.dbimport.IncludeTable;
 import org.apache.cayenne.dbsync.reverse.dbimport.PatternParam;
+import org.apache.cayenne.dbsync.reverse.dbimport.ReverseEngineering;
 import org.apache.cayenne.dbsync.reverse.dbimport.Schema;
 
 import java.awt.datatransfer.DataFlavor;
@@ -66,6 +68,25 @@ public class TransferableNode extends DbImportTreeNode implements Transferable {
             return userObject;
         } else {
             return null;
+        }
+    }
+
+    public String getNodeName() {
+        if (userObject instanceof FilterContainer) {
+            return getFormattedName(userObject.getClass().getSimpleName(), ((FilterContainer) userObject).getName());
+        } else if (userObject instanceof IncludeTable) {
+            return getFormattedName("Table", ((PatternParam) userObject).getPattern());
+        }
+        return "";
+    }
+
+    public String toString() {
+        if (userObject == null) {
+            return "";
+        } else if (userObject instanceof ReverseEngineering) {
+            return "Reverse Engineering Configuration:";
+        } else {
+            return getNodeName();
         }
     }
 }

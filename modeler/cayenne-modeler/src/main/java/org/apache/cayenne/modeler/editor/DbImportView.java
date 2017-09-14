@@ -25,6 +25,7 @@ import org.apache.cayenne.dbsync.reverse.dbimport.ReverseEngineering;
 import org.apache.cayenne.map.DataMap;
 import org.apache.cayenne.modeler.ProjectController;
 import org.apache.cayenne.modeler.dialog.db.load.DbImportTreeNode;
+import org.apache.cayenne.modeler.dialog.db.load.TransferableNode;
 import org.apache.cayenne.modeler.event.DataMapDisplayEvent;
 import org.apache.cayenne.modeler.event.DataMapDisplayListener;
 
@@ -70,6 +71,8 @@ public class DbImportView extends JPanel {
                     configPanel.fillCheckboxes(reverseEngineering);
                     configPanel.initializeTextFields(reverseEngineering);
                     treePanel.updateTree();
+                    draggableTreePanel.setVisible(false);
+                    draggableTreePanel.getMoveButton().setVisible(false);
                 }
             }
         });
@@ -90,16 +93,16 @@ public class DbImportView extends JPanel {
     }
 
     private void initFormElements() {
-        JTree reverseEngineeringTree = new JTree(new DbImportTreeNode());
-        JTree draggableTree = new JTree(new DbImportTreeNode(new ReverseEngineering()));
+        DbImportTree reverseEngineeringTree = new DbImportTree(new DbImportTreeNode());
+        DbImportTree draggableTree = new DbImportTree(new TransferableNode(new ReverseEngineering()));
 
-        treeToolbar = new TreeToolbarPanel(projectController, reverseEngineeringTree);
+        draggableTreePanel = new DraggableTreePanel(projectController, draggableTree, reverseEngineeringTree);
+        treeToolbar = new TreeToolbarPanel(projectController, reverseEngineeringTree, draggableTreePanel);
         // Add parent to toolbar for ReverseEngineeringAction
         treeToolbar.setParent(this);
         treePanel = new ReverseEngineeringTreePanel(projectController, reverseEngineeringTree);
         treePanel.setTreeToolbar(treeToolbar);
         configPanel = new ReverseEngineeringConfigPanel(projectController);
-        draggableTreePanel = new DraggableTreePanel(projectController, draggableTree, reverseEngineeringTree);
     }
 
     public boolean isSkipRelationshipsLoading() {

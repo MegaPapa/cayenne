@@ -40,13 +40,13 @@ import org.apache.cayenne.modeler.action.AddPatternParamAction;
 import org.apache.cayenne.modeler.action.AddSchemaAction;
 import org.apache.cayenne.modeler.action.DeleteNodeAction;
 import org.apache.cayenne.modeler.action.EditNodeAction;
+import org.apache.cayenne.modeler.action.LoadDbSchemaAction;
 import org.apache.cayenne.modeler.action.ReverseEngineeringAction;
 import org.apache.cayenne.modeler.action.TreeManipulationAction;
 import org.apache.cayenne.modeler.dialog.db.load.DbImportTreeNode;
 
 import javax.swing.JButton;
 import javax.swing.JToolBar;
-import javax.swing.JTree;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -72,16 +72,19 @@ class TreeToolbarPanel extends JToolBar {
     private JButton editButton;
     private JButton deleteButton;
     private JButton generateButton;
-    private JTree reverseEngineeringTree;
+    private JButton loadDbSchema;
+    private DbImportTree reverseEngineeringTree;
+    private DraggableTreePanel draggableTreePanel;
 
     private JButton[] buttons;
     private Map<Class, Integer> levels;
     private ProjectController projectController;
     private ReverseEngineeringAction reverseEngineeringAction;
 
-    TreeToolbarPanel(ProjectController projectController, JTree reverseEngineeringTree) {
+    TreeToolbarPanel(ProjectController projectController, DbImportTree reverseEngineeringTree, DraggableTreePanel draggableTreePanel) {
         this.projectController = projectController;
         this.reverseEngineeringTree = reverseEngineeringTree;
+        this.draggableTreePanel = draggableTreePanel;
         initLevels();
         createButtons();
         addButtons();
@@ -134,6 +137,7 @@ class TreeToolbarPanel extends JToolBar {
         this.add(deleteButton);
         this.addSeparator();
         this.add(generateButton);
+        this.add(loadDbSchema);
     }
 
     private void changeToolbarButtonsState(boolean state) {
@@ -192,6 +196,11 @@ class TreeToolbarPanel extends JToolBar {
                 getAction(ReverseEngineeringAction.class);
         reverseEngineeringAction.setView((DbImportView) this.getParent());
         generateButton = reverseEngineeringAction.buildButton(0);
+        LoadDbSchemaAction loadDbSchemaAction = projectController.getApplication().getActionManager().
+                getAction(LoadDbSchemaAction.class);
+        loadDbSchemaAction.setDraggableTreePanel(draggableTreePanel);
+        loadDbSchema = loadDbSchemaAction.buildButton();
+
     }
 
     public void setParent(DbImportView parent) {
