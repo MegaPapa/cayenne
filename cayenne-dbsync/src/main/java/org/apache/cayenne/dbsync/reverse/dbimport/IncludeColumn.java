@@ -40,6 +40,6 @@ public class IncludeColumn extends PatternParam implements XMLSerializable {
 
     @Override
     public void encodeAsXML(XMLEncoder encoder, ConfigurationNodeVisitor delegate) {
-        encoder.simpleTag("dbi:includeColumn", this.getPattern());
+        encoder.simpleTag("includeColumn", this.getPattern());
     }
 }

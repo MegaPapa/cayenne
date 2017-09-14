@@ -78,8 +78,8 @@ public class IncludeTable extends PatternParam implements XMLSerializable {
 
     @Override
     public void encodeAsXML(XMLEncoder encoder, ConfigurationNodeVisitor delegate) {
-        encoder.start("dbi:includeTable")
-            .simpleTag("dbi:name", this.getPattern())
+        encoder.start("includeTable")
+            .simpleTag("name", this.getPattern())
             .nested(this.getIncludeColumns(), delegate)
             .nested(this.getExcludeColumns(), delegate)
         .end();

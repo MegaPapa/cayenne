@@ -291,8 +291,8 @@ public class ReverseEngineering extends SchemaContainer implements Serializable,
 
     @Override
     public void encodeAsXML(XMLEncoder encoder, ConfigurationNodeVisitor delegate) {
-        encoder.start("dbi:config")
-                .attribute("xmlns:dbi", DbImportExtension.NAMESPACE)
+        encoder.start("config")
+                .attribute("xmlns", DbImportExtension.NAMESPACE)
                 .nested(this.getIncludeTables(), delegate)
                 .nested(this.getExcludeTables(), delegate)
                 .nested(this.getIncludeColumns(), delegate)
@@ -301,17 +301,17 @@ public class ReverseEngineering extends SchemaContainer implements Serializable,
                 .nested(this.getExcludeProcedures(), delegate)
                 .nested(this.getCatalogs(), delegate)
                 .nested(this.getSchemas(), delegate)
-                .simpleTag("dbi:db-type", Util.join(Arrays.asList(this.getTableTypes()), ","))
-                .simpleTag("dbi:defaultPackage", this.getDefaultPackage())
-                .simpleTag("dbi:forceDataMapCatalog", Boolean.toString(this.isForceDataMapCatalog()))
-                .simpleTag("dbi:forceDataMapSchema", Boolean.toString(this.isForceDataMapSchema()))
-                .simpleTag("dbi:meaningfulPkTables", this.getMeaningfulPkTables())
-                .simpleTag("dbi:namingStrategy", this.getNamingStrategy())
-                .simpleTag("dbi:skipPrimaryKeyLoading", this.getSkipPrimaryKeyLoading().toString())
-                .simpleTag("dbi:skipRelationshipsLoading", this.getSkipRelationshipsLoading().toString())
-                .simpleTag("dbi:stripFromTableNames", this.getStripFromTableNames())
-                .simpleTag("dbi:useJava7Types", Boolean.toString(this.isUseJava7Types()))
-                .simpleTag("dbi:usePrimitives", Boolean.toString(this.isUsePrimitives()))
+                .simpleTag("db-type", Util.join(Arrays.asList(this.getTableTypes()), ","))
+                .simpleTag("defaultPackage", this.getDefaultPackage())
+                .simpleTag("forceDataMapCatalog", Boolean.toString(this.isForceDataMapCatalog()))
+                .simpleTag("forceDataMapSchema", Boolean.toString(this.isForceDataMapSchema()))
+                .simpleTag("meaningfulPkTables", this.getMeaningfulPkTables())
+                .simpleTag("namingStrategy", this.getNamingStrategy())
+                .simpleTag("skipPrimaryKeyLoading", this.getSkipPrimaryKeyLoading().toString())
+                .simpleTag("skipRelationshipsLoading", this.getSkipRelationshipsLoading().toString())
+                .simpleTag("stripFromTableNames", this.getStripFromTableNames())
+                .simpleTag("useJava7Types", Boolean.toString(this.isUseJava7Types()))
+                .simpleTag("usePrimitives", Boolean.toString(this.isUsePrimitives()))
                 .end();
     }
 

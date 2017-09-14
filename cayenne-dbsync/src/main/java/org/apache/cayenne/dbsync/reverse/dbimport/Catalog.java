@@ -47,14 +47,14 @@ public class Catalog extends SchemaContainer implements XMLSerializable {
 
     @Override
     public void encodeAsXML(XMLEncoder encoder, ConfigurationNodeVisitor delegate) {
-        encoder.start("dbi:catalog")
+        encoder.start("catalog")
             .nested(this.getIncludeTables(), delegate)
             .nested(this.getExcludeTables(), delegate)
             .nested(this.getIncludeColumns(), delegate)
             .nested(this.getExcludeColumns(), delegate)
             .nested(this.getIncludeProcedures(), delegate)
             .nested(this.getExcludeProcedures(), delegate)
-            .simpleTag("dbi:name", this.getName())
+            .simpleTag("name", this.getName())
             .nested(this.getSchemas(), delegate)
         .end();
     }
