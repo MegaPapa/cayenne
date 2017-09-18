@@ -24,16 +24,12 @@ import org.apache.cayenne.modeler.Application;
 /**
  * @since 4.1
  */
-public class AddExcludeProcedureAction extends AddPatternParamAction {
+public class MoveInvertNodeAction extends MoveImportNodeAction {
 
-    private static final String ACTION_NAME = "Add Exclude Procedure";
-    private static final String ICON_NAME = "icon-stored-procedure.png";
+    private static final String ACTION_NAME = "Move Inverted Node";
 
-    public AddExcludeProcedureAction(Application application) {
+    MoveInvertNodeAction(Application application) {
         super(ACTION_NAME, application);
-    }
-
-    public String getIconName() {
-        return ICON_NAME;
+        moveInverted = true;
     }
 }

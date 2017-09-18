@@ -33,7 +33,7 @@ import java.awt.event.ActionEvent;
 public class AddCatalogAction extends TreeManipulationAction {
 
     private static final String ACTION_NAME = "Add Catalog";
-    private static final String ICON_NAME = "icon-move_up.png";
+    private static final String ICON_NAME = "icon-copy.png";
 
     public AddCatalogAction(Application application) {
         super(ACTION_NAME, application);

@@ -84,7 +84,7 @@ public class TransferableNode extends DbImportTreeNode implements Transferable {
         if (userObject == null) {
             return "";
         } else if (userObject instanceof ReverseEngineering) {
-            return "Reverse Engineering Configuration:";
+            return "Database:";
         } else {
             return getNodeName();
         }

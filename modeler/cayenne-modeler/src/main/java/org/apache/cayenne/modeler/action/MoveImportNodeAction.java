@@ -19,6 +19,12 @@
 
 package org.apache.cayenne.modeler.action;
 
+import org.apache.cayenne.dbsync.reverse.dbimport.ExcludeColumn;
+import org.apache.cayenne.dbsync.reverse.dbimport.ExcludeProcedure;
+import org.apache.cayenne.dbsync.reverse.dbimport.ExcludeTable;
+import org.apache.cayenne.dbsync.reverse.dbimport.IncludeColumn;
+import org.apache.cayenne.dbsync.reverse.dbimport.IncludeProcedure;
+import org.apache.cayenne.dbsync.reverse.dbimport.IncludeTable;
 import org.apache.cayenne.modeler.Application;
 import org.apache.cayenne.modeler.dialog.db.load.DbImportTreeNode;
 import org.apache.cayenne.modeler.editor.DraggableTreePanel;
@@ -26,6 +32,8 @@ import org.apache.cayenne.modeler.util.CayenneAction;
 
 import javax.swing.JTree;
 import java.awt.event.ActionEvent;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @since 4.1
@@ -38,9 +46,23 @@ public class MoveImportNodeAction extends CayenneAction {
     private JTree sourceTree;
     private JTree targetTree;
     private DraggableTreePanel panel;
+    protected boolean moveInverted;
+    private Map<Class, Class> classMap;
 
-    public MoveImportNodeAction(Application application) {
+    MoveImportNodeAction(Application application) {
         super(ACTION_NAME, application);
+    }
+
+    MoveImportNodeAction(String actionName, Application application) {
+        super(actionName, application);
+        initMap();
+    }
+
+    private void initMap() {
+        classMap = new HashMap<>();
+        classMap.put(IncludeTable.class, ExcludeTable.class);
+        classMap.put(IncludeColumn.class, ExcludeColumn.class);
+        classMap.put(IncludeProcedure.class, ExcludeProcedure.class);
     }
 
     public String getIconName() {
@@ -51,7 +73,12 @@ public class MoveImportNodeAction extends CayenneAction {
     public void performAction(ActionEvent e) {
         if (sourceTree.getSelectionPath() != null) {
             DbImportTreeNode selectedElement = (DbImportTreeNode) sourceTree.getSelectionPath().getLastPathComponent();
-            TreeManipulationAction action = panel.getActionByNodeType(selectedElement.getUserObject().getClass());
+            TreeManipulationAction action;
+            if (!moveInverted) {
+                action = panel.getActionByNodeType(selectedElement.getUserObject().getClass());
+            } else {
+                action = panel.getActionByNodeType(classMap.get(selectedElement.getUserObject().getClass()));
+            }
             if (action != null) {
                 action.setInsertableNodeName(selectedElement.getSimpleNodeName());
                 action.setTree(targetTree);

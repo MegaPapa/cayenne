@@ -38,6 +38,7 @@ import org.apache.cayenne.modeler.action.AddIncludeProcedureAction;
 import org.apache.cayenne.modeler.action.AddIncludeTableAction;
 import org.apache.cayenne.modeler.action.AddSchemaAction;
 import org.apache.cayenne.modeler.action.MoveImportNodeAction;
+import org.apache.cayenne.modeler.action.MoveInvertNodeAction;
 import org.apache.cayenne.modeler.action.TreeManipulationAction;
 import org.apache.cayenne.modeler.dialog.db.load.DbImportTreeNode;
 import org.apache.cayenne.modeler.dialog.db.load.TransferableNode;
@@ -74,6 +75,7 @@ public class DraggableTreePanel extends JScrollPane {
     private DbImportTree sourceTree;
     private DbImportTree targetTree;
     private JButton moveButton;
+    private JButton moveInvertButton;
 
     private ProjectController projectController;
     private Map<Class, Integer> levels;
@@ -108,8 +110,14 @@ public class DraggableTreePanel extends JScrollPane {
             public void valueChanged(TreeSelectionEvent e) {
                 if (canBeMoved()) {
                     moveButton.setEnabled(true);
+                    if (canBeInverted()) {
+                        moveInvertButton.setEnabled(true);
+                    }
                 } else {
                     moveButton.setEnabled(false);
+                    if (canBeInverted()) {
+                        moveInvertButton.setEnabled(false);
+                    }
                 }
             }
         });
@@ -169,6 +177,19 @@ public class DraggableTreePanel extends JScrollPane {
         });
     }
 
+    private boolean canBeInverted() {
+        if (sourceTree.getSelectionPath() != null) {
+            DbImportTreeNode selectedElement = (DbImportTreeNode) sourceTree.getSelectionPath().getLastPathComponent();
+            if (selectedElement == null) {
+                return false;
+            }
+            if (levels.get(selectedElement.getUserObject().getClass()) < SECOND_LEVEL) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private void initElement() {
         sourceTree.setDragEnabled(true);
         sourceTree.setDropMode(DropMode.INSERT);
@@ -192,7 +213,11 @@ public class DraggableTreePanel extends JScrollPane {
                 if (sourceTree.getLastSelectedPathComponent() != null) {
                     if (canBeMoved()) {
                         moveButton.setEnabled(true);
+                        if (canBeInverted()) {
+                            moveInvertButton.setEnabled(true);
+                        }
                     } else {
+                        moveInvertButton.setEnabled(false);
                         moveButton.setEnabled(false);
                     }
                 }
@@ -205,6 +230,13 @@ public class DraggableTreePanel extends JScrollPane {
         action.setSourceTree(sourceTree);
         action.setTargetTree(targetTree);
         moveButton = action.buildButton();
+        MoveInvertNodeAction actionInv = projectController.getApplication().
+                getActionManager().getAction(MoveInvertNodeAction.class);
+        actionInv.setPanel(this);
+        actionInv.setSourceTree(sourceTree);
+        actionInv.setTargetTree(targetTree);
+        moveInvertButton = actionInv.buildButton();
+
 
         DefaultTreeCellRenderer renderer = (DefaultTreeCellRenderer) sourceTree.getCellRenderer();
         renderer.setLeafIcon(null);
@@ -250,6 +282,10 @@ public class DraggableTreePanel extends JScrollPane {
 
     public JButton getMoveButton() {
         return moveButton;
+    }
+
+    public JButton getMoveInvertButton() {
+        return moveInvertButton;
     }
 
     public TreeManipulationAction getActionByNodeType(Class nodeType) {

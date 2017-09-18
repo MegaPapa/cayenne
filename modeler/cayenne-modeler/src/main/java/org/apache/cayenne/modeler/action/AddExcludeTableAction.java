@@ -27,7 +27,7 @@ import org.apache.cayenne.modeler.Application;
 public class AddExcludeTableAction extends AddPatternParamAction {
 
     private static final String ACTION_NAME = "Add Exclude Table";
-    private static final String ICON_NAME = "icon-move_up.png";
+    private static final String ICON_NAME = "icon-dbentity.png";
 
     public AddExcludeTableAction(Application application) {
         super(ACTION_NAME, application);

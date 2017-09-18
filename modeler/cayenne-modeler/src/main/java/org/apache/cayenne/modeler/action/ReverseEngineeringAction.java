@@ -38,7 +38,7 @@ import javax.swing.JOptionPane;
 public class ReverseEngineeringAction extends DBWizardAction<DbActionOptionsDialog> {
 
     private static final String ACTION_NAME = "Reengineer Database Schema";
-    private static final String ICON_NAME = "icon-move_up.png";
+    private static final String ICON_NAME = "icon-dom.png";
 
     private DbImportView view;
 

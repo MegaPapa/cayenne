@@ -30,7 +30,6 @@ import org.apache.cayenne.modeler.event.DataMapDisplayEvent;
 import org.apache.cayenne.modeler.event.DataMapDisplayListener;
 
 import javax.swing.JPanel;
-import javax.swing.JTree;
 import java.awt.BorderLayout;
 
 /**
@@ -39,6 +38,7 @@ import java.awt.BorderLayout;
 public class DbImportView extends JPanel {
 
     private static final String MAIN_LAYOUT = "fill:160dlu, 5dlu, fill:50dlu, 5dlu, fill:160dlu";
+    private static final String BUTTON_PANEL_LAYOUT = "fill:50dlu";
     private static final int ALL_LINE_SPAN = 5;
 
     private TreeToolbarPanel treeToolbar;
@@ -73,19 +73,25 @@ public class DbImportView extends JPanel {
                     treePanel.updateTree();
                     draggableTreePanel.setVisible(false);
                     draggableTreePanel.getMoveButton().setVisible(false);
+                    draggableTreePanel.getMoveInvertButton().setVisible(false);
                 }
             }
         });
     }
 
     private void buildForm() {
+        FormLayout buttonPanelLayout = new FormLayout(BUTTON_PANEL_LAYOUT);
+        DefaultFormBuilder buttonBuilder = new DefaultFormBuilder(buttonPanelLayout);
+        buttonBuilder.append(draggableTreePanel.getMoveButton());
+        buttonBuilder.append(draggableTreePanel.getMoveInvertButton());
+
         FormLayout layout = new FormLayout(MAIN_LAYOUT);
         DefaultFormBuilder builder = new DefaultFormBuilder(layout);
         builder.setDefaultDialogBorder();
         builder.appendSeparator("Database Import Configuration");
         builder.append(treeToolbar, ALL_LINE_SPAN);
         builder.append(treePanel);
-        builder.append(draggableTreePanel.getMoveButton());
+        builder.append(buttonBuilder.getPanel());
         builder.append(draggableTreePanel);
         builder.append(configPanel, ALL_LINE_SPAN);
         this.setLayout(new BorderLayout());
