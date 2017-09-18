@@ -42,7 +42,7 @@ import java.awt.event.ActionEvent;
 public class DeleteNodeAction extends TreeManipulationAction {
 
     private static final String ACTION_NAME = "Delete";
-    private static final String ICON_NAME = "icon-move_up.png";
+    private static final String ICON_NAME = "icon-trash.png";
 
     public DeleteNodeAction(Application application) {
         super(ACTION_NAME, application);

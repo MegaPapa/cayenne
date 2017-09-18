@@ -33,7 +33,7 @@ import java.awt.event.ActionEvent;
 public class AddSchemaAction extends TreeManipulationAction {
 
     private static final String ACTION_NAME = "Add Schema";
-    private static final String ICON_NAME = "icon-move_up.png";
+    private static final String ICON_NAME = "icon-save-as-image.png";
 
     public AddSchemaAction(Application application) {
         super(ACTION_NAME, application);

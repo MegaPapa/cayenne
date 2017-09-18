@@ -33,7 +33,7 @@ import java.awt.event.ActionEvent;
 public class AddIncludeTableAction extends TreeManipulationAction {
 
     private static final String ACTION_NAME = "Add Include Table";
-    private static final String ICON_NAME = "icon-move_up.png";
+    private static final String ICON_NAME = "icon-dbentity.png";
 
     public AddIncludeTableAction(Application application) {
         super(ACTION_NAME, application);

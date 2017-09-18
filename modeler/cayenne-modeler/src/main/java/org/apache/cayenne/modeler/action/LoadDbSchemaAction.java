@@ -41,7 +41,7 @@ import java.util.Collection;
  */
 public class LoadDbSchemaAction extends CayenneAction {
 
-    private static final String ICON_NAME = "icon-move_up.png";
+    private static final String ICON_NAME = "icon-sync.png";
     private static final String ACTION_NAME = "Load Db Schema";
     private static final String INCLUDE_ALL_PATTERN = "%";
     private static final int TABLE_INDEX = 3;
@@ -80,6 +80,9 @@ public class LoadDbSchemaAction extends CayenneAction {
             }
             draggableTreePanel.setVisible(true);
             draggableTreePanel.getMoveButton().setVisible(true);
+            draggableTreePanel.getMoveButton().setEnabled(false);
+            draggableTreePanel.getMoveInvertButton().setVisible(true);
+            draggableTreePanel.getMoveInvertButton().setEnabled(false);
             draggableTreePanel.getSourceTree().translateReverseEngineeringToTree(databaseReverseEngineering, true);
         } catch (SQLException exception) {
             JOptionPane.showMessageDialog(

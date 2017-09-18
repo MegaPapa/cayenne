@@ -27,7 +27,7 @@ import org.apache.cayenne.modeler.Application;
 public class AddIncludeColumnAction extends AddPatternParamAction {
 
     private static final String ACTION_NAME = "Add Include Column";
-    private static final String ICON_NAME = "icon-move_up.png";
+    private static final String ICON_NAME = "icon-attribute.png";
 
     public AddIncludeColumnAction(Application application) {
         super(ACTION_NAME, application);

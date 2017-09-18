@@ -72,9 +72,11 @@ public abstract class TreeManipulationAction extends CayenneAction {
         }
         int childCount = selectedElement.getChildCount();
         for (int i = 0; i < childCount; i++) {
-            if (insertableNodeName.equals(((DbImportTreeNode) selectedElement.getChildAt(i)).getSimpleNodeName())) {
-                insertableNodeName = null;
-                return true;
+            if (insertableNodeName != null) {
+                if (insertableNodeName.equals(((DbImportTreeNode) selectedElement.getChildAt(i)).getSimpleNodeName())) {
+                    insertableNodeName = null;
+                    return true;
+                }
             }
         }
         return false;

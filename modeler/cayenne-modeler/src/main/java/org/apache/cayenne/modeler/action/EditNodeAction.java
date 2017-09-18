@@ -33,7 +33,7 @@ import java.awt.event.ActionEvent;
 public class EditNodeAction extends TreeManipulationAction {
 
     private static final String ACTION_NAME = "Rename";
-    private static final String ICON_NAME = "icon-move_up.png";
+    private static final String ICON_NAME = "icon-edit.png";
 
     public EditNodeAction(Application application) {
         super(ACTION_NAME, application);
