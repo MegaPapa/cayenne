@@ -21,6 +21,7 @@ package org.apache.cayenne.modeler.dialog.db.load;
 
 import org.apache.cayenne.dbsync.reverse.dbimport.Catalog;
 import org.apache.cayenne.dbsync.reverse.dbimport.FilterContainer;
+import org.apache.cayenne.dbsync.reverse.dbimport.IncludeProcedure;
 import org.apache.cayenne.dbsync.reverse.dbimport.IncludeTable;
 import org.apache.cayenne.dbsync.reverse.dbimport.PatternParam;
 import org.apache.cayenne.dbsync.reverse.dbimport.ReverseEngineering;
@@ -76,6 +77,8 @@ public class TransferableNode extends DbImportTreeNode implements Transferable {
             return getFormattedName(userObject.getClass().getSimpleName(), ((FilterContainer) userObject).getName());
         } else if (userObject instanceof IncludeTable) {
             return getFormattedName("Table", ((PatternParam) userObject).getPattern());
+        } else if (userObject instanceof IncludeProcedure) {
+            return getFormattedName("Procedure", ((PatternParam) userObject).getPattern());
         }
         return "";
     }
