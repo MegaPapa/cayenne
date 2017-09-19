@@ -112,12 +112,12 @@ public class DraggableTreePanel extends JScrollPane {
                     moveButton.setEnabled(true);
                     if (canBeInverted()) {
                         moveInvertButton.setEnabled(true);
+                    } else {
+                        moveInvertButton.setEnabled(false);
                     }
                 } else {
                     moveButton.setEnabled(false);
-                    if (canBeInverted()) {
-                        moveInvertButton.setEnabled(false);
-                    }
+                    moveInvertButton.setEnabled(false);
                 }
             }
         });
@@ -215,6 +215,8 @@ public class DraggableTreePanel extends JScrollPane {
                         moveButton.setEnabled(true);
                         if (canBeInverted()) {
                             moveInvertButton.setEnabled(true);
+                        } else {
+                            moveInvertButton.setEnabled(false);
                         }
                     } else {
                         moveInvertButton.setEnabled(false);

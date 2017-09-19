@@ -20,6 +20,7 @@
 package org.apache.cayenne.modeler.action;
 
 import org.apache.cayenne.dbsync.reverse.dbimport.Catalog;
+import org.apache.cayenne.dbsync.reverse.dbimport.IncludeProcedure;
 import org.apache.cayenne.dbsync.reverse.dbimport.IncludeTable;
 import org.apache.cayenne.dbsync.reverse.dbimport.ReverseEngineering;
 import org.apache.cayenne.dbsync.reverse.dbimport.Schema;
@@ -78,6 +79,7 @@ public class LoadDbSchemaAction extends CayenneAction {
                 String catalogName = resultSet.getString(CATALOG_INDEX);
                 packTable(tableName, catalogName, schemaName);
             }
+            packFunctions(connection);
             draggableTreePanel.setVisible(true);
             draggableTreePanel.getMoveButton().setVisible(true);
             draggableTreePanel.getMoveButton().setEnabled(false);
@@ -90,7 +92,33 @@ public class LoadDbSchemaAction extends CayenneAction {
                     exception.getMessage(),
                     "Error db schema loading",
                     JOptionPane.ERROR_MESSAGE);
-            return;
+        }
+    }
+
+    private void packFunctions(Connection connection) throws SQLException {
+        Collection<Catalog> catalogs = databaseReverseEngineering.getCatalogs();
+        for (Catalog catalog : catalogs) {
+            ResultSet funcResultSet = connection.getMetaData().getFunctions(catalog.getName(), null, "%");
+            while (funcResultSet.next()) {
+                IncludeProcedure includeProcedure = new IncludeProcedure(funcResultSet.getString(3));
+                catalog.addIncludeProcedure(includeProcedure);
+            }
+        }
+        for (Schema schema : databaseReverseEngineering.getSchemas()) {
+            ResultSet funcResultSet = connection.getMetaData().getFunctions(null, schema.getName(), "%");
+            while (funcResultSet.next()) {
+                IncludeProcedure includeProcedure = new IncludeProcedure(funcResultSet.getString(3));
+                schema.addIncludeProcedure(includeProcedure);
+            }
+        }
+        for (Catalog catalog : catalogs) {
+            for (Schema schema : catalog.getSchemas()) {
+                ResultSet funcResultSet = connection.getMetaData().getFunctions(catalog.getName(), schema.getName(), "%");
+                while (funcResultSet.next()) {
+                    IncludeProcedure includeProcedure = new IncludeProcedure(funcResultSet.getString(3));
+                    schema.addIncludeProcedure(includeProcedure);
+                }
+            }
         }
     }
 
