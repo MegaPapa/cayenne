@@ -62,6 +62,11 @@ class ReverseEngineeringTreePanel extends JScrollPane {
         super(reverseEngineeringTree);
         this.projectController = projectController;
         this.reverseEngineeringTree = reverseEngineeringTree;
+        reverseEngineeringTree.setEditable(true);
+        DbImportTreeCellEditor editor = new DbImportTreeCellEditor(reverseEngineeringTree,
+                (DefaultTreeCellRenderer) reverseEngineeringTree.getCellRenderer());
+        editor.setProjectController(projectController);
+        reverseEngineeringTree.setCellEditor(editor);
         initListeners();
         initPopupMenus();
         changeIcons();
