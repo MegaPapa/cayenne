@@ -25,6 +25,8 @@ import org.apache.cayenne.modeler.dialog.db.load.DbImportTreeNode;
 import org.apache.cayenne.util.Util;
 
 import javax.swing.JTree;
+import javax.swing.event.CellEditorListener;
+import javax.swing.event.ChangeEvent;
 import javax.swing.tree.DefaultTreeCellEditor;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import java.awt.Component;
@@ -39,6 +41,25 @@ public class DbImportTreeCellEditor extends DefaultTreeCellEditor {
 
     public DbImportTreeCellEditor(JTree tree, DefaultTreeCellRenderer renderer) {
         super(tree, renderer);
+        this.addCellEditorListener(new CellEditorListener() {
+
+            @Override
+            public void editingStopped(ChangeEvent e) {
+                DbImportTreeCellEditor.this.cancelCellEditing();
+            }
+
+            @Override
+            public void editingCanceled(ChangeEvent e) {
+                editingStopped(e);
+            }
+        });
+
+    }
+
+    @Override
+    public Object getCellEditorValue() {
+        DbImportTreeNode node = (DbImportTreeNode) tree.getSelectionPath().getLastPathComponent();
+        return node.getUserObject();
     }
 
     @Override
@@ -53,11 +74,6 @@ public class DbImportTreeCellEditor extends DefaultTreeCellEditor {
 
     @Override
     public boolean isCellEditable(EventObject e) {
-        return true;
-    }
-
-    @Override
-    public boolean stopCellEditing() {
         return true;
     }
 
