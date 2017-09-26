@@ -37,6 +37,7 @@ public class AddCatalogAction extends TreeManipulationAction {
 
     public AddCatalogAction(Application application) {
         super(ACTION_NAME, application);
+        insertableNodeClass = Catalog.class;
     }
 
     public String getIconName() {

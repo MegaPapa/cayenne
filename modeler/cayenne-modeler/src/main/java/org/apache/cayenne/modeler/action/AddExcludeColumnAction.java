@@ -19,6 +19,7 @@
 
 package org.apache.cayenne.modeler.action;
 
+import org.apache.cayenne.dbsync.reverse.dbimport.ExcludeColumn;
 import org.apache.cayenne.modeler.Application;
 
 /**
@@ -31,6 +32,7 @@ public class AddExcludeColumnAction extends AddPatternParamAction {
 
     public AddExcludeColumnAction(Application application) {
         super(ACTION_NAME, application);
+        insertableNodeClass = ExcludeColumn.class;
     }
 
     public String getIconName() {

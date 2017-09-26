@@ -37,6 +37,7 @@ public class AddSchemaAction extends TreeManipulationAction {
 
     public AddSchemaAction(Application application) {
         super(ACTION_NAME, application);
+        insertableNodeClass = Schema.class;
     }
 
     public String getIconName() {
