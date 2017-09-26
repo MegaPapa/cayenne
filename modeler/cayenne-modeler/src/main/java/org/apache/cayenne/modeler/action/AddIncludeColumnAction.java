@@ -19,6 +19,7 @@
 
 package org.apache.cayenne.modeler.action;
 
+import org.apache.cayenne.dbsync.reverse.dbimport.IncludeColumn;
 import org.apache.cayenne.modeler.Application;
 
 /**
@@ -31,6 +32,7 @@ public class AddIncludeColumnAction extends AddPatternParamAction {
 
     public AddIncludeColumnAction(Application application) {
         super(ACTION_NAME, application);
+        insertableNodeClass = IncludeColumn.class;
     }
 
     public String getIconName() {

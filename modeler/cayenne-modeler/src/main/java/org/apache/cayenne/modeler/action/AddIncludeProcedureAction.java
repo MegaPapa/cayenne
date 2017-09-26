@@ -19,6 +19,7 @@
 
 package org.apache.cayenne.modeler.action;
 
+import org.apache.cayenne.dbsync.reverse.dbimport.IncludeProcedure;
 import org.apache.cayenne.modeler.Application;
 
 /**
@@ -31,6 +32,7 @@ public class AddIncludeProcedureAction extends AddPatternParamAction {
 
     public AddIncludeProcedureAction(Application application) {
         super(ACTION_NAME, application);
+        insertableNodeClass = IncludeProcedure.class;
     }
 
     public String getIconName() {

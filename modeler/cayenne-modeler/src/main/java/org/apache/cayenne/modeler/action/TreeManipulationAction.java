@@ -39,6 +39,7 @@ public abstract class TreeManipulationAction extends CayenneAction {
     protected DbImportTreeNode selectedElement;
     protected DbImportTreeNode parentElement;
     private String insertableNodeName;
+    protected Class insertableNodeClass;
 
     public TreeManipulationAction(String name, Application application) {
         super(name, application);
@@ -64,6 +65,11 @@ public abstract class TreeManipulationAction extends CayenneAction {
         return insertableNodeName != null ? insertableNodeName : "";
     }
 
+    private boolean equalNodes(int i) {
+        return insertableNodeName.equals(((DbImportTreeNode) selectedElement.getChildAt(i)).getSimpleNodeName()) &&
+                insertableNodeClass.equals(((DbImportTreeNode) selectedElement.getChildAt(i)).getUserObject().getClass());
+    }
+
     private boolean insertableNodeExist() {
         if (tree.getSelectionPath() == null) {
             selectedElement = (DbImportTreeNode) tree.getModel().getRoot();
@@ -73,7 +79,7 @@ public abstract class TreeManipulationAction extends CayenneAction {
         int childCount = selectedElement.getChildCount();
         for (int i = 0; i < childCount; i++) {
             if (insertableNodeName != null) {
-                if (insertableNodeName.equals(((DbImportTreeNode) selectedElement.getChildAt(i)).getSimpleNodeName())) {
+                if (equalNodes(i)) {
                     insertableNodeName = null;
                     return true;
                 }

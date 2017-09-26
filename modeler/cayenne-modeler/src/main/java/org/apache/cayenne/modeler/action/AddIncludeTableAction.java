@@ -37,6 +37,7 @@ public class AddIncludeTableAction extends TreeManipulationAction {
 
     public AddIncludeTableAction(Application application) {
         super(ACTION_NAME, application);
+        insertableNodeClass = IncludeTable.class;
     }
 
     public String getIconName() {
