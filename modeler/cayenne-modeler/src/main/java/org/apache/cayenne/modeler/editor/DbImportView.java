@@ -21,6 +21,7 @@ package org.apache.cayenne.modeler.editor;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.layout.FormLayout;
+import org.apache.cayenne.dbsync.reverse.dbimport.Catalog;
 import org.apache.cayenne.dbsync.reverse.dbimport.ReverseEngineering;
 import org.apache.cayenne.map.DataMap;
 import org.apache.cayenne.modeler.ProjectController;
@@ -30,6 +31,7 @@ import org.apache.cayenne.modeler.event.DataMapDisplayEvent;
 import org.apache.cayenne.modeler.event.DataMapDisplayListener;
 
 import javax.swing.JPanel;
+import javax.swing.tree.DefaultTreeModel;
 import java.awt.BorderLayout;
 
 /**
@@ -60,6 +62,7 @@ public class DbImportView extends JPanel {
 
             public void currentDataMapChanged(DataMapDisplayEvent e) {
                 DataMap map = e.getDataMap();
+                treePanel.getReverseEngineeringTree().stopEditing();
                 if (map != null) {
                     treeToolbar.unlockButtons();
                     ReverseEngineering reverseEngineering = DbImportView.this.projectController.getApplication().
@@ -71,9 +74,13 @@ public class DbImportView extends JPanel {
                     configPanel.fillCheckboxes(reverseEngineering);
                     configPanel.initializeTextFields(reverseEngineering);
                     treePanel.updateTree();
-                    draggableTreePanel.setVisible(false);
-                    draggableTreePanel.getMoveButton().setVisible(false);
-                    draggableTreePanel.getMoveInvertButton().setVisible(false);
+                    DbImportTreeNode root = ((DbImportTreeNode)draggableTreePanel.getSourceTree().getModel().getRoot());
+                    root.removeAllChildren();
+                    DefaultTreeModel model = (DefaultTreeModel)draggableTreePanel.getSourceTree().getModel();
+                    model.reload();
+                    draggableTreePanel.getSourceTree().setEnabled(false);
+                    draggableTreePanel.getMoveButton().setEnabled(false);
+                    draggableTreePanel.getMoveInvertButton().setEnabled(false);
                 }
             }
         });

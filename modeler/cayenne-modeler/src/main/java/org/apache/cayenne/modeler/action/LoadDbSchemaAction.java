@@ -80,11 +80,7 @@ public class LoadDbSchemaAction extends CayenneAction {
                 packTable(tableName, catalogName, schemaName);
             }
             packFunctions(connection);
-            draggableTreePanel.setVisible(true);
-            draggableTreePanel.getMoveButton().setVisible(true);
-            draggableTreePanel.getMoveButton().setEnabled(false);
-            draggableTreePanel.getMoveInvertButton().setVisible(true);
-            draggableTreePanel.getMoveInvertButton().setEnabled(false);
+            draggableTreePanel.getSourceTree().setEnabled(true);
             draggableTreePanel.getSourceTree().translateReverseEngineeringToTree(databaseReverseEngineering, true);
         } catch (SQLException exception) {
             JOptionPane.showMessageDialog(

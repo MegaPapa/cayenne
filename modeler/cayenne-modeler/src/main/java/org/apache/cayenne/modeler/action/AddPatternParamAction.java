@@ -82,21 +82,19 @@ public abstract class AddPatternParamAction extends TreeManipulationAction {
 
     @Override
     public void performAction(ActionEvent e) {
-        String name = getNewName();
-        if (!Util.isEmptyString(name)) {
-            if (tree.getSelectionPath() == null) {
-                tree.setSelectionRow(INIT_ELEMENT);
-            }
-            selectedElement = (DbImportTreeNode) tree.getSelectionPath().getLastPathComponent();
-            parentElement = (DbImportTreeNode) selectedElement.getParent();
-            Object selectedObject = selectedElement.getUserObject();
-            if (selectedObject instanceof FilterContainer) {
-                addPatternParamToContainer(paramClass, selectedObject, name);
-            } else if (selectedObject instanceof IncludeTable) {
-                addPatternParamToIncludeTable(paramClass, selectedObject, name);
-            }
-            updateModel();
+        String name = insertableNodeName != null ? insertableNodeName : "";
+        if (tree.getSelectionPath() == null) {
+            tree.setSelectionRow(INIT_ELEMENT);
         }
+        selectedElement = (DbImportTreeNode) tree.getSelectionPath().getLastPathComponent();
+        parentElement = (DbImportTreeNode) selectedElement.getParent();
+        Object selectedObject = selectedElement.getUserObject();
+        if (selectedObject instanceof FilterContainer) {
+            addPatternParamToContainer(paramClass, selectedObject, name);
+        } else if (selectedObject instanceof IncludeTable) {
+            addPatternParamToIncludeTable(paramClass, selectedObject, name);
+        }
+        updateAfterInsert();
     }
 
     public void setParamClass(Class paramClass) {

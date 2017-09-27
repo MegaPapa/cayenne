@@ -26,7 +26,7 @@ import org.apache.cayenne.modeler.Application;
  */
 public class MoveInvertNodeAction extends MoveImportNodeAction {
 
-    private static final String ACTION_NAME = "Move Inverted Node";
+    private static final String ACTION_NAME = "Exclude";
 
     MoveInvertNodeAction(Application application) {
         super(ACTION_NAME, application);
