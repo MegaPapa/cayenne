@@ -46,17 +46,15 @@ public class AddIncludeTableAction extends TreeManipulationAction {
 
     @Override
     public void performAction(ActionEvent e) {
-        String name = getNewName();
-        if (!Util.isEmptyString(name)) {
-            if (tree.getSelectionPath() == null) {
-                tree.setSelectionRow(INIT_ELEMENT);
-            }
-            selectedElement = (DbImportTreeNode) tree.getSelectionPath().getLastPathComponent();
-            parentElement = (DbImportTreeNode) selectedElement.getParent();
-            IncludeTable newTable = new IncludeTable(name);
-            ((FilterContainer) selectedElement.getUserObject()).addIncludeTable(newTable);
-            selectedElement.add(new DbImportTreeNode(newTable));
-            updateModel();
+        String name = insertableNodeName != null ? insertableNodeName : "";
+        if (tree.getSelectionPath() == null) {
+            tree.setSelectionRow(INIT_ELEMENT);
         }
+        selectedElement = (DbImportTreeNode) tree.getSelectionPath().getLastPathComponent();
+        parentElement = (DbImportTreeNode) selectedElement.getParent();
+        IncludeTable newTable = new IncludeTable(name);
+        ((FilterContainer) selectedElement.getUserObject()).addIncludeTable(newTable);
+        selectedElement.add(new DbImportTreeNode(newTable));
+        updateAfterInsert();
     }
 }

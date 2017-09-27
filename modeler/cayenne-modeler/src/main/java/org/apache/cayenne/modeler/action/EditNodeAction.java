@@ -25,6 +25,7 @@ import org.apache.cayenne.modeler.Application;
 import org.apache.cayenne.modeler.dialog.db.load.DbImportTreeNode;
 import org.apache.cayenne.util.Util;
 
+import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import java.awt.event.ActionEvent;
 
@@ -36,7 +37,7 @@ public class EditNodeAction extends TreeManipulationAction {
     private static final String ACTION_NAME = "Rename";
     private static final String ICON_NAME = "icon-edit.png";
 
-    private String name;
+    private String actionName;
 
     public EditNodeAction(Application application) {
         super(ACTION_NAME, application);
@@ -49,27 +50,30 @@ public class EditNodeAction extends TreeManipulationAction {
     @Override
     public void performAction(ActionEvent e) {
         if (e != null) {
-            tree.startEditingAtPath(tree.getSelectionPath());
+            if (tree.getSelectionPath() != null) {
+                tree.startEditingAtPath(tree.getSelectionPath());
+            }
         }
         if (tree.getSelectionPath() != null) {
             selectedElement = (DbImportTreeNode) tree.getSelectionPath().getLastPathComponent();
             parentElement = (DbImportTreeNode) selectedElement.getParent();
             if (parentElement != null) {
                 Object selectedObject = selectedElement.getUserObject();
-                if (!Util.isEmptyString(name)) {
+                if (!Util.isEmptyString(actionName)) {
                     if (selectedObject instanceof FilterContainer) {
-                        ((FilterContainer) selectedObject).setName(name);
+                        ((FilterContainer) selectedObject).setName(actionName);
                     } else if (selectedObject instanceof PatternParam) {
-                        ((PatternParam) selectedObject).setPattern(name);
+                        ((PatternParam) selectedObject).setPattern(actionName);
                     }
                     updateModel();
+                    selectedElement = null;
                 }
             }
         }
     }
 
-    @Override
-    public void setName(String name) {
-        this.name = name;
+    public void setActionName(String name) {
+        this.actionName = name;
     }
+
 }

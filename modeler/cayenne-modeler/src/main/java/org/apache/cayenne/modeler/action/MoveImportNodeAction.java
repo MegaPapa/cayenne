@@ -41,7 +41,7 @@ import java.util.Map;
 public class MoveImportNodeAction extends CayenneAction {
 
     private static final String ICON_NAME = "icon-backward.png";
-    private static final String ACTION_NAME = "Move Node";
+    private static final String ACTION_NAME = "Include";
 
     private JTree sourceTree;
     private JTree targetTree;

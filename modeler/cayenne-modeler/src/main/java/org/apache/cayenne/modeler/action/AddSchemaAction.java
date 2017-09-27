@@ -46,17 +46,15 @@ public class AddSchemaAction extends TreeManipulationAction {
 
     @Override
     public void performAction(ActionEvent e) {
-        String name = getNewName();
-        if (!Util.isEmptyString(name)) {
-            if (tree.getSelectionPath() == null) {
-                tree.setSelectionRow(INIT_ELEMENT);
-            }
-            selectedElement = (DbImportTreeNode) tree.getSelectionPath().getLastPathComponent();
-            parentElement = (DbImportTreeNode) selectedElement.getParent();
-            Schema newSchema = new Schema(name);
-            ((SchemaContainer) selectedElement.getUserObject()).addSchema(newSchema);
-            selectedElement.add(new DbImportTreeNode(newSchema));
-            updateModel();
+        String name = insertableNodeName != null ? insertableNodeName : "";
+        if (tree.getSelectionPath() == null) {
+            tree.setSelectionRow(INIT_ELEMENT);
         }
+        selectedElement = (DbImportTreeNode) tree.getSelectionPath().getLastPathComponent();
+        parentElement = (DbImportTreeNode) selectedElement.getParent();
+        Schema newSchema = new Schema(name);
+        ((SchemaContainer) selectedElement.getUserObject()).addSchema(newSchema);
+        selectedElement.add(new DbImportTreeNode(newSchema));
+        updateAfterInsert();
     }
 }

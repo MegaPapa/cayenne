@@ -27,6 +27,8 @@ import org.apache.cayenne.util.Util;
 import javax.swing.JOptionPane;
 import javax.swing.JTree;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreePath;
+import java.awt.event.ActionEvent;
 
 /**
  * @since 4.1
@@ -38,7 +40,7 @@ public abstract class TreeManipulationAction extends CayenneAction {
     protected JTree tree;
     protected DbImportTreeNode selectedElement;
     protected DbImportTreeNode parentElement;
-    private String insertableNodeName;
+    protected String insertableNodeName;
     protected Class insertableNodeClass;
 
     public TreeManipulationAction(String name, Application application) {
@@ -60,42 +62,9 @@ public abstract class TreeManipulationAction extends CayenneAction {
         model.reload(selectedElement);
     }
 
-    protected String getNewName(String oldValue) {
-        insertableNodeName = JOptionPane.showInputDialog(tree, "Name:", oldValue != null ? oldValue : "");
-        return insertableNodeName != null ? insertableNodeName : "";
-    }
-
-    private boolean equalNodes(int i) {
-        return insertableNodeName.equals(((DbImportTreeNode) selectedElement.getChildAt(i)).getSimpleNodeName()) &&
-                insertableNodeClass.equals(((DbImportTreeNode) selectedElement.getChildAt(i)).getUserObject().getClass());
-    }
-
-    private boolean insertableNodeExist() {
-        if (tree.getSelectionPath() == null) {
-            selectedElement = (DbImportTreeNode) tree.getModel().getRoot();
-        } else {
-            selectedElement = (DbImportTreeNode) tree.getSelectionPath().getLastPathComponent();
-        }
-        int childCount = selectedElement.getChildCount();
-        for (int i = 0; i < childCount; i++) {
-            if (insertableNodeName != null) {
-                if (equalNodes(i)) {
-                    insertableNodeName = null;
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    protected String getNewName() {
-        if (Util.isEmptyString(insertableNodeName)) {
-            insertableNodeName = JOptionPane.showInputDialog(tree, "Name:");
-        }
-        if (insertableNodeExist()) {
-            return "";
-        }
-        return insertableNodeName != null ? insertableNodeName : "";
+    protected void updateAfterInsert() {
+        updateModel();
+        tree.startEditingAtPath(new TreePath(((DbImportTreeNode) selectedElement.getLastChild()).getPath()));
     }
 
     public void setInsertableNodeName(String nodeName) {

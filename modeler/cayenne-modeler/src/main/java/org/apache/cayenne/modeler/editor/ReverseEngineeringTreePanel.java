@@ -131,6 +131,10 @@ class ReverseEngineeringTreePanel extends JScrollPane {
         renderer.setOpenIcon(null);
     }
 
+    public DbImportTree getReverseEngineeringTree() {
+        return reverseEngineeringTree;
+    }
+
     void setTreeToolbar(TreeToolbarPanel treeToolbar) {
         this.treeToolbar = treeToolbar;
     }

@@ -20,6 +20,7 @@
 package org.apache.cayenne.modeler.editor;
 
 import org.apache.cayenne.modeler.ProjectController;
+import org.apache.cayenne.modeler.action.DeleteNodeAction;
 import org.apache.cayenne.modeler.action.EditNodeAction;
 import org.apache.cayenne.modeler.dialog.db.load.DbImportTreeNode;
 import org.apache.cayenne.util.Util;
@@ -74,16 +75,46 @@ public class DbImportTreeCellEditor extends DefaultTreeCellEditor {
 
     @Override
     public boolean isCellEditable(EventObject e) {
+        if (tree.getSelectionPath() != null) {
+            if (tree.getSelectionPath().getLastPathComponent() == tree.getModel().getRoot()) {
+                return false;
+            }
+        }
         return true;
     }
 
     @Override
     public void cancelCellEditing() {
-        if (!Util.isEmptyString(super.getCellEditorValue().toString())) {
+        if (!Util.isEmptyString(super.getCellEditorValue().toString()) && !insertableNodeExist()) {
             EditNodeAction action = projectController.getApplication().getActionManager().getAction(EditNodeAction.class);
-            action.setName(super.getCellEditorValue().toString());
+            action.setActionName(super.getCellEditorValue().toString());
+            action.actionPerformed(null);
+        } else {
+            DeleteNodeAction action = projectController.getApplication().getActionManager().getAction(DeleteNodeAction.class);
             action.actionPerformed(null);
         }
+    }
+
+    private boolean equalNodes(int i, DbImportTreeNode parent, DbImportTreeNode selectedElement) {
+        return super.getCellEditorValue().toString().equals(((DbImportTreeNode) parent.getChildAt(i)).getSimpleNodeName()) &&
+                selectedElement.getUserObject().getClass().equals(((DbImportTreeNode) parent.getChildAt(i)).getUserObject().getClass());
+    }
+
+    private boolean insertableNodeExist() {
+        DbImportTreeNode selectedElement;
+        if (tree.getSelectionPath() == null) {
+            selectedElement = (DbImportTreeNode) tree.getModel().getRoot();
+        } else {
+            selectedElement = (DbImportTreeNode) tree.getSelectionPath().getLastPathComponent();
+        }
+        int childCount = selectedElement.getParent().getChildCount();
+        for (int i = 0; i < childCount - 1; i++) {
+            if (equalNodes(i, (DbImportTreeNode) selectedElement.getParent(), selectedElement)) {
+                return true;
+            }
+
+        }
+        return false;
     }
 
     public void setProjectController(ProjectController projectController) {
