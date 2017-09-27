@@ -108,9 +108,11 @@ public class DbImportTreeCellEditor extends DefaultTreeCellEditor {
             selectedElement = (DbImportTreeNode) tree.getSelectionPath().getLastPathComponent();
         }
         int childCount = selectedElement.getParent().getChildCount();
-        for (int i = 0; i < childCount - 1; i++) {
+        for (int i = 0; i < childCount; i++) {
             if (equalNodes(i, (DbImportTreeNode) selectedElement.getParent(), selectedElement)) {
-                return true;
+                if (selectedElement.getParent().getChildAt(i) != selectedElement) {
+                    return true;
+                }
             }
 
         }
