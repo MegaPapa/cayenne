@@ -34,7 +34,6 @@ import org.apache.cayenne.dbsync.reverse.filters.FiltersConfigBuilder;
 import org.apache.cayenne.map.DataMap;
 import org.apache.cayenne.modeler.Application;
 import org.apache.cayenne.modeler.ProjectController;
-import org.apache.cayenne.modeler.dialog.db.DataSourceWizard;
 import org.apache.cayenne.modeler.editor.DbImportView;
 import org.apache.cayenne.modeler.pref.DBConnectionInfo;
 import org.apache.cayenne.util.Util;
@@ -127,8 +126,8 @@ public class DbLoaderContext {
         reverseEngineering.setDefaultPackage(view.getDefaultPackage());
     }
 
-    public boolean buildConfig(DataSourceWizard connectionWizard, DbImportView view) {
-        if (connectionWizard == null) {
+    public boolean buildConfig(DBConnectionInfo connectionInfo, DbImportView view) {
+        if (connectionInfo == null) {
             return false;
         }
         // Build reverse engineering from metadata and dialog values
@@ -143,7 +142,7 @@ public class DbLoaderContext {
                 return new LoaderDelegate(DbLoaderContext.this);
             }
         };
-        fillConfig(config, connectionWizard, reverseEngineering);
+        fillConfig(config, connectionInfo, reverseEngineering);
         setConfig(config);
 
         prepareDataMap();
@@ -152,11 +151,10 @@ public class DbLoaderContext {
     }
 
     // Fill config from metadata reverseEngineering
-    private void fillConfig(DbImportConfiguration config, DataSourceWizard connectionWizard,
-                             ReverseEngineering reverseEngineering) {
+    private void fillConfig(DbImportConfiguration config, DBConnectionInfo connectionInfo,
+                            ReverseEngineering reverseEngineering) {
         FiltersConfigBuilder filtersConfigBuilder = new FiltersConfigBuilder(reverseEngineering);
-        DBConnectionInfo connectionInfo = connectionWizard.getConnectionInfo();
-        config.setAdapter(connectionWizard.getAdapter().getClass().getName());
+        config.setAdapter(connectionInfo.getDbAdapter());
         config.setUsername(connectionInfo.getUserName());
         config.setPassword(connectionInfo.getPassword());
         config.setDriver(connectionInfo.getJdbcDriver());

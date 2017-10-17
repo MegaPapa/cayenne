@@ -16,6 +16,7 @@
  *  specific language governing permissions and limitations
  *  under the License.
  ****************************************************************/
+
 package org.apache.cayenne.dbsync.reverse.dbimport;
 
 import org.apache.cayenne.CayenneRuntimeException;
@@ -80,7 +81,7 @@ import static org.apache.cayenne.util.Util.isBlank;
 public class DefaultDbImportAction implements DbImportAction {
 
     private final ProjectSaver projectSaver;
-    private final Logger logger;
+    protected final Logger logger;
     private final DataSourceFactory dataSourceFactory;
     private final DbAdapterFactory adapterFactory;
     private final DataMapLoader mapLoader;
@@ -202,7 +203,6 @@ public class DefaultDbImportAction implements DbImportAction {
             saveLoaded(targetDataMap, config);
         }
     }
-
     private void putReverseEngineeringToConfig(ReverseEngineering reverseEngineering, DbImportConfiguration config) {
         config.setSkipRelationshipsLoading(reverseEngineering.getSkipRelationshipsLoading());
         config.setSkipPrimaryKeyLoading(reverseEngineering.getSkipPrimaryKeyLoading());
@@ -261,7 +261,7 @@ public class DefaultDbImportAction implements DbImportAction {
         }
     }
 
-    private Collection<MergerToken> log(List<MergerToken> tokens) {
+    protected Collection<MergerToken> log(List<MergerToken> tokens) {
         logger.info("");
         if (tokens.isEmpty()) {
             logger.info("Detected changes: No changes to import.");

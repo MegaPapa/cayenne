@@ -23,8 +23,8 @@ import org.apache.cayenne.dbsync.reverse.dbimport.FilterContainer;
 import org.apache.cayenne.dbsync.reverse.dbimport.IncludeTable;
 import org.apache.cayenne.modeler.Application;
 import org.apache.cayenne.modeler.dialog.db.load.DbImportTreeNode;
-import org.apache.cayenne.util.Util;
 
+import javax.swing.tree.TreePath;
 import java.awt.event.ActionEvent;
 
 /**
@@ -46,15 +46,23 @@ public class AddIncludeTableAction extends TreeManipulationAction {
 
     @Override
     public void performAction(ActionEvent e) {
+        tree.stopEditing();
         String name = insertableNodeName != null ? insertableNodeName : "";
         if (tree.getSelectionPath() == null) {
-            tree.setSelectionRow(INIT_ELEMENT);
+            TreePath root = new TreePath(tree.getModel().getRoot());
+            tree.setSelectionPath(root);
         }
         selectedElement = (DbImportTreeNode) tree.getSelectionPath().getLastPathComponent();
         parentElement = (DbImportTreeNode) selectedElement.getParent();
         IncludeTable newTable = new IncludeTable(name);
-        ((FilterContainer) selectedElement.getUserObject()).addIncludeTable(newTable);
-        selectedElement.add(new DbImportTreeNode(newTable));
-        updateAfterInsert();
+        if (canBeInserted()) {
+            ((FilterContainer) selectedElement.getUserObject()).addIncludeTable(newTable);
+            selectedElement.add(new DbImportTreeNode(newTable));
+            updateAfterInsert(true);
+        } else {
+            ((FilterContainer) parentElement.getUserObject()).addIncludeTable(newTable);
+            parentElement.add(new DbImportTreeNode(newTable));
+            updateAfterInsert(false);
+        }
     }
 }

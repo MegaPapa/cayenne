@@ -23,8 +23,8 @@ import org.apache.cayenne.dbsync.reverse.dbimport.Catalog;
 import org.apache.cayenne.dbsync.reverse.dbimport.ReverseEngineering;
 import org.apache.cayenne.modeler.Application;
 import org.apache.cayenne.modeler.dialog.db.load.DbImportTreeNode;
-import org.apache.cayenne.util.Util;
 
+import javax.swing.tree.TreePath;
 import java.awt.event.ActionEvent;
 
 /**
@@ -46,15 +46,26 @@ public class AddCatalogAction extends TreeManipulationAction {
 
     @Override
     public void performAction(ActionEvent e) {
+        tree.stopEditing();
         String name = insertableNodeName != null ? insertableNodeName : "";
         if (tree.getSelectionPath() == null) {
-            tree.setSelectionRow(INIT_ELEMENT);
+            TreePath root = new TreePath(tree.getModel().getRoot());
+            tree.setSelectionPath(root);
         }
         selectedElement = (DbImportTreeNode) tree.getSelectionPath().getLastPathComponent();
         parentElement = (DbImportTreeNode) selectedElement.getParent();
+        if (parentElement == null) {
+            parentElement = selectedElement;
+        }
         Catalog newCatalog = new Catalog(name);
-        ((ReverseEngineering) selectedElement.getUserObject()).addCatalog(newCatalog);
-        selectedElement.add(new DbImportTreeNode(newCatalog));
-        updateAfterInsert();
+        if (canBeInserted()) {
+            ((ReverseEngineering) selectedElement.getUserObject()).addCatalog(newCatalog);
+            selectedElement.add(new DbImportTreeNode(newCatalog));
+            updateAfterInsert(true);
+        } else {
+            ((ReverseEngineering) parentElement.getUserObject()).addCatalog(newCatalog);
+            parentElement.add(new DbImportTreeNode(newCatalog));
+            updateAfterInsert(false);
+        }
     }
 }

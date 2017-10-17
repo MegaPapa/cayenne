@@ -65,7 +65,7 @@ public class EditNodeAction extends TreeManipulationAction {
                     } else if (selectedObject instanceof PatternParam) {
                         ((PatternParam) selectedObject).setPattern(actionName);
                     }
-                    updateModel();
+                    updateModel(true);
                     selectedElement = null;
                 }
             }

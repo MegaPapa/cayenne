@@ -30,6 +30,7 @@ import javax.swing.event.CellEditorListener;
 import javax.swing.event.ChangeEvent;
 import javax.swing.tree.DefaultTreeCellEditor;
 import javax.swing.tree.DefaultTreeCellRenderer;
+import javax.swing.tree.TreePath;
 import java.awt.Component;
 import java.util.EventObject;
 
@@ -43,7 +44,6 @@ public class DbImportTreeCellEditor extends DefaultTreeCellEditor {
     public DbImportTreeCellEditor(JTree tree, DefaultTreeCellRenderer renderer) {
         super(tree, renderer);
         this.addCellEditorListener(new CellEditorListener() {
-
             @Override
             public void editingStopped(ChangeEvent e) {
                 DbImportTreeCellEditor.this.cancelCellEditing();
@@ -91,7 +91,9 @@ public class DbImportTreeCellEditor extends DefaultTreeCellEditor {
             action.actionPerformed(null);
         } else {
             DeleteNodeAction action = projectController.getApplication().getActionManager().getAction(DeleteNodeAction.class);
+            TreePath parentPath = tree.getSelectionPath().getParentPath();
             action.actionPerformed(null);
+            tree.setSelectionPath(parentPath);
         }
     }
 

@@ -29,8 +29,8 @@ import org.apache.cayenne.dbsync.reverse.dbimport.IncludeTable;
 import org.apache.cayenne.dbsync.reverse.dbimport.PatternParam;
 import org.apache.cayenne.modeler.Application;
 import org.apache.cayenne.modeler.dialog.db.load.DbImportTreeNode;
-import org.apache.cayenne.util.Util;
 
+import javax.swing.tree.TreePath;
 import java.awt.event.ActionEvent;
 
 /**
@@ -44,7 +44,7 @@ public abstract class AddPatternParamAction extends TreeManipulationAction {
         super(name, application);
     }
 
-    private void addPatternParamToContainer(Class paramClass, Object selectedObject, String name) {
+    private void addPatternParamToContainer(Class paramClass, Object selectedObject, String name, DbImportTreeNode node) {
         FilterContainer container = (FilterContainer) selectedObject;
         PatternParam element = null;
         if (paramClass == ExcludeTable.class) {
@@ -63,10 +63,10 @@ public abstract class AddPatternParamAction extends TreeManipulationAction {
             element = new ExcludeProcedure(name);
             container.addExcludeProcedure((ExcludeProcedure) element);
         }
-        selectedElement.add(new DbImportTreeNode(element));
+        node.add(new DbImportTreeNode(element));
     }
 
-    private void addPatternParamToIncludeTable(Class paramClass, Object selectedObject, String name) {
+    private void addPatternParamToIncludeTable(Class paramClass, Object selectedObject, String name, DbImportTreeNode node) {
         IncludeTable includeTable = (IncludeTable) selectedObject;
         PatternParam element = null;
         if (paramClass == IncludeColumn.class) {
@@ -77,24 +77,37 @@ public abstract class AddPatternParamAction extends TreeManipulationAction {
             element = new ExcludeColumn(name);
             includeTable.addExcludeColumn((ExcludeColumn) element);
         }
-        selectedElement.add(new DbImportTreeNode(element));
+        node.add(new DbImportTreeNode(element));
     }
 
     @Override
     public void performAction(ActionEvent e) {
+        tree.stopEditing();
         String name = insertableNodeName != null ? insertableNodeName : "";
         if (tree.getSelectionPath() == null) {
-            tree.setSelectionRow(INIT_ELEMENT);
+            TreePath root = new TreePath(tree.getModel().getRoot());
+            tree.setSelectionPath(root);
         }
         selectedElement = (DbImportTreeNode) tree.getSelectionPath().getLastPathComponent();
         parentElement = (DbImportTreeNode) selectedElement.getParent();
-        Object selectedObject = selectedElement.getUserObject();
-        if (selectedObject instanceof FilterContainer) {
-            addPatternParamToContainer(paramClass, selectedObject, name);
-        } else if (selectedObject instanceof IncludeTable) {
-            addPatternParamToIncludeTable(paramClass, selectedObject, name);
+        Object selectedObject;
+        if (canBeInserted()) {
+            selectedObject = selectedElement.getUserObject();
+            if (selectedObject instanceof FilterContainer) {
+                addPatternParamToContainer(paramClass, selectedObject, name, selectedElement);
+            } else if (selectedObject instanceof IncludeTable) {
+                addPatternParamToIncludeTable(paramClass, selectedObject, name, selectedElement);
+            }
+            updateAfterInsert(true);
+        } else {
+            selectedObject = parentElement.getUserObject();
+            if (selectedObject instanceof FilterContainer) {
+                addPatternParamToContainer(paramClass, selectedObject, name, parentElement);
+            } else if (selectedObject instanceof IncludeTable) {
+                addPatternParamToIncludeTable(paramClass, selectedObject, name, parentElement);
+            }
+            updateAfterInsert(false);
         }
-        updateAfterInsert();
     }
 
     public void setParamClass(Class paramClass) {

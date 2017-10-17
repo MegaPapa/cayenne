@@ -116,6 +116,7 @@ public class DeleteNodeAction extends TreeManipulationAction {
 
     @Override
     public void performAction(ActionEvent e) {
+        tree.stopEditing();
         if (tree.getSelectionPath() != null) {
             selectedElement = (DbImportTreeNode) tree.getSelectionPath().getLastPathComponent();
             parentElement = (DbImportTreeNode) selectedElement.getParent();
