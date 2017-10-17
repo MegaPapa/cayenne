@@ -76,7 +76,7 @@ public class ReverseEngineeringConfigPanel extends JPanel {
         panelBuilder.append("Force datamap catalog:", forceDataMapCatalog);
         panelBuilder.append("Force datamap schema:", forceDataMapSchema);
         panelBuilder.append("Use Java primitive types:", usePrimitives);
-        panelBuilder.append("Use old java.util.Data type:", useJava7Types);
+        panelBuilder.append("Use java.util.Date type:", useJava7Types);
         panelBuilder.append(strategyCombo);
 
         add(panelBuilder.getPanel());

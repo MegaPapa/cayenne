@@ -31,6 +31,7 @@ import org.apache.cayenne.modeler.dialog.db.load.TransferableNode;
 import javax.swing.JTree;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
+import javax.swing.tree.TreePath;
 import java.util.Collection;
 
 /**

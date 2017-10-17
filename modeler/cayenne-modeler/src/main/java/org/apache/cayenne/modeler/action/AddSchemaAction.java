@@ -19,12 +19,14 @@
 
 package org.apache.cayenne.modeler.action;
 
+import org.apache.cayenne.dbsync.reverse.dbimport.Catalog;
+import org.apache.cayenne.dbsync.reverse.dbimport.ReverseEngineering;
 import org.apache.cayenne.dbsync.reverse.dbimport.Schema;
 import org.apache.cayenne.dbsync.reverse.dbimport.SchemaContainer;
 import org.apache.cayenne.modeler.Application;
 import org.apache.cayenne.modeler.dialog.db.load.DbImportTreeNode;
-import org.apache.cayenne.util.Util;
 
+import javax.swing.tree.TreePath;
 import java.awt.event.ActionEvent;
 
 /**
@@ -46,15 +48,27 @@ public class AddSchemaAction extends TreeManipulationAction {
 
     @Override
     public void performAction(ActionEvent e) {
+        tree.stopEditing();
         String name = insertableNodeName != null ? insertableNodeName : "";
         if (tree.getSelectionPath() == null) {
-            tree.setSelectionRow(INIT_ELEMENT);
+            TreePath root = new TreePath(tree.getModel().getRoot());
+            tree.setSelectionPath(root);
         }
         selectedElement = (DbImportTreeNode) tree.getSelectionPath().getLastPathComponent();
         parentElement = (DbImportTreeNode) selectedElement.getParent();
         Schema newSchema = new Schema(name);
-        ((SchemaContainer) selectedElement.getUserObject()).addSchema(newSchema);
-        selectedElement.add(new DbImportTreeNode(newSchema));
-        updateAfterInsert();
+        if (canBeInserted()) {
+            ((SchemaContainer) selectedElement.getUserObject()).addSchema(newSchema);
+            selectedElement.add(new DbImportTreeNode(newSchema));
+            updateAfterInsert(true);
+        } else {
+            if (parentElement.getUserObject().getClass() == ReverseEngineering.class) {
+                ((ReverseEngineering) parentElement.getUserObject()).addSchema(newSchema);
+            } else {
+                ((Catalog) parentElement.getUserObject()).addSchema(newSchema);
+            }
+            parentElement.add(new DbImportTreeNode(newSchema));
+            updateAfterInsert(false);
+        }
     }
 }

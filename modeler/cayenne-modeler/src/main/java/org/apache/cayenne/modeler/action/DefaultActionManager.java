@@ -105,6 +105,7 @@ public class DefaultActionManager implements ActionManager {
         registerAction(new AddExcludeColumnAction(application)).setAlwaysOn(true);
         registerAction(new AddIncludeProcedureAction(application)).setAlwaysOn(true);
         registerAction(new AddExcludeProcedureAction(application)).setAlwaysOn(true);
+        registerAction(new GetDbConnectionAction(application)).setAlwaysOn(true);
         registerAction(new EditNodeAction(application)).setAlwaysOn(true);
         registerAction(new DeleteNodeAction(application)).setAlwaysOn(true);
         registerAction(new MoveImportNodeAction(application)).setAlwaysOn(true);

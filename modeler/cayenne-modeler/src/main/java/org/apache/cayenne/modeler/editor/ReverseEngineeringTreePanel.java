@@ -100,12 +100,17 @@ class ReverseEngineeringTreePanel extends JScrollPane {
             @Override
             public void mouseClicked(MouseEvent e) {
                 if (SwingUtilities.isRightMouseButton(e)) {
-
                     int row = reverseEngineeringTree.getClosestRowForLocation(e.getX(), e.getY());
                     reverseEngineeringTree.setSelectionRow(row);
-                    DbImportTreeNode selectedElement
-                            = (DbImportTreeNode) reverseEngineeringTree.getSelectionPath().getLastPathComponent();
-                    DefaultPopUpMenu popupMenu = popups.get(selectedElement.getUserObject().getClass());
+                    DefaultPopUpMenu popupMenu;
+                    DbImportTreeNode selectedElement;
+                    if (reverseEngineeringTree.getSelectionPath() != null) {
+                        selectedElement = (DbImportTreeNode) reverseEngineeringTree.getSelectionPath().getLastPathComponent();
+                        popupMenu = popups.get(selectedElement.getUserObject().getClass());
+                    } else {
+                        selectedElement = (DbImportTreeNode) reverseEngineeringTree.getModel().getRoot();
+                        popupMenu = popups.get(ReverseEngineering.class);
+                    }
                     if (popupMenu != null) {
                         popupMenu.setProjectController(projectController);
                         popupMenu.setSelectedElement(selectedElement);

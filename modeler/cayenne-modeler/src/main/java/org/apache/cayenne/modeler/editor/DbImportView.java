@@ -21,10 +21,11 @@ package org.apache.cayenne.modeler.editor;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.layout.FormLayout;
-import org.apache.cayenne.dbsync.reverse.dbimport.Catalog;
 import org.apache.cayenne.dbsync.reverse.dbimport.ReverseEngineering;
 import org.apache.cayenne.map.DataMap;
 import org.apache.cayenne.modeler.ProjectController;
+import org.apache.cayenne.modeler.action.LoadDbSchemaAction;
+import org.apache.cayenne.modeler.action.ReverseEngineeringAction;
 import org.apache.cayenne.modeler.dialog.db.load.DbImportTreeNode;
 import org.apache.cayenne.modeler.dialog.db.load.TransferableNode;
 import org.apache.cayenne.modeler.event.DataMapDisplayEvent;
@@ -32,6 +33,7 @@ import org.apache.cayenne.modeler.event.DataMapDisplayListener;
 
 import javax.swing.JPanel;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreeSelectionModel;
 import java.awt.BorderLayout;
 
 /**
@@ -40,6 +42,7 @@ import java.awt.BorderLayout;
 public class DbImportView extends JPanel {
 
     private static final String MAIN_LAYOUT = "fill:160dlu, 5dlu, fill:50dlu, 5dlu, fill:160dlu";
+    private static final String HEADER_LAYOUT = "fill:120dlu, 15dlu, fill:25dlu";
     private static final String BUTTON_PANEL_LAYOUT = "fill:50dlu";
     private static final int ALL_LINE_SPAN = 5;
 
@@ -97,6 +100,26 @@ public class DbImportView extends JPanel {
         builder.setDefaultDialogBorder();
         builder.appendSeparator("Database Import Configuration");
         builder.append(treeToolbar, ALL_LINE_SPAN);
+
+        FormLayout headerLayout = new FormLayout(HEADER_LAYOUT);
+
+        DefaultFormBuilder reverseEngineeringHeaderBuilder = new DefaultFormBuilder(headerLayout);
+        reverseEngineeringHeaderBuilder.append("Reverse Engineering Configuration");
+        ReverseEngineeringAction reverseEngineeringAction = projectController.getApplication().getActionManager().
+                getAction(ReverseEngineeringAction.class);
+        reverseEngineeringAction.setView(this);
+        reverseEngineeringHeaderBuilder.append(reverseEngineeringAction.buildButton(0));
+        builder.append(reverseEngineeringHeaderBuilder.getPanel());
+
+        DefaultFormBuilder databaseHeaderBuilder = new DefaultFormBuilder(headerLayout);
+        databaseHeaderBuilder.append("Database");
+        LoadDbSchemaAction loadDbSchemaAction = projectController.getApplication().getActionManager().
+                getAction(LoadDbSchemaAction.class);
+        loadDbSchemaAction.setDraggableTreePanel(draggableTreePanel);
+        databaseHeaderBuilder.append(loadDbSchemaAction.buildButton(0));
+
+        builder.append("");
+        builder.append(databaseHeaderBuilder.getPanel());
         builder.append(treePanel);
         builder.append(buttonBuilder.getPanel());
         builder.append(draggableTreePanel);
@@ -108,11 +131,15 @@ public class DbImportView extends JPanel {
     private void initFormElements() {
         DbImportTree reverseEngineeringTree = new DbImportTree(new DbImportTreeNode());
         DbImportTree draggableTree = new DbImportTree(new TransferableNode(new ReverseEngineering()));
+        draggableTree.setRootVisible(false);
+        draggableTree.setShowsRootHandles(true);
+        reverseEngineeringTree.setRootVisible(false);
+        reverseEngineeringTree.setShowsRootHandles(true);
+        reverseEngineeringTree.getSelectionModel().setSelectionMode
+                (TreeSelectionModel.SINGLE_TREE_SELECTION);
 
         draggableTreePanel = new DraggableTreePanel(projectController, draggableTree, reverseEngineeringTree);
-        treeToolbar = new TreeToolbarPanel(projectController, reverseEngineeringTree, draggableTreePanel);
-        // Add parent to toolbar for ReverseEngineeringAction
-        treeToolbar.setParent(this);
+        treeToolbar = new TreeToolbarPanel(projectController, reverseEngineeringTree);
         treePanel = new ReverseEngineeringTreePanel(projectController, reverseEngineeringTree);
         treePanel.setTreeToolbar(treeToolbar);
         configPanel = new ReverseEngineeringConfigPanel(projectController);
@@ -143,7 +170,8 @@ public class DbImportView extends JPanel {
     }
 
     public String getMeaningfulPk() {
-        return "".equals(configPanel.getMeaningfulPk().getComponent().getText()) ? null : configPanel.getMeaningfulPk().getComponent().getText();
+        return "".equals(configPanel.getMeaningfulPk().getComponent().getText())
+                ? null : configPanel.getMeaningfulPk().getComponent().getText();
     }
 
     public String getNamingStrategy() {

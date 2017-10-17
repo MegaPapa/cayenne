@@ -40,26 +40,21 @@ import org.apache.cayenne.modeler.action.AddPatternParamAction;
 import org.apache.cayenne.modeler.action.AddSchemaAction;
 import org.apache.cayenne.modeler.action.DeleteNodeAction;
 import org.apache.cayenne.modeler.action.EditNodeAction;
-import org.apache.cayenne.modeler.action.LoadDbSchemaAction;
-import org.apache.cayenne.modeler.action.ReverseEngineeringAction;
+import org.apache.cayenne.modeler.action.GetDbConnectionAction;
 import org.apache.cayenne.modeler.action.TreeManipulationAction;
 import org.apache.cayenne.modeler.dialog.db.load.DbImportTreeNode;
 
 import javax.swing.JButton;
 import javax.swing.JToolBar;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
  * @since 4.1
  */
 class TreeToolbarPanel extends JToolBar {
-
-    private static final int DEFAULT_LEVEL = -1;
-    private static final int FIRST_LEVEL = 0;
-    private static final int SECOND_LEVEL = 1;
-    private static final int THIRD_LEVEL = 5;
-    private static final int FOURTH_LEVEL = 7;
 
     private JButton schemaButton;
     private JButton catalogButton;
@@ -71,36 +66,35 @@ class TreeToolbarPanel extends JToolBar {
     private JButton excludeProcedureButton;
     private JButton editButton;
     private JButton deleteButton;
-    private JButton generateButton;
-    private JButton loadDbSchema;
+    private JButton configureButton;
     private DbImportTree reverseEngineeringTree;
-    private DraggableTreePanel draggableTreePanel;
 
-    private JButton[] buttons;
-    private Map<Class, Integer> levels;
+    private Map<Class, List<JButton>> levels;
     private ProjectController projectController;
-    private ReverseEngineeringAction reverseEngineeringAction;
 
-    TreeToolbarPanel(ProjectController projectController, DbImportTree reverseEngineeringTree, DraggableTreePanel draggableTreePanel) {
+    TreeToolbarPanel(ProjectController projectController, DbImportTree reverseEngineeringTree) {
         this.projectController = projectController;
         this.reverseEngineeringTree = reverseEngineeringTree;
-        this.draggableTreePanel = draggableTreePanel;
-        initLevels();
         createButtons();
+        initLevels();
         addButtons();
-        buttons = new JButton[]{catalogButton, schemaButton, includeTableButton, excludeTableButton,
-                includeProcedureButton, excludeProcedureButton ,includeColumnButton, excludeColumnButton};
     }
 
     void unlockButtons() {
-        changeToolbarButtonsState(false);
+        changeToolbarButtonsState(true);
         editButton.setEnabled(false);
         deleteButton.setEnabled(false);
     }
 
     void lockButtons() {
         if (reverseEngineeringTree.getLastSelectedPathComponent() != null) {
-            lockButtons(((DbImportTreeNode) reverseEngineeringTree.getLastSelectedPathComponent()).getUserObject());
+            DbImportTreeNode selectedNode = ((DbImportTreeNode) reverseEngineeringTree.getLastSelectedPathComponent());
+            DbImportTreeNode parentNode = (DbImportTreeNode) selectedNode.getParent();
+            if (parentNode != null) {
+                lockButtons(parentNode.getUserObject());
+            } else {
+                unlockButtons();
+            }
         } else {
             changeToolbarButtonsState(true);
             editButton.setEnabled(false);
@@ -110,15 +104,42 @@ class TreeToolbarPanel extends JToolBar {
 
     private void initLevels() {
         levels = new HashMap<>();
-        levels.put(ReverseEngineering.class, DEFAULT_LEVEL);
-        levels.put(Catalog.class, FIRST_LEVEL);
-        levels.put(Schema.class, SECOND_LEVEL);
-        levels.put(IncludeTable.class, THIRD_LEVEL);
-        levels.put(ExcludeTable.class, FOURTH_LEVEL);
-        levels.put(IncludeColumn.class, FOURTH_LEVEL);
-        levels.put(ExcludeColumn.class, FOURTH_LEVEL);
-        levels.put(IncludeProcedure.class, FOURTH_LEVEL);
-        levels.put(ExcludeProcedure.class, FOURTH_LEVEL);
+
+        List<JButton> rootLevelButtons = new ArrayList<>();
+        rootLevelButtons.add(catalogButton);
+        rootLevelButtons.add(schemaButton);
+        rootLevelButtons.add(includeTableButton);
+        rootLevelButtons.add(excludeTableButton);
+        rootLevelButtons.add(includeColumnButton);
+        rootLevelButtons.add(excludeColumnButton);
+        rootLevelButtons.add(includeProcedureButton);
+        rootLevelButtons.add(excludeProcedureButton);
+
+        List<JButton> catalogLevelButtons = new ArrayList<>();
+        catalogLevelButtons.add(schemaButton);
+        catalogLevelButtons.add(includeTableButton);
+        catalogLevelButtons.add(excludeTableButton);
+        catalogLevelButtons.add(includeColumnButton);
+        catalogLevelButtons.add(excludeColumnButton);
+        catalogLevelButtons.add(includeProcedureButton);
+        catalogLevelButtons.add(excludeProcedureButton);
+
+        List<JButton> schemaLevelButtons = new ArrayList<>();
+        schemaLevelButtons.add(includeTableButton);
+        schemaLevelButtons.add(excludeTableButton);
+        schemaLevelButtons.add(includeColumnButton);
+        schemaLevelButtons.add(excludeColumnButton);
+        schemaLevelButtons.add(includeProcedureButton);
+        schemaLevelButtons.add(excludeProcedureButton);
+
+        List<JButton> includeTableLevelButtons = new ArrayList<>();
+        includeTableLevelButtons.add(includeColumnButton);
+        includeTableLevelButtons.add(excludeColumnButton);
+
+        levels.put(ReverseEngineering.class, rootLevelButtons);
+        levels.put(Catalog.class, catalogLevelButtons);
+        levels.put(Schema.class, schemaLevelButtons);
+        levels.put(IncludeTable.class, includeTableLevelButtons);
     }
 
     private void addButtons() {
@@ -135,9 +156,7 @@ class TreeToolbarPanel extends JToolBar {
         this.add(editButton);
         this.addSeparator();
         this.add(deleteButton);
-        this.addSeparator();
-        this.add(generateButton);
-        this.add(loadDbSchema);
+        this.add(configureButton);
     }
 
     private void changeToolbarButtonsState(boolean state) {
@@ -154,18 +173,13 @@ class TreeToolbarPanel extends JToolBar {
     }
 
     private void lockButtons(Object userObject) {
-        changeToolbarButtonsState(true);
-        if (levels.get(userObject.getClass()) == DEFAULT_LEVEL) {
-            editButton.setEnabled(false);
-            deleteButton.setEnabled(false);
+        changeToolbarButtonsState(false);
+        List<JButton> buttons = levels.get(userObject.getClass());
+        for (JButton button : buttons) {
+            button.setEnabled(true);
         }
-        lockButtonsOnLevel(levels.get(userObject.getClass()));
-    }
-
-    private void lockButtonsOnLevel(int level) {
-        for (int i = 0; i <= level; i++) {
-            buttons[i].setEnabled(false);
-        }
+        editButton.setEnabled(true);
+        deleteButton.setEnabled(true);
     }
 
     private <T extends TreeManipulationAction> JButton createButton(Class<T> actionClass, int position) {
@@ -192,18 +206,7 @@ class TreeToolbarPanel extends JToolBar {
         excludeProcedureButton = createButton(AddExcludeProcedureAction.class, 3, ExcludeProcedure.class);
         editButton = createButton(EditNodeAction.class, 0);
         deleteButton = createButton(DeleteNodeAction.class, 0);
-        reverseEngineeringAction = projectController.getApplication().getActionManager().
-                getAction(ReverseEngineeringAction.class);
-        reverseEngineeringAction.setView((DbImportView) this.getParent());
-        generateButton = reverseEngineeringAction.buildButton(0);
-        LoadDbSchemaAction loadDbSchemaAction = projectController.getApplication().getActionManager().
-                getAction(LoadDbSchemaAction.class);
-        loadDbSchemaAction.setDraggableTreePanel(draggableTreePanel);
-        loadDbSchema = loadDbSchemaAction.buildButton();
-
-    }
-
-    public void setParent(DbImportView parent) {
-        reverseEngineeringAction.setView(parent);
+        GetDbConnectionAction action = projectController.getApplication().getActionManager().getAction(GetDbConnectionAction.class);
+        configureButton = action.buildButton(0);
     }
 }

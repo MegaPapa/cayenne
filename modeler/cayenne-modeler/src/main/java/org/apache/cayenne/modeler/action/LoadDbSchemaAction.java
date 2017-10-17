@@ -28,6 +28,8 @@ import org.apache.cayenne.map.DataMap;
 import org.apache.cayenne.modeler.Application;
 import org.apache.cayenne.modeler.dialog.db.DataSourceWizard;
 import org.apache.cayenne.modeler.editor.DraggableTreePanel;
+import org.apache.cayenne.modeler.pref.DBConnectionInfo;
+import org.apache.cayenne.modeler.pref.DataMapDefaults;
 import org.apache.cayenne.modeler.util.CayenneAction;
 
 import javax.swing.JOptionPane;
@@ -36,6 +38,12 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
+
+import static org.apache.cayenne.modeler.pref.DBConnectionInfo.DB_ADAPTER_PROPERTY;
+import static org.apache.cayenne.modeler.pref.DBConnectionInfo.URL_PROPERTY;
+import static org.apache.cayenne.modeler.pref.DBConnectionInfo.USER_NAME_PROPERTY;
+import static org.apache.cayenne.modeler.pref.DBConnectionInfo.PASSWORD_PROPERTY;
+import static org.apache.cayenne.modeler.pref.DBConnectionInfo.JDBC_DRIVER_PROPERTY;
 
 /**
  * @since 4.1
@@ -62,15 +70,22 @@ public class LoadDbSchemaAction extends CayenneAction {
 
     @Override
     public void performAction(ActionEvent e) {
-        DataSourceWizard connectWizard = new DataSourceWizard(getProjectController(), "Load Db Schema");
-        if (!connectWizard.startupAction()) {
-            return;
+        DBConnectionInfo connectionInfo;
+        if (!datamapPreferencesExist()) {
+            final DataSourceWizard connectWizard = new DataSourceWizard(getProjectController(), "Load Db Schema");
+            if (!connectWizard.startupAction()) {
+                return;
+            }
+            connectionInfo = connectWizard.getConnectionInfo();
+            saveConnectionInfo(connectWizard);
+        } else {
+            connectionInfo = getConnectionInfoFromPreferences();
         }
 
         DataMap map = getProjectController().getCurrentDataMap();
         databaseReverseEngineering = new ReverseEngineering();
 
-        try(Connection connection = connectWizard.getDataSource().getConnection()) {
+        try(Connection connection = connectionInfo.makeDataSource(getApplication().getClassLoadingService()).getConnection()) {
             String[] types = {"TABLE"};
             ResultSet resultSet = connection.getMetaData().getTables(null, null, INCLUDE_ALL_PATTERN, types);
             while (resultSet.next()) {
@@ -89,6 +104,34 @@ public class LoadDbSchemaAction extends CayenneAction {
                     "Error db schema loading",
                     JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    private boolean datamapPreferencesExist() {
+        DataMapDefaults dataMapDefaults = getProjectController().
+                getDataMapPreferences(getProjectController().getCurrentDataMap());
+        return dataMapDefaults.getCurrentPreference().get(DB_ADAPTER_PROPERTY, null) != null;
+    }
+
+    private DBConnectionInfo getConnectionInfoFromPreferences() {
+        DBConnectionInfo connectionInfo = new DBConnectionInfo();
+        DataMapDefaults dataMapDefaults = getProjectController().
+                getDataMapPreferences(getProjectController().getCurrentDataMap());
+        connectionInfo.setDbAdapter(dataMapDefaults.getCurrentPreference().get(DB_ADAPTER_PROPERTY, null));
+        connectionInfo.setUrl(dataMapDefaults.getCurrentPreference().get(URL_PROPERTY, null));
+        connectionInfo.setUserName(dataMapDefaults.getCurrentPreference().get(USER_NAME_PROPERTY, null));
+        connectionInfo.setPassword(dataMapDefaults.getCurrentPreference().get(PASSWORD_PROPERTY, null));
+        connectionInfo.setJdbcDriver(dataMapDefaults.getCurrentPreference().get(JDBC_DRIVER_PROPERTY, null));
+        return connectionInfo;
+    }
+
+    private void saveConnectionInfo(DataSourceWizard connectWizard) {
+        DataMapDefaults dataMapDefaults = getProjectController().
+                getDataMapPreferences(getProjectController().getCurrentDataMap());
+        dataMapDefaults.getCurrentPreference().put(DB_ADAPTER_PROPERTY, connectWizard.getConnectionInfo().getDbAdapter());
+        dataMapDefaults.getCurrentPreference().put(URL_PROPERTY, connectWizard.getConnectionInfo().getUrl());
+        dataMapDefaults.getCurrentPreference().put(USER_NAME_PROPERTY, connectWizard.getConnectionInfo().getUserName());
+        dataMapDefaults.getCurrentPreference().put(PASSWORD_PROPERTY, connectWizard.getConnectionInfo().getPassword());
+        dataMapDefaults.getCurrentPreference().put(JDBC_DRIVER_PROPERTY, connectWizard.getConnectionInfo().getJdbcDriver());
     }
 
     private void packFunctions(Connection connection) throws SQLException {

@@ -25,12 +25,20 @@ import org.apache.cayenne.modeler.dialog.db.DbActionOptionsDialog;
 import org.apache.cayenne.modeler.dialog.db.load.DbLoaderContext;
 import org.apache.cayenne.modeler.dialog.db.load.LoadDataMapTask;
 import org.apache.cayenne.modeler.editor.DbImportView;
+import org.apache.cayenne.modeler.pref.DBConnectionInfo;
+import org.apache.cayenne.modeler.pref.DataMapDefaults;
 
 import java.awt.event.ActionEvent;
 import java.sql.SQLException;
 import java.util.Collection;
 import javax.swing.SwingUtilities;
 import javax.swing.JOptionPane;
+
+import static org.apache.cayenne.modeler.pref.DBConnectionInfo.DB_ADAPTER_PROPERTY;
+import static org.apache.cayenne.modeler.pref.DBConnectionInfo.URL_PROPERTY;
+import static org.apache.cayenne.modeler.pref.DBConnectionInfo.USER_NAME_PROPERTY;
+import static org.apache.cayenne.modeler.pref.DBConnectionInfo.PASSWORD_PROPERTY;
+import static org.apache.cayenne.modeler.pref.DBConnectionInfo.JDBC_DRIVER_PROPERTY;
 
 /**
  * Action that imports database structure into a DataMap.
@@ -39,6 +47,7 @@ public class ReverseEngineeringAction extends DBWizardAction<DbActionOptionsDial
 
     private static final String ACTION_NAME = "Reengineer Database Schema";
     private static final String ICON_NAME = "icon-dom.png";
+    private static final String DIALOG_TITLE = "Reengineer DB Schema: Connect to Database";
 
     private DbImportView view;
 
@@ -60,13 +69,20 @@ public class ReverseEngineeringAction extends DBWizardAction<DbActionOptionsDial
     @Override
     public void performAction(ActionEvent event) {
         final DbLoaderContext context = new DbLoaderContext(application.getMetaData());
-        final DataSourceWizard connectWizard = dataSourceWizardDialog("Reengineer DB Schema: Connect to Database");
-        if(connectWizard == null) {
-            return;
+        DBConnectionInfo connectionInfo;
+        if (!datamapPreferencesExist()) {
+            final DataSourceWizard connectWizard = dataSourceWizardDialog(DIALOG_TITLE);
+            if (connectWizard == null) {
+                return;
+            }
+            connectionInfo = connectWizard.getConnectionInfo();
+            saveConnectionInfo(connectWizard);
+        } else {
+            connectionInfo = getConnectionInfoFromPreferences();
         }
         context.setProjectController(getProjectController());
         try {
-            context.setConnection(connectWizard.getDataSource().getConnection());
+            context.setConnection(connectionInfo.makeDataSource(getApplication().getClassLoadingService()).getConnection());
         } catch (SQLException ex) {
             JOptionPane.showMessageDialog(
                     Application.getFrame(),
@@ -75,7 +91,7 @@ public class ReverseEngineeringAction extends DBWizardAction<DbActionOptionsDial
                     JOptionPane.ERROR_MESSAGE);
             return;
         }
-        if(!context.buildConfig(connectWizard, view)) {
+        if(!context.buildConfig(connectionInfo, view)) {
             try {
                 context.getConnection().close();
             } catch (SQLException ignored) {}
@@ -91,6 +107,34 @@ public class ReverseEngineeringAction extends DBWizardAction<DbActionOptionsDial
                 } catch (SQLException ignored) {}
             }
         });
+    }
+
+    private DBConnectionInfo getConnectionInfoFromPreferences() {
+        DBConnectionInfo connectionInfo = new DBConnectionInfo();
+        DataMapDefaults dataMapDefaults = getProjectController().
+                getDataMapPreferences(getProjectController().getCurrentDataMap());
+        connectionInfo.setDbAdapter(dataMapDefaults.getCurrentPreference().get(DB_ADAPTER_PROPERTY, null));
+        connectionInfo.setUrl(dataMapDefaults.getCurrentPreference().get(URL_PROPERTY, null));
+        connectionInfo.setUserName(dataMapDefaults.getCurrentPreference().get(USER_NAME_PROPERTY, null));
+        connectionInfo.setPassword(dataMapDefaults.getCurrentPreference().get(PASSWORD_PROPERTY, null));
+        connectionInfo.setJdbcDriver(dataMapDefaults.getCurrentPreference().get(JDBC_DRIVER_PROPERTY, null));
+        return connectionInfo;
+    }
+
+    private void saveConnectionInfo(DataSourceWizard connectWizard) {
+        DataMapDefaults dataMapDefaults = getProjectController().
+                getDataMapPreferences(getProjectController().getCurrentDataMap());
+        dataMapDefaults.getCurrentPreference().put(DB_ADAPTER_PROPERTY, connectWizard.getConnectionInfo().getDbAdapter());
+        dataMapDefaults.getCurrentPreference().put(URL_PROPERTY, connectWizard.getConnectionInfo().getUrl());
+        dataMapDefaults.getCurrentPreference().put(USER_NAME_PROPERTY, connectWizard.getConnectionInfo().getUserName());
+        dataMapDefaults.getCurrentPreference().put(PASSWORD_PROPERTY, connectWizard.getConnectionInfo().getPassword());
+        dataMapDefaults.getCurrentPreference().put(JDBC_DRIVER_PROPERTY, connectWizard.getConnectionInfo().getJdbcDriver());
+    }
+
+    private boolean datamapPreferencesExist() {
+        DataMapDefaults dataMapDefaults = getProjectController().
+                getDataMapPreferences(getProjectController().getCurrentDataMap());
+        return dataMapDefaults.getCurrentPreference().get(DB_ADAPTER_PROPERTY, null) != null;
     }
 
     private void runLoaderInThread(final DbLoaderContext context, final Runnable callback) {

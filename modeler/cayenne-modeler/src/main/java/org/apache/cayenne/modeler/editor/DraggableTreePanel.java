@@ -56,7 +56,9 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -64,7 +66,6 @@ import java.util.Map;
  */
 public class DraggableTreePanel extends JScrollPane {
 
-    private static final int UNACCEPTABLE_DIFFERENCE = 2;
     private static final int ROOT_LEVEL = 14;
     private static final int FIRST_LEVEL = 11;
     private static final int SECOND_LEVEL = 8;
@@ -79,6 +80,7 @@ public class DraggableTreePanel extends JScrollPane {
 
     private ProjectController projectController;
     private Map<Class, Integer> levels;
+    private Map<Class, List<Class>> insertableLevels;
     private Map<Class, Class> actions;
 
     public DraggableTreePanel(ProjectController projectController, DbImportTree sourceTree, DbImportTree targetTree) {
@@ -257,6 +259,43 @@ public class DraggableTreePanel extends JScrollPane {
         levels.put(ExcludeTable.class, FIFTH_LEVEL);
         levels.put(IncludeProcedure.class, FIFTH_LEVEL);
         levels.put(ExcludeProcedure.class, FIFTH_LEVEL);
+
+        insertableLevels = new HashMap<>();
+        List<Class> rootLevelClasses = new ArrayList<>();
+        rootLevelClasses.add(Catalog.class);
+        rootLevelClasses.add(Schema.class);
+        rootLevelClasses.add(IncludeTable.class);
+        rootLevelClasses.add(ExcludeTable.class);
+        rootLevelClasses.add(IncludeColumn.class);
+        rootLevelClasses.add(ExcludeColumn.class);
+        rootLevelClasses.add(IncludeProcedure.class);
+        rootLevelClasses.add(ExcludeProcedure.class);
+
+        List<Class> catalogLevelClasses = new ArrayList<>();
+        catalogLevelClasses.add(Schema.class);
+        catalogLevelClasses.add(IncludeTable.class);
+        catalogLevelClasses.add(ExcludeTable.class);
+        catalogLevelClasses.add(IncludeColumn.class);
+        catalogLevelClasses.add(ExcludeColumn.class);
+        catalogLevelClasses.add(IncludeProcedure.class);
+        catalogLevelClasses.add(ExcludeProcedure.class);
+
+        List<Class> schemaLevelClasses = new ArrayList<>();
+        schemaLevelClasses.add(IncludeTable.class);
+        schemaLevelClasses.add(ExcludeTable.class);
+        schemaLevelClasses.add(IncludeColumn.class);
+        schemaLevelClasses.add(ExcludeColumn.class);
+        schemaLevelClasses.add(IncludeProcedure.class);
+        schemaLevelClasses.add(ExcludeProcedure.class);
+
+        List<Class> includeTableLevelClasses = new ArrayList<>();
+        includeTableLevelClasses.add(IncludeColumn.class);
+        includeTableLevelClasses.add(ExcludeColumn.class);
+
+        insertableLevels.put(ReverseEngineering.class, rootLevelClasses);
+        insertableLevels.put(Catalog.class, catalogLevelClasses);
+        insertableLevels.put(Schema.class, schemaLevelClasses);
+        insertableLevels.put(IncludeTable.class, includeTableLevelClasses);
     }
 
     private boolean canBeMoved() {
@@ -265,19 +304,21 @@ public class DraggableTreePanel extends JScrollPane {
             if (selectedElement == null) {
                 return false;
             }
-            int targetLevel;
-            int sourceLevel;
-            sourceLevel = levels.get(selectedElement.getUserObject().getClass());
+            Class draggableElementClass = selectedElement.getUserObject().getClass();
+            Class reverseEngineeringElementClass;
             if (targetTree.getSelectionPath() != null) {
                 selectedElement = (DbImportTreeNode) targetTree.getSelectionPath().getLastPathComponent();
-                if (selectedElement == null) {
-                    return false;
+                DbImportTreeNode parent = (DbImportTreeNode) selectedElement.getParent();
+                if (parent != null) {
+                    reverseEngineeringElementClass = parent.getUserObject().getClass();
+                } else {
+                    reverseEngineeringElementClass = selectedElement.getUserObject().getClass();
                 }
-                targetLevel = levels.get(selectedElement.getUserObject().getClass());
             } else {
-                targetLevel = ROOT_LEVEL;
+                reverseEngineeringElementClass = ReverseEngineering.class;
             }
-            return (targetLevel - sourceLevel) > UNACCEPTABLE_DIFFERENCE;
+            List<Class> containsList = insertableLevels.get(reverseEngineeringElementClass);
+            return containsList.contains(draggableElementClass);
         }
         return false;
     }
