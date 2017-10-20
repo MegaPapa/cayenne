@@ -90,10 +90,15 @@ public class DbImportTreeCellEditor extends DefaultTreeCellEditor {
             action.setActionName(super.getCellEditorValue().toString());
             action.actionPerformed(null);
         } else {
-            DeleteNodeAction action = projectController.getApplication().getActionManager().getAction(DeleteNodeAction.class);
-            TreePath parentPath = tree.getSelectionPath().getParentPath();
-            action.actionPerformed(null);
-            tree.setSelectionPath(parentPath);
+            DbImportTreeNode selectedNode = (DbImportTreeNode) tree.getSelectionPath().getLastPathComponent();
+            if (Util.isEmptyString(selectedNode.getSimpleNodeName())) {
+                DeleteNodeAction action = projectController.getApplication().getActionManager().getAction(DeleteNodeAction.class);
+                TreePath parentPath = tree.getSelectionPath().getParentPath();
+                action.actionPerformed(null);
+                tree.setSelectionPath(parentPath);
+            } else {
+                tree.startEditingAtPath(tree.getSelectionPath());
+            }
         }
     }
 

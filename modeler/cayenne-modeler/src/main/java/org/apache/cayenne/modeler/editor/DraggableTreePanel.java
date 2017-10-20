@@ -194,6 +194,7 @@ public class DraggableTreePanel extends JScrollPane {
 
     private void initElement() {
         sourceTree.setDragEnabled(true);
+        sourceTree.setCellRenderer(new ColorTreeRenderer());
         sourceTree.setDropMode(DropMode.INSERT);
         sourceTree.setTransferHandler(new TransferHandler() {
 

@@ -32,6 +32,8 @@ import org.apache.cayenne.modeler.event.DataMapDisplayEvent;
 import org.apache.cayenne.modeler.event.DataMapDisplayListener;
 
 import javax.swing.JPanel;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeSelectionModel;
 import java.awt.BorderLayout;
@@ -84,6 +86,19 @@ public class DbImportView extends JPanel {
                     draggableTreePanel.getSourceTree().setEnabled(false);
                     draggableTreePanel.getMoveButton().setEnabled(false);
                     draggableTreePanel.getMoveInvertButton().setEnabled(false);
+                }
+            }
+        });
+        treePanel.getReverseEngineeringTree().addTreeSelectionListener(new TreeSelectionListener() {
+            @Override
+            public void valueChanged(TreeSelectionEvent e) {
+                if (treePanel.getReverseEngineeringTree().getSelectionPath() != null) {
+                    //DbImportTreeNode node = (DbImportTreeNode) treePanel.getReverseEngineeringTree().getSelectionPath().getLastPathComponent();
+                    DbImportTreeNode rootNode = (DbImportTreeNode) treePanel.getReverseEngineeringTree().getModel().getRoot();
+                    int rootChildCount = treePanel.getReverseEngineeringTree().getModel().getChildCount(rootNode);
+                    for (int i = 0; i < rootChildCount; i++) {
+                        System.out.println(treePanel.getReverseEngineeringTree().getModel().getChild(rootNode, i));
+                    }
                 }
             }
         });
