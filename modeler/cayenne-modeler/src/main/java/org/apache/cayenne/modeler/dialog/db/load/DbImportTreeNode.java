@@ -50,7 +50,7 @@ public class DbImportTreeNode extends DefaultMutableTreeNode {
         if (nodeName == null) {
             return className;
         } else {
-            return String.format("%s: %s", className, nodeName);
+            return String.format("%s", nodeName);
         }
     }
 
