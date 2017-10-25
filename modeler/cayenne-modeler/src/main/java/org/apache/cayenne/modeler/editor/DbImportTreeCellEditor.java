@@ -91,7 +91,7 @@ public class DbImportTreeCellEditor extends DefaultTreeCellEditor {
             action.actionPerformed(null);
         } else {
             DbImportTreeNode selectedNode = (DbImportTreeNode) tree.getSelectionPath().getLastPathComponent();
-            if (Util.isEmptyString(selectedNode.getSimpleNodeName())) {
+            if (Util.isEmptyString(selectedNode.getSimpleNodeName()) || (insertableNodeExist())) {
                 DeleteNodeAction action = projectController.getApplication().getActionManager().getAction(DeleteNodeAction.class);
                 TreePath parentPath = tree.getSelectionPath().getParentPath();
                 action.actionPerformed(null);

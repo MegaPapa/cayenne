@@ -32,9 +32,6 @@ import org.apache.cayenne.modeler.event.DataMapDisplayEvent;
 import org.apache.cayenne.modeler.event.DataMapDisplayListener;
 
 import javax.swing.JPanel;
-import javax.swing.event.TreeSelectionEvent;
-import javax.swing.event.TreeSelectionListener;
-import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeSelectionModel;
 import java.awt.BorderLayout;
 
@@ -55,11 +52,14 @@ public class DbImportView extends JPanel {
 
     private ProjectController projectController;
 
+    private DbTreeColorMap colorMap;
+
     DbImportView(ProjectController projectController) {
         this.projectController = projectController;
         initFormElements();
         initListeners();
         buildForm();
+        colorMap.buildColorMap();
     }
 
     private void initListeners() {
@@ -81,24 +81,11 @@ public class DbImportView extends JPanel {
                     treePanel.updateTree();
                     DbImportTreeNode root = ((DbImportTreeNode)draggableTreePanel.getSourceTree().getModel().getRoot());
                     root.removeAllChildren();
-                    DefaultTreeModel model = (DefaultTreeModel)draggableTreePanel.getSourceTree().getModel();
+                    DbImportModel model = (DbImportModel) draggableTreePanel.getSourceTree().getModel();
                     model.reload();
                     draggableTreePanel.getSourceTree().setEnabled(false);
                     draggableTreePanel.getMoveButton().setEnabled(false);
                     draggableTreePanel.getMoveInvertButton().setEnabled(false);
-                }
-            }
-        });
-        treePanel.getReverseEngineeringTree().addTreeSelectionListener(new TreeSelectionListener() {
-            @Override
-            public void valueChanged(TreeSelectionEvent e) {
-                if (treePanel.getReverseEngineeringTree().getSelectionPath() != null) {
-                    //DbImportTreeNode node = (DbImportTreeNode) treePanel.getReverseEngineeringTree().getSelectionPath().getLastPathComponent();
-                    DbImportTreeNode rootNode = (DbImportTreeNode) treePanel.getReverseEngineeringTree().getModel().getRoot();
-                    int rootChildCount = treePanel.getReverseEngineeringTree().getModel().getChildCount(rootNode);
-                    for (int i = 0; i < rootChildCount; i++) {
-                        System.out.println(treePanel.getReverseEngineeringTree().getModel().getChild(rootNode, i));
-                    }
                 }
             }
         });
@@ -144,11 +131,18 @@ public class DbImportView extends JPanel {
     }
 
     private void initFormElements() {
-        DbImportTree reverseEngineeringTree = new DbImportTree(new DbImportTreeNode());
-        DbImportTree draggableTree = new DbImportTree(new TransferableNode(new ReverseEngineering()));
+        DbImportTreeNode root = new DbImportTreeNode(new ReverseEngineering());
+        DbImportTreeNode draggableTreeRoot = new DbImportTreeNode(new ReverseEngineering());
+        DbImportTree reverseEngineeringTree = new DbImportTree(root);
+        DbImportTree draggableTree = new DbImportTree(new TransferableNode(draggableTreeRoot));
+        DbImportModel model = new DbImportModel(root);
+        DbImportModel draggableTreeModel = new DbImportModel(draggableTreeRoot);
+
         draggableTree.setRootVisible(false);
         draggableTree.setShowsRootHandles(true);
+        draggableTree.setModel(draggableTreeModel);
         reverseEngineeringTree.setRootVisible(false);
+        reverseEngineeringTree.setModel(model);
         reverseEngineeringTree.setShowsRootHandles(true);
         reverseEngineeringTree.getSelectionModel().setSelectionMode
                 (TreeSelectionModel.SINGLE_TREE_SELECTION);
@@ -157,6 +151,12 @@ public class DbImportView extends JPanel {
         treeToolbar = new TreeToolbarPanel(projectController, reverseEngineeringTree);
         treePanel = new ReverseEngineeringTreePanel(projectController, reverseEngineeringTree);
         treePanel.setTreeToolbar(treeToolbar);
+
+        colorMap = new DbTreeColorMap(treePanel.getReverseEngineeringTree(), draggableTreePanel.getSourceTree());
+        model.setColorMap(colorMap);
+        draggableTreeModel.setColorMap(colorMap);
+        ((ColorTreeRenderer) draggableTreePanel.getSourceTree().getCellRenderer()).setColorMap(colorMap);
+
         configPanel = new ReverseEngineeringConfigPanel(projectController);
     }
 
