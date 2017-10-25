@@ -30,6 +30,7 @@ import org.apache.cayenne.dbsync.reverse.dbimport.ReverseEngineering;
 import org.apache.cayenne.dbsync.reverse.dbimport.Schema;
 import org.apache.cayenne.modeler.Application;
 import org.apache.cayenne.modeler.dialog.db.load.DbImportTreeNode;
+import org.apache.cayenne.modeler.editor.DbImportModel;
 import org.apache.cayenne.modeler.util.CayenneAction;
 
 import javax.swing.JTree;
@@ -116,7 +117,7 @@ public abstract class TreeManipulationAction extends CayenneAction {
 
     protected void updateModel(boolean updateSelected) {
         insertableNodeName = null;
-        DefaultTreeModel model = (DefaultTreeModel) tree.getModel();
+        DbImportModel model = (DbImportModel) tree.getModel();
         getProjectController().setDirty(true);
         model.reload(updateSelected ? selectedElement : parentElement);
     }

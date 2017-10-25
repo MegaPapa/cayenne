@@ -27,12 +27,14 @@ import org.apache.cayenne.dbsync.reverse.dbimport.Schema;
 import org.apache.cayenne.map.DataMap;
 import org.apache.cayenne.modeler.Application;
 import org.apache.cayenne.modeler.dialog.db.DataSourceWizard;
+import org.apache.cayenne.modeler.editor.DbImportModel;
 import org.apache.cayenne.modeler.editor.DraggableTreePanel;
 import org.apache.cayenne.modeler.pref.DBConnectionInfo;
 import org.apache.cayenne.modeler.pref.DataMapDefaults;
 import org.apache.cayenne.modeler.util.CayenneAction;
 
 import javax.swing.JOptionPane;
+import javax.swing.tree.DefaultTreeModel;
 import java.awt.event.ActionEvent;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -97,6 +99,7 @@ public class LoadDbSchemaAction extends CayenneAction {
             packFunctions(connection);
             draggableTreePanel.getSourceTree().setEnabled(true);
             draggableTreePanel.getSourceTree().translateReverseEngineeringToTree(databaseReverseEngineering, true);
+            ((DbImportModel) draggableTreePanel.getSourceTree().getModel()).reload();
         } catch (SQLException exception) {
             JOptionPane.showMessageDialog(
                     Application.getFrame(),

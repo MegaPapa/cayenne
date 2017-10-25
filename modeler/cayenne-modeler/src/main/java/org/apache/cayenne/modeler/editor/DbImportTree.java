@@ -31,7 +31,6 @@ import org.apache.cayenne.modeler.dialog.db.load.TransferableNode;
 import javax.swing.JTree;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
-import javax.swing.tree.TreePath;
 import java.util.Collection;
 
 /**
@@ -40,6 +39,7 @@ import java.util.Collection;
 public class DbImportTree extends JTree {
 
     private boolean isTransferable;
+    private ReverseEngineering reverseEngineering;
 
     public DbImportTree(TreeNode node) {
         super(node);
@@ -47,6 +47,7 @@ public class DbImportTree extends JTree {
 
     public void translateReverseEngineeringToTree(ReverseEngineering reverseEngineering, boolean isTransferable) {
         this.isTransferable = isTransferable;
+        this.reverseEngineering = reverseEngineering;
         DefaultTreeModel model = (DefaultTreeModel)this.getModel();
         DbImportTreeNode root = (DbImportTreeNode) model.getRoot();
         root.removeAllChildren();
@@ -102,5 +103,9 @@ public class DbImportTree extends JTree {
             printChildren(catalog, node);
             parent.add(node);
         }
+    }
+
+    public ReverseEngineering getReverseEngineering() {
+        return reverseEngineering;
     }
 }
