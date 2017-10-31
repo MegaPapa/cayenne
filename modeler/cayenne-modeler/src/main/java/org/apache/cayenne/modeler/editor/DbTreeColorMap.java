@@ -20,6 +20,7 @@
 package org.apache.cayenne.modeler.editor;
 
 import org.apache.cayenne.dbsync.reverse.dbimport.Catalog;
+import org.apache.cayenne.dbsync.reverse.dbimport.ExcludeTable;
 import org.apache.cayenne.dbsync.reverse.dbimport.IncludeTable;
 import org.apache.cayenne.dbsync.reverse.dbimport.ReverseEngineering;
 import org.apache.cayenne.dbsync.reverse.dbimport.Schema;
@@ -123,19 +124,22 @@ public class DbTreeColorMap {
 
     private boolean inReverseEngineering(String node, Class nodeClass) {
         ReverseEngineering reverseEngineering = reverseEngineeringTree.getReverseEngineering();
-        if (reverseEngineering.isEmptyContainer()) {
+        if ((reverseEngineering.getCatalogs().size() == 0) && (reverseEngineering.getSchemas().size() == 0)
+                && (reverseEngineering.getIncludeTables().size() == 0) && (reverseEngineering.getExcludeTables().size() == 0)) {
             return true;
         }
-        /*for (ExcludeTable excludeTable : reverseEngineering.getExcludeTables()) {
-            if (excludeTable.getPattern().equals(node)) {
-                return false;
+        if ((reverseEngineering.getCatalogs().size() == 0) && (reverseEngineering.getSchemas().size() == 0)) {
+            for (ExcludeTable excludeTable : reverseEngineering.getExcludeTables()) {
+                if (excludeTable.getPattern().equals(node)) {
+                    return false;
+                }
+            }
+            for (IncludeTable includeTable : reverseEngineering.getIncludeTables()) {
+                if ((includeTable.getPattern().equals(node)) && (nodeClass == IncludeTable.class)) {
+                    return true;
+                }
             }
         }
-        for (IncludeTable includeTable : reverseEngineering.getIncludeTables()) {
-            if ((includeTable.getPattern().equals(node)) && (nodeClass == IncludeTable.class)) {
-                return true;
-            }
-        }*/
         return false;
     }
 
