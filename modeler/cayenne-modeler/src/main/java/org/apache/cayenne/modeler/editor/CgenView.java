@@ -21,8 +21,12 @@ package org.apache.cayenne.modeler.editor;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.layout.FormLayout;
+import org.apache.cayenne.map.DataMap;
 import org.apache.cayenne.modeler.ProjectController;
 import org.apache.cayenne.modeler.dialog.codegen.StandardPanelComponent;
+import org.apache.cayenne.modeler.event.DataMapDisplayEvent;
+import org.apache.cayenne.modeler.event.DataMapDisplayListener;
+
 import javax.swing.JPanel;
 import java.awt.BorderLayout;
 import java.util.ArrayList;
@@ -45,9 +49,21 @@ public class CgenView extends JPanel {
     public CgenView(ProjectController projectController) {
         this.projectController = projectController;
         this.dataMapLines = new ArrayList<>();
-        this.codeGeneratorPanel = new CodeGeneratorPanel();
         initUIElements();
         buildUI();
+        initListeners();
+    }
+
+    private void initListeners() {
+        projectController.addDataMapDisplayListener(new DataMapDisplayListener() {
+            @Override
+            public void currentDataMapChanged(DataMapDisplayEvent e) {
+                DataMap map = e.getDataMap();
+                if (map != null) {
+                    //codeGeneratorPanel.getClasses().getTable()
+                }
+            }
+        });
     }
 
     private void buildUI() {
@@ -61,7 +77,7 @@ public class CgenView extends JPanel {
     }
 
     private void initUIElements() {
-        this.codeGeneratorPanel = new CodeGeneratorPanel();
+        this.codeGeneratorPanel = new CodeGeneratorPanel(projectController);
         this.configPanel = new CgenConfigPanel();
     }
 
