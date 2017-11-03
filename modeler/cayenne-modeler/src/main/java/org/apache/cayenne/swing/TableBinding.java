@@ -148,7 +148,7 @@ public class TableBinding extends BindingBase {
         throw new BindingException("List expected, got - " + list);
     }
 
-    final class BoundTableModel extends AbstractTableModel {
+    public final class BoundTableModel extends AbstractTableModel {
 
         // this map is used as "flyweight", providing on the spot context for Ognl
         // expression evaluation
@@ -170,6 +170,10 @@ public class TableBinding extends BindingBase {
             Object item = list.get(rowIndex);
             listContext.put(ITEM_VAR, item);
             return columns[columnIndex].getValue(getContext(), listContext);
+        }
+
+        public void clearTable() {
+            list.clear();
         }
 
         public String getColumnName(int column) {

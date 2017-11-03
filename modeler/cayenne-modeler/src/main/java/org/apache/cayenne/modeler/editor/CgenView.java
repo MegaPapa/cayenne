@@ -26,6 +26,7 @@ import org.apache.cayenne.modeler.ProjectController;
 import org.apache.cayenne.modeler.dialog.codegen.StandardPanelComponent;
 import org.apache.cayenne.modeler.event.DataMapDisplayEvent;
 import org.apache.cayenne.modeler.event.DataMapDisplayListener;
+import org.apache.cayenne.swing.TableBinding;
 
 import javax.swing.JPanel;
 import java.awt.BorderLayout;
@@ -60,7 +61,12 @@ public class CgenView extends JPanel {
             public void currentDataMapChanged(DataMapDisplayEvent e) {
                 DataMap map = e.getDataMap();
                 if (map != null) {
-                    //codeGeneratorPanel.getClasses().getTable()
+                    codeGeneratorPanel.getTabController().initBindings();
+                    TableBinding.BoundTableModel model = (TableBinding.BoundTableModel) codeGeneratorPanel.getClasses().getTable().getModel();
+                    model.clearTable();
+                    codeGeneratorPanel.getTabController().getDatamapData();
+                    codeGeneratorPanel.getTabController().classesSelectedAction();
+                    //codeGeneratorPanel.getClasses().getCheckAll().
                 }
             }
         });

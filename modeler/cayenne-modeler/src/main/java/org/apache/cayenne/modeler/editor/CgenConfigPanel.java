@@ -38,8 +38,16 @@ import java.awt.FlowLayout;
  */
 public class CgenConfigPanel extends JPanel {
 
+    protected static final String STANDARD_OBJECTS_MODE = "Standard Persistent Objects";
+    protected static final String CLIENT_OBJECTS_MODE = "Client Persistent Objects";
+    protected static final String ADVANCED_MODE = "Advanced";
+
     private static final String MAIN_COLUMN_LAYOUT = "fill:80dlu, 3dlu, fill:200dlu, 6dlu, fill:50dlu";
     private static final int FULL_LINE_SPAN = 3;
+
+    private static final String[] GENERATION_MODES = new String[] {
+            STANDARD_OBJECTS_MODE, CLIENT_OBJECTS_MODE, ADVANCED_MODE
+    };
 
     protected ActionLink manageTemplatesLink;
     protected JButton selectOutputFolder;
@@ -74,7 +82,7 @@ public class CgenConfigPanel extends JPanel {
     private void initUIElements() {
         this.outputFolder = new JTextField();
         this.selectOutputFolder = new JButton("Select");
-        this.generationMode = new JComboBox();
+        this.generationMode = new JComboBox(GENERATION_MODES);
         this.superclassTemplate = new JComboBox();
         this.subclassTemplate = new JComboBox();
         this.pairs = new JCheckBox();

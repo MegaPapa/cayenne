@@ -21,16 +21,11 @@ package org.apache.cayenne.modeler.editor;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.layout.FormLayout;
-import org.apache.cayenne.map.DataMap;
 import org.apache.cayenne.modeler.ProjectController;
+import org.apache.cayenne.modeler.dialog.codegen.ClassesTabController;
 import org.apache.cayenne.modeler.dialog.codegen.ClassesTabPanel;
 import org.apache.cayenne.swing.BindingBuilder;
-import org.apache.cayenne.swing.ImageRendererColumn;
-import org.apache.cayenne.swing.ObjectBinding;
-import org.apache.cayenne.swing.TableBindingBuilder;
 import org.apache.cayenne.swing.components.TopBorder;
-import org.apache.commons.collections.Predicate;
-import org.apache.commons.collections.PredicateUtils;
 
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -38,6 +33,8 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
 import java.awt.BorderLayout;
+
+import static org.apache.cayenne.modeler.dialog.codegen.CodeGeneratorControllerBase.SELECTED_PROPERTY;
 
 /**
  * @since 4.1
@@ -48,15 +45,17 @@ public class CodeGeneratorPanel extends JPanel {
 
     protected JButton generateButton;
     private ClassesTabPanel classes;
+    private ClassesTabController tabController;
     protected JLabel classesCount;
-    protected ObjectBinding tableBinding;
     private ProjectController projectController;
 
     public CodeGeneratorPanel(ProjectController projectController) {
         this.projectController = projectController;
         this.classes = new ClassesTabPanel();
+        this.tabController = new ClassesTabController(classes, projectController);
         this.generateButton = new JButton("Generate");
         this.classesCount = new JLabel("No classes selected");
+        this.tabController.setClassesCount(this.classesCount);
         classesCount.setFont(classesCount.getFont().deriveFont(10f));
 
         JScrollPane scrollPane = new JScrollPane(
@@ -82,75 +81,28 @@ public class CodeGeneratorPanel extends JPanel {
     }
 
     protected void initBindings() {
-
         BindingBuilder builder = new BindingBuilder(
                 projectController.getApplication().getBindingFactory(),
                 this);
 
-        builder.bindToAction(classes.getCheckAll(), "checkAllAction()");
+        builder.bindToAction(getGenerateButton(), "generateAction()");
+        builder.bindToAction(tabController, "classesSelectedAction()", SELECTED_PROPERTY);
+        /*builder.bindToAction(generatorSelector, "generatorSelectedAction()",
+                GeneratorTabController.GENERATOR_PROPERTY);*/
+    }
 
-        TableBindingBuilder tableBuilder = new TableBindingBuilder(builder);
-
-        tableBuilder.addColumn(
-                "",
-                "parent.setCurrentClass(#item), selected",
-                Boolean.class,
-                true,
-                Boolean.TRUE);
-        tableBuilder.addColumn(
-                "Class",
-                "parent.getItemName(#item)",
-                JLabel.class,
-                false,
-                "XXXXXXXXXXXXXX");
-
-        tableBuilder.addColumn(
-                "Comments, Warnings",
-                "parent.getProblem(#item)",
-                String.class,
-                false,
-                "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
-
-        this.tableBinding = tableBuilder.bindToTable(classes.getTable(), "parent.classes");
-        classes.getTable().getColumnModel().getColumn(1).setCellRenderer(new ImageRendererColumn());
+    public ClassesTabController getTabController() {
+        return tabController;
     }
 
     /*public boolean isSelected() {
         return projectController.getParentController().isSelected();
-    }*/
+    }
 
-    /*public void setSelected(boolean selected) {
+    public void setSelected(boolean selected) {
         getParentController().setSelected(selected);
         classSelectedAction();
-    }
-
-    *//**
-     * A callback action that updates the state of Select All checkbox.
-     *//*
-    public void classSelectedAction() {
-        int selectedCount = getParentController().getSelectedEntitiesSize() + getParentController().getSelectedEmbeddablesSize() ;
-
-        if (selectedCount == 0) {
-            view.getCheckAll().setSelected(false);
-        }
-        else if (selectedCount == getParentController().getClasses().size()) {
-            view.getCheckAll().setSelected(true);
-        }
     }*/
-
-    /**
-     * An action that updates entity check boxes in response to the Select All state
-     * change.
-     */
-    /*public void checkAllAction() {
-
-        Predicate predicate = view.getCheckAll().isSelected() ? PredicateUtils
-                .truePredicate() : PredicateUtils.falsePredicate();
-
-        if (getParentController().updateSelection(predicate)) {
-            tableBinding.updateView();
-        }
-    }
 
     public ClassesTabPanel getClasses() {
         return classes;
@@ -162,5 +114,5 @@ public class CodeGeneratorPanel extends JPanel {
 
     public JLabel getClassesCount() {
         return classesCount;
-    }*/
+    }
 }
