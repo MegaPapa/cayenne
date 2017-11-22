@@ -55,6 +55,10 @@ import javax.swing.tree.DefaultTreeCellRenderer;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -107,9 +111,51 @@ public class DraggableTreePanel extends JScrollPane {
     }
 
     private void initListeners() {
+        sourceTree.addKeyListener(new KeyListener() {
+            @Override
+            public void keyTyped(KeyEvent e) {
+
+            }
+
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+                    sourceTree.setSelectionRow(-1);
+                    moveButton.setEnabled(false);
+                    moveInvertButton.setEnabled(false);
+                    //DbImportModel model = (DbImportModel) sourceTree.getModel();
+                    //model.reload();
+                }
+            }
+
+            @Override
+            public void keyReleased(KeyEvent e) {
+
+            }
+        });
+        targetTree.addKeyListener(new KeyListener() {
+            @Override
+            public void keyTyped(KeyEvent e) {}
+
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+                    targetTree.setSelectionRow(-1);
+                }
+            }
+
+            @Override
+            public void keyReleased(KeyEvent e) {}
+        });
         targetTree.addTreeSelectionListener(new TreeSelectionListener() {
             @Override
             public void valueChanged(TreeSelectionEvent e) {
+                DbImportModel model = (DbImportModel) sourceTree.getModel();
+                DbImportTreeNode root = (DbImportTreeNode) model.getRoot();
+                model.buildColorMap();
+                if (root.getChildCount() > 0) {
+                    model.nodesChanged(root, new int[]{root.getChildCount() - 1});
+                }
                 if (canBeMoved()) {
                     moveButton.setEnabled(true);
                     if (canBeInverted()) {
@@ -225,6 +271,17 @@ public class DraggableTreePanel extends JScrollPane {
                         moveInvertButton.setEnabled(false);
                         moveButton.setEnabled(false);
                     }
+                }
+            }
+        });
+
+        sourceTree.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (sourceTree.getRowForLocation(e.getX(),e.getY()) == -1) {
+                    sourceTree.setSelectionRow(-1);
+                    moveInvertButton.setEnabled(false);
+                    moveButton.setEnabled(false);
                 }
             }
         });

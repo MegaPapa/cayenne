@@ -19,6 +19,8 @@
 
 package org.apache.cayenne.modeler.editor;
 
+import org.apache.cayenne.dbsync.reverse.dbimport.ReverseEngineering;
+import org.apache.cayenne.dbsync.reverse.filters.FiltersConfigBuilder;
 import org.apache.cayenne.modeler.ProjectController;
 import org.apache.cayenne.modeler.action.DeleteNodeAction;
 import org.apache.cayenne.modeler.action.EditNodeAction;
@@ -67,7 +69,7 @@ public class DbImportTreeCellEditor extends DefaultTreeCellEditor {
     public Component getTreeCellEditorComponent(JTree tree, Object value,
                                                 boolean isSelected, boolean expanded, boolean leaf, int row) {
         if (value instanceof DbImportTreeNode) {
-            value = ((DbImportTreeNode) value). getSimpleNodeName();
+            value = ((DbImportTreeNode) value).getSimpleNodeName();
         }
         return super.getTreeCellEditorComponent(tree, value, isSelected, expanded,
                 leaf, row);
@@ -83,8 +85,23 @@ public class DbImportTreeCellEditor extends DefaultTreeCellEditor {
         return true;
     }
 
+    private boolean isValidReverseEngineering() {
+        try {
+            ReverseEngineering treeReverseEngineering = ((DbImportTree) tree).getReverseEngineering();
+            ReverseEngineering reverseEngineeringCopy = new ReverseEngineering(treeReverseEngineering);
+            FiltersConfigBuilder builder = new FiltersConfigBuilder(reverseEngineeringCopy);
+            builder.build();
+        } catch (Exception exception) {
+            return false;
+        }
+        return true;
+    }
+
     @Override
     public void cancelCellEditing() {
+        if (!isValidReverseEngineering()) {
+            tree.startEditingAtPath(tree.getSelectionPath());
+        }
         if (!Util.isEmptyString(super.getCellEditorValue().toString()) && !insertableNodeExist()) {
             EditNodeAction action = projectController.getApplication().getActionManager().getAction(EditNodeAction.class);
             action.setActionName(super.getCellEditorValue().toString());
@@ -100,6 +117,8 @@ public class DbImportTreeCellEditor extends DefaultTreeCellEditor {
                 tree.startEditingAtPath(tree.getSelectionPath());
             }
         }
+        DbImportTreeNode selectedNode = (DbImportTreeNode) tree.getSelectionPath().getLastPathComponent();
+        ((DbImportModel) tree.getModel()).reload(selectedNode);
     }
 
     private boolean equalNodes(int i, DbImportTreeNode parent, DbImportTreeNode selectedElement) {

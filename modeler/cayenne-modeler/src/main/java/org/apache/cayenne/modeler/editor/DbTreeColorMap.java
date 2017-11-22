@@ -20,7 +20,9 @@
 package org.apache.cayenne.modeler.editor;
 
 import org.apache.cayenne.dbsync.reverse.dbimport.Catalog;
+import org.apache.cayenne.dbsync.reverse.dbimport.ExcludeProcedure;
 import org.apache.cayenne.dbsync.reverse.dbimport.ExcludeTable;
+import org.apache.cayenne.dbsync.reverse.dbimport.IncludeProcedure;
 import org.apache.cayenne.dbsync.reverse.dbimport.IncludeTable;
 import org.apache.cayenne.dbsync.reverse.dbimport.ReverseEngineering;
 import org.apache.cayenne.dbsync.reverse.dbimport.Schema;
@@ -43,7 +45,7 @@ import java.util.regex.Pattern;
 public class DbTreeColorMap {
 
     private Map<String, List<String>> catalogsSchema;
-    private Map<String, List<String>> schemaTable;
+    private Map<String, List<NodeColorType>> schemaTable;
     private DbImportTree reverseEngineeringTree;
     private DbImportTree dbSchemaTree;
 
@@ -58,6 +60,10 @@ public class DbTreeColorMap {
         clear();
         FiltersConfig reverseEngineeringConfig = createConfig(reverseEngineeringTree);
         FiltersConfig dbReverseEngineeringConfig = createConfig(dbSchemaTree);
+        if ((reverseEngineeringConfig == null) || (dbReverseEngineeringConfig == null)) {
+            reverseEngineeringTree.startEditingAtPath(reverseEngineeringTree.getSelectionPath()); // STACKOVERFLOW
+            return;
+        }
         for (CatalogFilter catalogFilter : reverseEngineeringConfig.getCatalogs()) {
             for (CatalogFilter dbCatalogFilter : dbReverseEngineeringConfig.getCatalogs()) {
                 if ((isNullCatalogName(catalogFilter, dbCatalogFilter))) {
@@ -83,17 +89,11 @@ public class DbTreeColorMap {
         }
     }
 
-    public void addSchemaWithTable(String schemaName, String tableName) {
-        if (schemaTable.get(schemaName) == null) {
-            List<String> list = new ArrayList<>();
-            list.add(tableName);
-            schemaTable.put(schemaName, list);
-        } else {
-            schemaTable.get(schemaName).add(tableName);
+    public boolean existNode(String parent, String node, Class nodeClass, boolean isInclude) {
+        if (node == null) {
+            return false;
         }
-    }
 
-    public boolean existNode(String parent, String node, Class nodeClass) {
         for (Map.Entry<String, List<String>> catalog : catalogsSchema.entrySet()) {
             if (catalog.getKey() != null) {
                 if ((catalog.getKey().equals(node)) && (nodeClass == Catalog.class)) {
@@ -109,9 +109,20 @@ public class DbTreeColorMap {
                     }
                 }
                 if (schemaTable.get(schema) != null) {
-                    for (String table : schemaTable.get(schema)) {
-                        if ((table.equals(node)) && ((nodeClass == IncludeTable.class))) {
-                            if ((schema == null) || (parent.equals(schema))) {
+                    for (NodeColorType table : schemaTable.get(schema)) {
+                        if ((table.getNodeClass() == ExcludeTable.class) && ((node.matches(table.getNodeName()))) && !isInclude) {
+                            if (parent == null) {
+                                return false;
+                            }
+                            if ((schema == null) || (parent.matches(schema))) {
+                                return true;
+                            }
+                        }
+                        if (((node.matches(table.getNodeName())) && ((nodeClass == table.getNodeClass())))) {
+                            if (parent == null) {
+                                return false;
+                            }
+                            if ((schema == null) || (parent.matches(schema))) {
                                 return true;
                             }
                         }
@@ -130,12 +141,14 @@ public class DbTreeColorMap {
         }
         if ((reverseEngineering.getCatalogs().size() == 0) && (reverseEngineering.getSchemas().size() == 0)) {
             for (ExcludeTable excludeTable : reverseEngineering.getExcludeTables()) {
-                if (excludeTable.getPattern().equals(node)) {
+
+                if (node.matches(excludeTable.getPattern()) && (nodeClass == ExcludeTable.class)) {
                     return false;
                 }
             }
+
             for (IncludeTable includeTable : reverseEngineering.getIncludeTables()) {
-                if ((includeTable.getPattern().equals(node)) && (nodeClass == IncludeTable.class)) {
+                if ((node.matches(includeTable.getPattern())) && (nodeClass == IncludeTable.class)) {
                     return true;
                 }
             }
@@ -152,16 +165,48 @@ public class DbTreeColorMap {
         for (IncludeTableFilter dbIncludeTableFilter : dbSchemaFilter.tables.getIncludes()) {
             if (dbIncludeTableFilter.pattern != null) {
                 if (schemaFilter.tables.isIncludeTable(dbIncludeTableFilter.pattern.pattern())) {
-                    addSchemaWithTable(dbSchemaFilter.name, dbIncludeTableFilter.pattern.pattern());
+                    addSchemaWithTable(dbSchemaFilter.name, dbIncludeTableFilter.pattern.pattern(), IncludeTable.class);
+                } else {
+                    addSchemaWithTable(dbSchemaFilter.name, dbIncludeTableFilter.pattern.pattern(), ExcludeTable.class);
+                }
+
+            }
+        }
+        for (Pattern dbIncludeFunctionFilter : dbSchemaFilter.procedures.getIncludes()) {
+            if (dbIncludeFunctionFilter.pattern() != null) {
+                if (schemaFilter.procedures.isIncluded(dbIncludeFunctionFilter.pattern())) {
+                    // FUNCTIONS
+                    addSchemaWithFunction(dbSchemaFilter.name, dbIncludeFunctionFilter.pattern(), IncludeProcedure.class);
+                } else {
+                    addSchemaWithFunction(dbSchemaFilter.name, dbIncludeFunctionFilter.pattern(), ExcludeProcedure.class);
                 }
             }
         }
-        for (Pattern dbIncludeTableFilter : dbSchemaFilter.procedures.getIncludes()) {
-            if (dbIncludeTableFilter.pattern() != null) {
-                if (schemaFilter.procedures.isIncluded(dbIncludeTableFilter.pattern())) {
-                    // FUNCTIONS
-                }
-            }
+    }
+
+    public void addSchemaWithTable(String schemaName, String tableName, Class tableClass) {
+        NodeColorType nodeColorType = new NodeColorType();
+        nodeColorType.setNodeClass(tableClass);
+        nodeColorType.setNodeName(tableName);
+        if (schemaTable.get(schemaName) == null) {
+            List<NodeColorType> list = new ArrayList<>();
+            list.add(nodeColorType);
+            schemaTable.put(schemaName, list);
+        } else {
+            schemaTable.get(schemaName).add(nodeColorType);
+        }
+    }
+
+    private void addSchemaWithFunction(String schemaName, String functionName, Class functionClass) {
+        NodeColorType nodeColorType = new NodeColorType();
+        nodeColorType.setNodeClass(functionClass);
+        nodeColorType.setNodeName(functionName);
+        if (schemaTable.get(schemaName) == null) {
+            List<NodeColorType> list = new ArrayList<>();
+            list.add(nodeColorType);
+            schemaTable.put(schemaName, list);
+        } else {
+            schemaTable.get(schemaName).add(nodeColorType);
         }
     }
 
@@ -201,10 +246,15 @@ public class DbTreeColorMap {
     }
 
     private FiltersConfig createConfig(DbImportTree tree) {
-        DbImportTreeNode root = (DbImportTreeNode) tree.getModel().getRoot();
-        ReverseEngineering newReverseEngineering = new ReverseEngineering((ReverseEngineering) root.getUserObject());
-        FiltersConfigBuilder builder = new FiltersConfigBuilder(newReverseEngineering);
-        return builder.build();
+        try {
+            DbImportTreeNode root = (DbImportTreeNode) tree.getModel().getRoot();
+            ReverseEngineering newReverseEngineering = new ReverseEngineering((ReverseEngineering) root.getUserObject());
+            FiltersConfigBuilder builder = new FiltersConfigBuilder(newReverseEngineering);
+            return builder.build();
+        } catch (Exception exception) {
+
+        }
+        return null;
     }
 
     @Override
@@ -219,7 +269,7 @@ public class DbTreeColorMap {
                 builder.append(schema);
                 builder.append("\n");
                 if (schemaTable.get(schema) != null) {
-                    for (String table : schemaTable.get(schema)) {
+                    for (NodeColorType table : schemaTable.get(schema)) {
                         builder.append("\t\t\t");
                         builder.append(table);
                         builder.append("\n");
@@ -228,5 +278,43 @@ public class DbTreeColorMap {
             }
         }
         return builder.toString();
+    }
+
+    public boolean isExcludedNode(String node) {
+        if (node == null) {
+            return false;
+        }
+        FiltersConfig reverseEngineeringConfig = createConfig(reverseEngineeringTree);
+        for (CatalogFilter catalogFilter : reverseEngineeringConfig.getCatalogs()) {
+            for (SchemaFilter schemaFilter : catalogFilter.schemas) {
+                if (schemaFilter.name != null) {
+                    return true;
+                }
+                if (schemaFilter.tables.isIncludeTable(node)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    public boolean isEmpty() {
+        FiltersConfig reverseEngineeringConfig = createConfig(reverseEngineeringTree);
+        if (reverseEngineeringConfig == null) {
+            return false;
+        }
+        if (reverseEngineeringConfig.getCatalogs()[0].schemas[0].tables.getIncludes().first().pattern == null) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public DbImportTree getDbSchemaTree() {
+        return dbSchemaTree;
+    }
+
+    public DbImportTree getReverseEngineeringTree() {
+        return reverseEngineeringTree;
     }
 }

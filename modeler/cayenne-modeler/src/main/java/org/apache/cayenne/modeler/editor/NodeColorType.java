@@ -19,34 +19,32 @@
 
 package org.apache.cayenne.modeler.editor;
 
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreeNode;
-
 /**
  * @since 4.1
  */
-public class DbImportModel extends DefaultTreeModel {
+public class NodeColorType {
 
-    private DbTreeColorMap colorMap;
+    private String nodeName;
+    private Class nodeClass;
 
-    public DbImportModel(TreeNode root) {
-        super(root);
+    public String getNodeName() {
+        return nodeName;
     }
 
-    public void buildColorMap() {
-        colorMap.buildColorMap();
+    public void setNodeName(String nodeName) {
+        this.nodeName = nodeName;
     }
 
-    public void reload(TreeNode node) {
-        colorMap.buildColorMap();
-        super.reload(node);
+    public Class getNodeClass() {
+        return nodeClass;
     }
 
-    public void setColorMap(DbTreeColorMap colorMap) {
-        this.colorMap = colorMap;
+    public void setNodeClass(Class nodeClass) {
+        this.nodeClass = nodeClass;
     }
 
-    public DbTreeColorMap getColorMap() {
-        return colorMap;
+    @Override
+    public String toString() {
+        return nodeClass + ": " + nodeName;
     }
 }

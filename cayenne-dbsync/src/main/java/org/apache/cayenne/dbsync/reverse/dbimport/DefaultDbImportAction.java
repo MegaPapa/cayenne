@@ -398,7 +398,7 @@ public class DefaultDbImportAction implements DbImportAction {
         return true;
     }
 
-    private boolean syncProcedures(DataMap targetDataMap, DataMap loadedDataMap, FiltersConfig filters) {
+    protected boolean syncProcedures(DataMap targetDataMap, DataMap loadedDataMap, FiltersConfig filters) {
         Collection<Procedure> procedures = loadedDataMap.getProcedures();
         if (procedures.isEmpty()) {
             return false;

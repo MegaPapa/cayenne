@@ -25,8 +25,6 @@ import org.apache.cayenne.modeler.Application;
 import org.apache.cayenne.modeler.dialog.db.load.DbImportTreeNode;
 import org.apache.cayenne.util.Util;
 
-import javax.swing.tree.TreeNode;
-import javax.swing.tree.TreePath;
 import java.awt.event.ActionEvent;
 
 /**
@@ -49,6 +47,9 @@ public class EditNodeAction extends TreeManipulationAction {
 
     @Override
     public void performAction(ActionEvent e) {
+        if (tree.isEditing()) {
+            return;
+        }
         if (e != null) {
             if (tree.getSelectionPath() != null) {
                 tree.startEditingAtPath(tree.getSelectionPath());
