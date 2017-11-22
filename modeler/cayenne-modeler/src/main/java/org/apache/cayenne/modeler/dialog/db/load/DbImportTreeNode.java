@@ -31,6 +31,8 @@ import javax.swing.tree.DefaultMutableTreeNode;
  */
 public class DbImportTreeNode extends DefaultMutableTreeNode {
 
+    private boolean isColorized;
+
     public DbImportTreeNode() {
         this(null);
     }
@@ -80,5 +82,13 @@ public class DbImportTreeNode extends DefaultMutableTreeNode {
         } else {
             return getNodeName();
         }
+    }
+
+    public boolean isColorized() {
+        return isColorized;
+    }
+
+    public void setColorized(boolean colorized) {
+        isColorized = colorized;
     }
 }

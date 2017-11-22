@@ -34,7 +34,6 @@ import org.apache.cayenne.modeler.editor.DbImportModel;
 import org.apache.cayenne.modeler.util.CayenneAction;
 
 import javax.swing.JTree;
-import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import java.util.ArrayList;
 import java.util.HashMap;

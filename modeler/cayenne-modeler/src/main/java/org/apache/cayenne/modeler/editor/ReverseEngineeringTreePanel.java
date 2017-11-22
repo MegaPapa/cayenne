@@ -100,6 +100,9 @@ class ReverseEngineeringTreePanel extends JScrollPane {
         reverseEngineeringTree.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
+                if (reverseEngineeringTree.getRowForLocation(e.getX(),e.getY()) == -1) {
+                    reverseEngineeringTree.setSelectionRow(-1);
+                }
                 if (SwingUtilities.isRightMouseButton(e)) {
                     int row = reverseEngineeringTree.getClosestRowForLocation(e.getX(), e.getY());
                     reverseEngineeringTree.setSelectionRow(row);

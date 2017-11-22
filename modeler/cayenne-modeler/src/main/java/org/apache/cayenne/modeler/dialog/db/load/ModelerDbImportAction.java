@@ -25,8 +25,11 @@ import org.apache.cayenne.configuration.server.DbAdapterFactory;
 import org.apache.cayenne.configuration.xml.DataChannelMetaData;
 import org.apache.cayenne.dbsync.merge.factory.MergerTokenFactoryProvider;
 import org.apache.cayenne.dbsync.merge.token.MergerToken;
+import org.apache.cayenne.dbsync.reverse.filters.FiltersConfig;
+import org.apache.cayenne.dbsync.reverse.filters.PatternFilter;
 import org.apache.cayenne.di.Inject;
 import org.apache.cayenne.map.DataMap;
+import org.apache.cayenne.map.Procedure;
 import org.apache.cayenne.project.ProjectSaver;
 import org.apache.cayenne.dbsync.reverse.dbimport.DbImportConfiguration;
 import org.apache.cayenne.dbsync.reverse.dbimport.DefaultDbImportAction;
@@ -45,6 +48,8 @@ public class ModelerDbImportAction extends DefaultDbImportAction {
     @Inject
     private DataMap targetMap;
 
+    private DbLoadResultDialog resultDialog;
+
     public ModelerDbImportAction(@Inject Logger logger,
                                  @Inject ProjectSaver projectSaver,
                                  @Inject DataSourceFactory dataSourceFactory,
@@ -57,6 +62,7 @@ public class ModelerDbImportAction extends DefaultDbImportAction {
 
     @Override
     protected Collection<MergerToken> log(List<MergerToken> tokens) {
+        resultDialog = new DbLoadResultDialog(DIALOG_TITLE);
         logger.info("");
         if (tokens.isEmpty()) {
             logger.info("Detected changes: No changes to import.");
@@ -68,7 +74,6 @@ public class ModelerDbImportAction extends DefaultDbImportAction {
         }
 
         logger.info("Detected changes: ");
-        DbLoadResultDialog resultDialog = new DbLoadResultDialog(DIALOG_TITLE);
         for (MergerToken token : tokens) {
             String logString = String.format("    %-20s %s", token.getTokenName(), token.getTokenValue());
             logger.info(logString);
@@ -79,6 +84,38 @@ public class ModelerDbImportAction extends DefaultDbImportAction {
         resultDialog.setVisible(true);
 
         return tokens;
+    }
+
+    @Override
+    protected boolean syncProcedures(DataMap targetDataMap, DataMap loadedDataMap, FiltersConfig filters) {
+        Collection<Procedure> procedures = loadedDataMap.getProcedures();
+        if (procedures.isEmpty()) {
+            return false;
+        }
+
+        boolean hasChanges = false;
+        for (Procedure procedure : procedures) {
+            PatternFilter proceduresFilter = filters.proceduresFilter(procedure.getCatalog(), procedure.getSchema());
+            if (proceduresFilter == null || !proceduresFilter.isIncluded(procedure.getName())) {
+                continue;
+            }
+
+            Procedure oldProcedure = targetDataMap.getProcedure(procedure.getName());
+            // maybe we need to compare oldProcedure's and procedure's fully qualified names?
+            if (oldProcedure != null) {
+                targetDataMap.removeProcedure(procedure.getName());
+                String logString = String.format("    %-20s %s", "Replace procedure ", procedure.getName());
+                logger.info(logString);
+                resultDialog.addRowToOutput(logString);
+            } else {
+                String logString = String.format("    %-20s %s", "Add new procedure ", procedure.getName());
+                logger.info(logString);
+                resultDialog.addRowToOutput(logString);
+            }
+            targetDataMap.addProcedure(procedure);
+            hasChanges = true;
+        }
+        return hasChanges;
     }
 
 
