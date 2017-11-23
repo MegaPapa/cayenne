@@ -144,8 +144,6 @@ public class DbImportView extends JPanel {
         reverseEngineeringTree.setRootVisible(false);
         reverseEngineeringTree.setModel(model);
         reverseEngineeringTree.setShowsRootHandles(true);
-        reverseEngineeringTree.getSelectionModel().setSelectionMode
-                (TreeSelectionModel.SINGLE_TREE_SELECTION);
 
         draggableTreePanel = new DraggableTreePanel(projectController, draggableTree, reverseEngineeringTree);
         treeToolbar = new TreeToolbarPanel(projectController, reverseEngineeringTree);

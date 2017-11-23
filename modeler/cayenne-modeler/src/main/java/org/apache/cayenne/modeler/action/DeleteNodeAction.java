@@ -34,6 +34,7 @@ import org.apache.cayenne.modeler.Application;
 import org.apache.cayenne.modeler.dialog.db.load.DbImportTreeNode;
 
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreePath;
 import java.awt.event.ActionEvent;
 
 /**
@@ -117,23 +118,26 @@ public class DeleteNodeAction extends TreeManipulationAction {
     @Override
     public void performAction(ActionEvent e) {
         tree.stopEditing();
-        if (tree.getSelectionPath() != null) {
-            selectedElement = (DbImportTreeNode) tree.getSelectionPath().getLastPathComponent();
-            parentElement = (DbImportTreeNode) selectedElement.getParent();
-            if (parentElement != null) {
-                Object parentUserObject = parentElement.getUserObject();
-                if (parentUserObject instanceof ReverseEngineering) {
-                    ReverseEngineering reverseEngineering = (ReverseEngineering) parentUserObject;
-                    deleteChilds(reverseEngineering);
-                } else if (parentUserObject instanceof Catalog) {
-                    Catalog catalog = (Catalog) parentUserObject;
-                    deleteChilds(catalog);
-                } else if (parentUserObject instanceof Schema) {
-                    Schema schema = (Schema) parentUserObject;
-                    deleteChilds(schema);
-                } else if (parentUserObject instanceof IncludeTable) {
-                    IncludeTable includeTable = (IncludeTable) parentUserObject;
-                    deleteChilds(includeTable);
+        TreePath[] paths = tree.getSelectionPaths();
+        if (paths != null) {
+            for (TreePath path : paths) {
+                selectedElement = (DbImportTreeNode) path.getLastPathComponent();
+                parentElement = (DbImportTreeNode) selectedElement.getParent();
+                if (parentElement != null) {
+                    Object parentUserObject = parentElement.getUserObject();
+                    if (parentUserObject instanceof ReverseEngineering) {
+                        ReverseEngineering reverseEngineering = (ReverseEngineering) parentUserObject;
+                        deleteChilds(reverseEngineering);
+                    } else if (parentUserObject instanceof Catalog) {
+                        Catalog catalog = (Catalog) parentUserObject;
+                        deleteChilds(catalog);
+                    } else if (parentUserObject instanceof Schema) {
+                        Schema schema = (Schema) parentUserObject;
+                        deleteChilds(schema);
+                    } else if (parentUserObject instanceof IncludeTable) {
+                        IncludeTable includeTable = (IncludeTable) parentUserObject;
+                        deleteChilds(includeTable);
+                    }
                 }
                 updateParentChilds();
             }
