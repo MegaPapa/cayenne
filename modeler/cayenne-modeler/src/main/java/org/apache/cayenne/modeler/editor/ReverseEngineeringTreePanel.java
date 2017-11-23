@@ -104,6 +104,9 @@ class ReverseEngineeringTreePanel extends JScrollPane {
                     reverseEngineeringTree.setSelectionRow(-1);
                 }
                 if (SwingUtilities.isRightMouseButton(e)) {
+                    if (reverseEngineeringTree.isEditing()) {
+                        return;
+                    }
                     int row = reverseEngineeringTree.getClosestRowForLocation(e.getX(), e.getY());
                     reverseEngineeringTree.setSelectionRow(row);
                     DefaultPopUpMenu popupMenu;
@@ -133,7 +136,7 @@ class ReverseEngineeringTreePanel extends JScrollPane {
     }
 
     private void changeIcons() {
-        // Deleting tree icons
+        // Deleting standard tree icons
         DefaultTreeCellRenderer renderer = (DefaultTreeCellRenderer) reverseEngineeringTree.getCellRenderer();
         renderer.setLeafIcon(null);
         renderer.setClosedIcon(null);

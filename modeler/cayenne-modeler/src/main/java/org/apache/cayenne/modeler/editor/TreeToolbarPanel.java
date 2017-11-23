@@ -100,6 +100,12 @@ class TreeToolbarPanel extends JToolBar {
             editButton.setEnabled(false);
             deleteButton.setEnabled(false);
         }
+        if (reverseEngineeringTree.getSelectionPaths() != null) {
+            if (reverseEngineeringTree.getSelectionPaths().length > 1) {
+                changeToolbarButtonsState(false);
+                deleteButton.setEnabled(true);
+            }
+        }
     }
 
     private void initLevels() {

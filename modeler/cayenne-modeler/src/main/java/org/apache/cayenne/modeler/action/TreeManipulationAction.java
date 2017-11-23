@@ -50,6 +50,7 @@ public abstract class TreeManipulationAction extends CayenneAction {
     protected DbImportTreeNode parentElement;
     protected String insertableNodeName;
     protected Class insertableNodeClass;
+    private boolean isMultipleAction;
     Map<Class, List<Class>> levels;
 
     public TreeManipulationAction(String name, Application application) {
@@ -124,7 +125,9 @@ public abstract class TreeManipulationAction extends CayenneAction {
     protected void updateAfterInsert(boolean updateSelected) {
         updateModel(updateSelected);
         if (updateSelected) {
-            tree.startEditingAtPath(new TreePath(((DbImportTreeNode) selectedElement.getLastChild()).getPath()));
+            if (!isMultipleAction) {
+                tree.startEditingAtPath(new TreePath(((DbImportTreeNode) selectedElement.getLastChild()).getPath()));
+            }
         } else {
             tree.startEditingAtPath(new TreePath(((DbImportTreeNode) parentElement.getLastChild()).getPath()));
         }
@@ -132,5 +135,9 @@ public abstract class TreeManipulationAction extends CayenneAction {
 
     public void setInsertableNodeName(String nodeName) {
         this.insertableNodeName = nodeName;
+    }
+
+    public void setMultipleAction(boolean multipleAction) {
+        isMultipleAction = multipleAction;
     }
 }

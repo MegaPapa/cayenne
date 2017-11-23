@@ -31,6 +31,7 @@ import org.apache.cayenne.modeler.editor.DraggableTreePanel;
 import org.apache.cayenne.modeler.util.CayenneAction;
 
 import javax.swing.JTree;
+import javax.swing.tree.TreePath;
 import java.awt.event.ActionEvent;
 import java.util.HashMap;
 import java.util.Map;
@@ -69,20 +70,49 @@ public class MoveImportNodeAction extends CayenneAction {
         return ICON_NAME;
     }
 
+    private boolean canInsert(TreePath path) {
+        DbImportTreeNode sourceElement = (DbImportTreeNode) path.getLastPathComponent();
+        DbImportTreeNode selectedElement;
+        if (targetTree.getSelectionPath() != null) {
+            selectedElement = (DbImportTreeNode) targetTree.getSelectionPath().getLastPathComponent();
+        } else {
+            selectedElement = (DbImportTreeNode) targetTree.getModel().getRoot();
+        }
+        int childCount = selectedElement.getChildCount();
+        for (int i = 0; i < childCount; i++) {
+            DbImportTreeNode child = (DbImportTreeNode) selectedElement.getChildAt(i);
+            if ((sourceElement.getUserObject().getClass() == child.getUserObject().getClass())
+                && (sourceElement.getSimpleNodeName().equals(child.getSimpleNodeName()))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     @Override
     public void performAction(ActionEvent e) {
-        if (sourceTree.getSelectionPath() != null) {
-            DbImportTreeNode selectedElement = (DbImportTreeNode) sourceTree.getSelectionPath().getLastPathComponent();
-            TreeManipulationAction action;
-            if (!moveInverted) {
-                action = panel.getActionByNodeType(selectedElement.getUserObject().getClass());
-            } else {
-                action = panel.getActionByNodeType(classMap.get(selectedElement.getUserObject().getClass()));
-            }
-            if (action != null) {
-                action.setInsertableNodeName(selectedElement.getSimpleNodeName());
-                action.setTree(targetTree);
-                action.actionPerformed(e);
+        TreePath[] paths = sourceTree.getSelectionPaths();
+        if (paths != null) {
+            for (TreePath path : paths) {
+                DbImportTreeNode selectedElement = (DbImportTreeNode) path.getLastPathComponent();
+                TreeManipulationAction action;
+                if (!moveInverted) {
+                    action = panel.getActionByNodeType(selectedElement.getUserObject().getClass());
+                } else {
+                    action = panel.getActionByNodeType(classMap.get(selectedElement.getUserObject().getClass()));
+                }
+                if (action != null) {
+                    if (paths.length > 1) {
+                        action.setMultipleAction(true);
+                    } else {
+                        action.setMultipleAction(false);
+                    }
+                    if (canInsert(path)) {
+                        action.setInsertableNodeName(selectedElement.getSimpleNodeName());
+                        action.setTree(targetTree);
+                        action.actionPerformed(e);
+                    }
+                }
             }
         }
     }
