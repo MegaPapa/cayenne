@@ -25,9 +25,12 @@ import org.apache.cayenne.dbsync.reverse.dbimport.ExcludeTable;
 import org.apache.cayenne.dbsync.reverse.dbimport.IncludeColumn;
 import org.apache.cayenne.dbsync.reverse.dbimport.IncludeProcedure;
 import org.apache.cayenne.dbsync.reverse.dbimport.IncludeTable;
+import org.apache.cayenne.dbsync.reverse.dbimport.ReverseEngineering;
 import org.apache.cayenne.modeler.Application;
 import org.apache.cayenne.modeler.dialog.db.load.DbImportTreeNode;
+import org.apache.cayenne.modeler.editor.DbImportTree;
 import org.apache.cayenne.modeler.editor.DraggableTreePanel;
+import org.apache.cayenne.modeler.undo.DbImportTreeUndoableEdit;
 import org.apache.cayenne.modeler.util.CayenneAction;
 
 import javax.swing.JTree;
@@ -44,8 +47,8 @@ public class MoveImportNodeAction extends CayenneAction {
     private static final String ICON_NAME = "icon-backward.png";
     private static final String ACTION_NAME = "Include";
 
-    private JTree sourceTree;
-    private JTree targetTree;
+    private DbImportTree sourceTree;
+    private DbImportTree targetTree;
     private DraggableTreePanel panel;
     protected boolean moveInverted;
     private Map<Class, Class> classMap;
@@ -117,11 +120,11 @@ public class MoveImportNodeAction extends CayenneAction {
         }
     }
 
-    public void setSourceTree(JTree sourceTree) {
+    public void setSourceTree(DbImportTree sourceTree) {
         this.sourceTree = sourceTree;
     }
 
-    public void setTargetTree(JTree targetTree) {
+    public void setTargetTree(DbImportTree targetTree) {
         this.targetTree = targetTree;
     }
 

@@ -32,6 +32,7 @@ import org.apache.cayenne.dbsync.reverse.dbimport.ReverseEngineering;
 import org.apache.cayenne.dbsync.reverse.dbimport.Schema;
 import org.apache.cayenne.modeler.Application;
 import org.apache.cayenne.modeler.dialog.db.load.DbImportTreeNode;
+import org.apache.cayenne.modeler.undo.DbImportTreeUndoableEdit;
 
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
@@ -125,6 +126,7 @@ public class DeleteNodeAction extends TreeManipulationAction {
                 parentElement = (DbImportTreeNode) selectedElement.getParent();
                 if (parentElement != null) {
                     Object parentUserObject = parentElement.getUserObject();
+                    ReverseEngineering reverseEngineeringOldCopy = new ReverseEngineering(tree.getReverseEngineering());
                     if (parentUserObject instanceof ReverseEngineering) {
                         ReverseEngineering reverseEngineering = (ReverseEngineering) parentUserObject;
                         deleteChilds(reverseEngineering);
@@ -138,6 +140,10 @@ public class DeleteNodeAction extends TreeManipulationAction {
                         IncludeTable includeTable = (IncludeTable) parentUserObject;
                         deleteChilds(includeTable);
                     }
+                    ReverseEngineering reverseEngineeringNewCopy = new ReverseEngineering(tree.getReverseEngineering());
+                    getProjectController().getApplication().getUndoManager().addEdit(
+                            new DbImportTreeUndoableEdit(reverseEngineeringOldCopy, reverseEngineeringNewCopy, tree)
+                    );
                 }
                 updateParentChilds();
             }

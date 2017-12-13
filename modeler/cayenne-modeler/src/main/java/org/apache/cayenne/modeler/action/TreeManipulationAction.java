@@ -31,6 +31,7 @@ import org.apache.cayenne.dbsync.reverse.dbimport.Schema;
 import org.apache.cayenne.modeler.Application;
 import org.apache.cayenne.modeler.dialog.db.load.DbImportTreeNode;
 import org.apache.cayenne.modeler.editor.DbImportModel;
+import org.apache.cayenne.modeler.editor.DbImportTree;
 import org.apache.cayenne.modeler.util.CayenneAction;
 
 import javax.swing.JTree;
@@ -45,7 +46,7 @@ import java.util.Map;
  */
 public abstract class TreeManipulationAction extends CayenneAction {
 
-    protected JTree tree;
+    protected DbImportTree tree;
     protected DbImportTreeNode selectedElement;
     protected DbImportTreeNode parentElement;
     protected String insertableNodeName;
@@ -101,7 +102,7 @@ public abstract class TreeManipulationAction extends CayenneAction {
         levels.put(ExcludeProcedure.class, null);
     }
 
-    public void setTree(JTree tree) {
+    public void setTree(DbImportTree tree) {
         this.tree = tree;
     }
 
@@ -131,6 +132,7 @@ public abstract class TreeManipulationAction extends CayenneAction {
         } else {
             tree.startEditingAtPath(new TreePath(((DbImportTreeNode) parentElement.getLastChild()).getPath()));
         }
+        isMultipleAction = false;
     }
 
     public void setInsertableNodeName(String nodeName) {

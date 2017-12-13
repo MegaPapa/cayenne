@@ -66,7 +66,9 @@ public class DbImportTreeNode extends DefaultMutableTreeNode {
     }
 
     public String getSimpleNodeName() {
-        if (userObject instanceof FilterContainer) {
+        if (userObject instanceof ReverseEngineering) {
+            return "";
+        } else if (userObject instanceof FilterContainer) {
             return ((FilterContainer) userObject).getName();
         } else if (userObject instanceof PatternParam) {
             return ((PatternParam) userObject).getPattern();

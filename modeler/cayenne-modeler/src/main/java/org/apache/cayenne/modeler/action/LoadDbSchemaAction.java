@@ -34,7 +34,6 @@ import org.apache.cayenne.modeler.pref.DataMapDefaults;
 import org.apache.cayenne.modeler.util.CayenneAction;
 
 import javax.swing.JOptionPane;
-import javax.swing.tree.DefaultTreeModel;
 import java.awt.event.ActionEvent;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -88,15 +87,27 @@ public class LoadDbSchemaAction extends CayenneAction {
         databaseReverseEngineering = new ReverseEngineering();
 
         try(Connection connection = connectionInfo.makeDataSource(getApplication().getClassLoadingService()).getConnection()) {
-            String[] types = {"TABLE"};
-            ResultSet resultSet = connection.getMetaData().getTables(null, null, INCLUDE_ALL_PATTERN, types);
-            while (resultSet.next()) {
-                String tableName = resultSet.getString(TABLE_INDEX);
-                String schemaName = resultSet.getString(SCHEMA_INDEX);
-                String catalogName = resultSet.getString(CATALOG_INDEX);
-                packTable(tableName, catalogName, schemaName);
+            String[] types = {"TABLE", "VIEW", "SYSTEM TABLE", "GLOBAL TEMPORARY", "LOCAL TEMPORARY", "ALIAS", "SYNONYM"};
+            int tableCount = 0;
+            try (ResultSet rs = connection.getMetaData().getCatalogs()) {
+                while (rs.next()) {
+                    ResultSet resultSet = connection.getMetaData().getTables(rs.getString(1), null, INCLUDE_ALL_PATTERN, types);
+                    while (resultSet.next()) {
+                        //if (tableCount < 1000) {
+                            String tableName = resultSet.getString(TABLE_INDEX);
+                            String schemaName = resultSet.getString(SCHEMA_INDEX);
+                            String catalogName = resultSet.getString(CATALOG_INDEX);
+                            packTable(tableName, catalogName, schemaName);
+                            tableCount++;
+                        //}
+                    }
+                    //if (tableCount < 1000) {
+                        packFunctions(connection);
+                    //}
+                }
             }
-            packFunctions(connection);
+            System.out.println(tableCount);
+
             draggableTreePanel.getSourceTree().setEnabled(true);
             draggableTreePanel.getSourceTree().translateReverseEngineeringToTree(databaseReverseEngineering, true);
             ((DbImportModel) draggableTreePanel.getSourceTree().getModel()).reload();

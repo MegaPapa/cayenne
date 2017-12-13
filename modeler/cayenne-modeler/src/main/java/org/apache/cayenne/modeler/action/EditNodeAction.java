@@ -21,8 +21,10 @@ package org.apache.cayenne.modeler.action;
 
 import org.apache.cayenne.dbsync.reverse.dbimport.FilterContainer;
 import org.apache.cayenne.dbsync.reverse.dbimport.PatternParam;
+import org.apache.cayenne.dbsync.reverse.dbimport.ReverseEngineering;
 import org.apache.cayenne.modeler.Application;
 import org.apache.cayenne.modeler.dialog.db.load.DbImportTreeNode;
+import org.apache.cayenne.modeler.undo.DbImportTreeUndoableEdit;
 import org.apache.cayenne.util.Util;
 
 import java.awt.event.ActionEvent;
@@ -60,6 +62,7 @@ public class EditNodeAction extends TreeManipulationAction {
             parentElement = (DbImportTreeNode) selectedElement.getParent();
             if (parentElement != null) {
                 Object selectedObject = selectedElement.getUserObject();
+                ReverseEngineering reverseEngineeringOldCopy = new ReverseEngineering(tree.getReverseEngineering());
                 if (!Util.isEmptyString(actionName)) {
                     if (selectedObject instanceof FilterContainer) {
                         ((FilterContainer) selectedObject).setName(actionName);
@@ -69,6 +72,10 @@ public class EditNodeAction extends TreeManipulationAction {
                     updateModel(true);
                     selectedElement = null;
                 }
+                ReverseEngineering reverseEngineeringNewCopy = new ReverseEngineering(tree.getReverseEngineering());
+                getProjectController().getApplication().getUndoManager().addEdit(
+                        new DbImportTreeUndoableEdit(reverseEngineeringOldCopy, reverseEngineeringNewCopy, tree)
+                );
             }
         }
     }
