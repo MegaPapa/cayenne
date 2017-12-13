@@ -21,8 +21,10 @@ package org.apache.cayenne.modeler.action;
 
 import org.apache.cayenne.dbsync.reverse.dbimport.FilterContainer;
 import org.apache.cayenne.dbsync.reverse.dbimport.IncludeTable;
+import org.apache.cayenne.dbsync.reverse.dbimport.ReverseEngineering;
 import org.apache.cayenne.modeler.Application;
 import org.apache.cayenne.modeler.dialog.db.load.DbImportTreeNode;
+import org.apache.cayenne.modeler.undo.DbImportTreeUndoableEdit;
 
 import javax.swing.tree.TreePath;
 import java.awt.event.ActionEvent;
@@ -54,7 +56,9 @@ public class AddIncludeTableAction extends TreeManipulationAction {
         }
         selectedElement = (DbImportTreeNode) tree.getSelectionPath().getLastPathComponent();
         parentElement = (DbImportTreeNode) selectedElement.getParent();
+        ReverseEngineering reverseEngineeringOldCopy = new ReverseEngineering(tree.getReverseEngineering());
         IncludeTable newTable = new IncludeTable(name);
+
         if (canBeInserted()) {
             ((FilterContainer) selectedElement.getUserObject()).addIncludeTable(newTable);
             selectedElement.add(new DbImportTreeNode(newTable));
@@ -64,5 +68,9 @@ public class AddIncludeTableAction extends TreeManipulationAction {
             parentElement.add(new DbImportTreeNode(newTable));
             updateAfterInsert(false);
         }
+        ReverseEngineering reverseEngineeringNewCopy = new ReverseEngineering(tree.getReverseEngineering());
+        getProjectController().getApplication().getUndoManager().addEdit(
+                new DbImportTreeUndoableEdit(reverseEngineeringOldCopy, reverseEngineeringNewCopy, tree)
+        );
     }
 }

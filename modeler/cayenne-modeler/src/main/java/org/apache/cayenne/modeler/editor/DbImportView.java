@@ -32,7 +32,6 @@ import org.apache.cayenne.modeler.event.DataMapDisplayEvent;
 import org.apache.cayenne.modeler.event.DataMapDisplayListener;
 
 import javax.swing.JPanel;
-import javax.swing.tree.TreeSelectionModel;
 import java.awt.BorderLayout;
 
 /**

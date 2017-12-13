@@ -66,16 +66,20 @@ public class DbImportTree extends JTree {
     private <T extends PatternParam> void printParams(Collection<T> collection, DbImportTreeNode parent) {
         for (T element : collection) {
             DbImportTreeNode node = !isTransferable ? new DbImportTreeNode(element) : new TransferableNode(element);
-            parent.add(node);
+            if (!node.getSimpleNodeName().equals("")) {
+                parent.add(node);
+            }
         }
     }
 
     private void printIncludeTables(Collection<IncludeTable> collection, DbImportTreeNode parent) {
         for (IncludeTable includeTable : collection) {
             DbImportTreeNode node = !isTransferable ? new DbImportTreeNode(includeTable) : new TransferableNode(includeTable);
-            printParams(includeTable.getIncludeColumns(), node);
-            printParams(includeTable.getExcludeColumns(), node);
-            parent.add(node);
+            if (!node.getSimpleNodeName().equals("")) {
+                printParams(includeTable.getIncludeColumns(), node);
+                printParams(includeTable.getExcludeColumns(), node);
+                parent.add(node);
+            }
         }
     }
 
@@ -91,21 +95,29 @@ public class DbImportTree extends JTree {
     private void printSchemas(Collection<Schema> schemas, DbImportTreeNode parent) {
         for (Schema schema : schemas) {
             DbImportTreeNode node = !isTransferable ? new DbImportTreeNode(schema) : new TransferableNode(schema);
-            printChildren(schema, node);
-            parent.add(node);
+            if (!node.getSimpleNodeName().equals("")) {
+                printChildren(schema, node);
+                parent.add(node);
+            }
         }
     }
 
     private void printCatalogs(Collection<Catalog> catalogs, DbImportTreeNode parent) {
         for (Catalog catalog : catalogs) {
             DbImportTreeNode node = !isTransferable ? new DbImportTreeNode(catalog) : new TransferableNode(catalog);
-            printSchemas(catalog.getSchemas(), node);
-            printChildren(catalog, node);
-            parent.add(node);
+            if (!node.getSimpleNodeName().equals("")) {
+                printSchemas(catalog.getSchemas(), node);
+                printChildren(catalog, node);
+                parent.add(node);
+            }
         }
     }
 
     public ReverseEngineering getReverseEngineering() {
         return reverseEngineering;
+    }
+
+    public void setReverseEngineering(ReverseEngineering reverseEngineering) {
+        this.reverseEngineering = reverseEngineering;
     }
 }

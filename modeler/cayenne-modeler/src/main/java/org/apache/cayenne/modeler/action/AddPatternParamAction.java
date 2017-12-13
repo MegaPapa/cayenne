@@ -27,8 +27,10 @@ import org.apache.cayenne.dbsync.reverse.dbimport.IncludeColumn;
 import org.apache.cayenne.dbsync.reverse.dbimport.IncludeProcedure;
 import org.apache.cayenne.dbsync.reverse.dbimport.IncludeTable;
 import org.apache.cayenne.dbsync.reverse.dbimport.PatternParam;
+import org.apache.cayenne.dbsync.reverse.dbimport.ReverseEngineering;
 import org.apache.cayenne.modeler.Application;
 import org.apache.cayenne.modeler.dialog.db.load.DbImportTreeNode;
+import org.apache.cayenne.modeler.undo.DbImportTreeUndoableEdit;
 
 import javax.swing.tree.TreePath;
 import java.awt.event.ActionEvent;
@@ -91,6 +93,7 @@ public abstract class AddPatternParamAction extends TreeManipulationAction {
         selectedElement = (DbImportTreeNode) tree.getSelectionPath().getLastPathComponent();
         parentElement = (DbImportTreeNode) selectedElement.getParent();
         Object selectedObject;
+        ReverseEngineering reverseEngineeringOldCopy = new ReverseEngineering(tree.getReverseEngineering());
         if (canBeInserted()) {
             selectedObject = selectedElement.getUserObject();
             if (selectedObject instanceof FilterContainer) {
@@ -108,6 +111,10 @@ public abstract class AddPatternParamAction extends TreeManipulationAction {
             }
             updateAfterInsert(false);
         }
+        ReverseEngineering reverseEngineeringNewCopy = new ReverseEngineering(tree.getReverseEngineering());
+        getProjectController().getApplication().getUndoManager().addEdit(
+                new DbImportTreeUndoableEdit(reverseEngineeringOldCopy, reverseEngineeringNewCopy, tree)
+        );
     }
 
     public void setParamClass(Class paramClass) {

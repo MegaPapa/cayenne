@@ -23,6 +23,7 @@ import org.apache.cayenne.dbsync.reverse.dbimport.Catalog;
 import org.apache.cayenne.dbsync.reverse.dbimport.ReverseEngineering;
 import org.apache.cayenne.modeler.Application;
 import org.apache.cayenne.modeler.dialog.db.load.DbImportTreeNode;
+import org.apache.cayenne.modeler.undo.DbImportTreeUndoableEdit;
 
 import javax.swing.tree.TreePath;
 import java.awt.event.ActionEvent;
@@ -58,6 +59,7 @@ public class AddCatalogAction extends TreeManipulationAction {
             parentElement = selectedElement;
         }
         Catalog newCatalog = new Catalog(name);
+        ReverseEngineering reverseEngineeringOldCopy = new ReverseEngineering(tree.getReverseEngineering());
         if (canBeInserted()) {
             ((ReverseEngineering) selectedElement.getUserObject()).addCatalog(newCatalog);
             selectedElement.add(new DbImportTreeNode(newCatalog));
@@ -67,5 +69,9 @@ public class AddCatalogAction extends TreeManipulationAction {
             parentElement.add(new DbImportTreeNode(newCatalog));
             updateAfterInsert(false);
         }
+        ReverseEngineering reverseEngineeringNewCopy = new ReverseEngineering(tree.getReverseEngineering());
+        getProjectController().getApplication().getUndoManager().addEdit(
+                new DbImportTreeUndoableEdit(reverseEngineeringOldCopy, reverseEngineeringNewCopy, tree)
+        );
     }
 }

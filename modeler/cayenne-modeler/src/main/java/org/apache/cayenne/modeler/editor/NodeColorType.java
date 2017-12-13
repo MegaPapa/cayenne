@@ -26,6 +26,8 @@ public class NodeColorType {
 
     private String nodeName;
     private Class nodeClass;
+    private String parentCatalogName;
+    private String parentSchemaName;
 
     public String getNodeName() {
         return nodeName;
@@ -46,5 +48,21 @@ public class NodeColorType {
     @Override
     public String toString() {
         return nodeClass + ": " + nodeName;
+    }
+
+    public String getParentCatalogName() {
+        return parentCatalogName;
+    }
+
+    public void setParentCatalogName(String parentCatalogName) {
+        this.parentCatalogName = parentCatalogName;
+    }
+
+    public String getParentSchemaName() {
+        return parentSchemaName;
+    }
+
+    public void setParentSchemaName(String parentSchemaName) {
+        this.parentSchemaName = parentSchemaName;
     }
 }
