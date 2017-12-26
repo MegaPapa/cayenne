@@ -49,6 +49,7 @@ public class ModelerDbImportAction extends DefaultDbImportAction {
     private DataMap targetMap;
 
     private DbLoadResultDialog resultDialog;
+    private boolean isNothingChanged;
 
     public ModelerDbImportAction(@Inject Logger logger,
                                  @Inject ProjectSaver projectSaver,
@@ -66,10 +67,7 @@ public class ModelerDbImportAction extends DefaultDbImportAction {
         logger.info("");
         if (tokens.isEmpty()) {
             logger.info("Detected changes: No changes to import.");
-            JOptionPane optionPane = new JOptionPane("Detected changes: No changes to import.", JOptionPane.PLAIN_MESSAGE);
-            JDialog dialog = optionPane.createDialog(DIALOG_TITLE);
-            dialog.setModal(false);
-            dialog.setVisible(true);
+            isNothingChanged = true;
             return tokens;
         }
 
@@ -78,6 +76,7 @@ public class ModelerDbImportAction extends DefaultDbImportAction {
             String logString = String.format("    %-20s %s", token.getTokenName(), token.getTokenValue());
             logger.info(logString);
             resultDialog.addRowToOutput(logString);
+            isNothingChanged = false;
         }
 
         logger.info("");
@@ -89,9 +88,6 @@ public class ModelerDbImportAction extends DefaultDbImportAction {
     @Override
     protected boolean syncProcedures(DataMap targetDataMap, DataMap loadedDataMap, FiltersConfig filters) {
         Collection<Procedure> procedures = loadedDataMap.getProcedures();
-        if (procedures.isEmpty()) {
-            return false;
-        }
 
         boolean hasChanges = false;
         for (Procedure procedure : procedures) {
@@ -113,11 +109,20 @@ public class ModelerDbImportAction extends DefaultDbImportAction {
                 resultDialog.addRowToOutput(logString);
             }
             targetDataMap.addProcedure(procedure);
+            if (!resultDialog.isVisible()) {
+                resultDialog.setVisible(true);
+            }
+            isNothingChanged = false;
             hasChanges = true;
+        }
+        if ((isNothingChanged)) {
+            JOptionPane optionPane = new JOptionPane("Detected changes: No changes to import.", JOptionPane.PLAIN_MESSAGE);
+            JDialog dialog = optionPane.createDialog(DIALOG_TITLE);
+            dialog.setModal(false);
+            dialog.setVisible(true);
         }
         return hasChanges;
     }
-
 
     @Override
     protected DataMap existingTargetMap(DbImportConfiguration configuration) throws IOException {

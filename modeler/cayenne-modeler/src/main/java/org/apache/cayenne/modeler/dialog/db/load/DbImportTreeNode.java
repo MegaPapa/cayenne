@@ -86,6 +86,26 @@ public class DbImportTreeNode extends DefaultMutableTreeNode {
         }
     }
 
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (this.getClass() != obj.getClass()) {
+            return false;
+        }
+        DbImportTreeNode objNode = (DbImportTreeNode) obj;
+        if (!objNode.getSimpleNodeName().equals(this.getSimpleNodeName())) {
+            return false;
+        }
+        if (objNode.getUserObject().getClass() != this.getUserObject().getClass()) {
+            return false;
+        }
+        return true;
+    }
+
     public boolean isColorized() {
         return isColorized;
     }

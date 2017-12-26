@@ -97,4 +97,8 @@ public class DbLoadResultDialog extends JDialog {
     public void addRowToOutput(String output) {
         tableModel.addRow(new Object[]{output});
     }
+
+    public int getTableRowCount() {
+        return tableModel.getRowCount();
+    }
 }

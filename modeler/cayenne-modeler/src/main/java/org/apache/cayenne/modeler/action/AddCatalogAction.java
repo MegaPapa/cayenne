@@ -70,8 +70,10 @@ public class AddCatalogAction extends TreeManipulationAction {
             updateAfterInsert(false);
         }
         ReverseEngineering reverseEngineeringNewCopy = new ReverseEngineering(tree.getReverseEngineering());
-        getProjectController().getApplication().getUndoManager().addEdit(
-                new DbImportTreeUndoableEdit(reverseEngineeringOldCopy, reverseEngineeringNewCopy, tree)
-        );
+        if (isMultipleAction) {
+            getProjectController().getApplication().getUndoManager().addEdit(
+                    new DbImportTreeUndoableEdit(reverseEngineeringOldCopy, reverseEngineeringNewCopy, tree, getProjectController())
+            );
+        }
     }
 }

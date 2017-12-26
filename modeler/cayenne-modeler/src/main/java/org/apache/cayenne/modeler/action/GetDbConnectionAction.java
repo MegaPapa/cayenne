@@ -38,6 +38,7 @@ import static org.apache.cayenne.modeler.pref.DBConnectionInfo.JDBC_DRIVER_PROPE
  */
 public class GetDbConnectionAction extends DBWizardAction<DbActionOptionsDialog> {
 
+    public static final String DIALOG_TITLE = "Configure Connection to Database";
     private static final String ACTION_NAME = "Configure Connection";
     private static final String ICON_NAME = "icon-dom.png";
 
@@ -58,7 +59,7 @@ public class GetDbConnectionAction extends DBWizardAction<DbActionOptionsDialog>
 
     @Override
     public void performAction(ActionEvent e) {
-        final DataSourceWizard connectWizard = dataSourceWizardDialog("Configure Connection to Database");
+        final DataSourceWizard connectWizard = dataSourceWizardDialog(DIALOG_TITLE);
         if(connectWizard == null) {
             return;
         }

@@ -44,6 +44,7 @@ public abstract class DBWizardAction<T extends DbActionOptionsDialog> extends Ca
     protected DataSourceWizard dataSourceWizardDialog(String title) {
         // connect
         DataSourceWizard connectWizard = new DataSourceWizard(getProjectController(), title);
+        connectWizard.setProjectController(getProjectController());
         if (!connectWizard.startupAction()) {
             return null;
         }

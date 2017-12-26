@@ -121,12 +121,12 @@ public class DeleteNodeAction extends TreeManipulationAction {
         tree.stopEditing();
         TreePath[] paths = tree.getSelectionPaths();
         if (paths != null) {
+            ReverseEngineering reverseEngineeringOldCopy = new ReverseEngineering(tree.getReverseEngineering());
             for (TreePath path : paths) {
                 selectedElement = (DbImportTreeNode) path.getLastPathComponent();
                 parentElement = (DbImportTreeNode) selectedElement.getParent();
                 if (parentElement != null) {
                     Object parentUserObject = parentElement.getUserObject();
-                    ReverseEngineering reverseEngineeringOldCopy = new ReverseEngineering(tree.getReverseEngineering());
                     if (parentUserObject instanceof ReverseEngineering) {
                         ReverseEngineering reverseEngineering = (ReverseEngineering) parentUserObject;
                         deleteChilds(reverseEngineering);
@@ -140,13 +140,13 @@ public class DeleteNodeAction extends TreeManipulationAction {
                         IncludeTable includeTable = (IncludeTable) parentUserObject;
                         deleteChilds(includeTable);
                     }
-                    ReverseEngineering reverseEngineeringNewCopy = new ReverseEngineering(tree.getReverseEngineering());
-                    getProjectController().getApplication().getUndoManager().addEdit(
-                            new DbImportTreeUndoableEdit(reverseEngineeringOldCopy, reverseEngineeringNewCopy, tree)
-                    );
                 }
                 updateParentChilds();
             }
+            ReverseEngineering reverseEngineeringNewCopy = new ReverseEngineering(tree.getReverseEngineering());
+            getProjectController().getApplication().getUndoManager().addEdit(
+                    new DbImportTreeUndoableEdit(reverseEngineeringOldCopy, reverseEngineeringNewCopy, tree, getProjectController())
+            );
         }
     }
 }

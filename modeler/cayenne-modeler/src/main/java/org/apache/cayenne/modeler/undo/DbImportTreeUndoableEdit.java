@@ -20,6 +20,7 @@
 package org.apache.cayenne.modeler.undo;
 
 import org.apache.cayenne.dbsync.reverse.dbimport.ReverseEngineering;
+import org.apache.cayenne.modeler.ProjectController;
 import org.apache.cayenne.modeler.editor.DbImportTree;
 
 import javax.swing.undo.AbstractUndoableEdit;
@@ -34,12 +35,14 @@ public class DbImportTreeUndoableEdit extends AbstractUndoableEdit {
     private ReverseEngineering previousReverseEngineering;
     private ReverseEngineering nextReverseEngineering;
     private DbImportTree tree;
+    private ProjectController projectController;
 
     public DbImportTreeUndoableEdit(ReverseEngineering previousReverseEngineering, ReverseEngineering nextReverseEngineering,
-                                    DbImportTree tree) {
+                                    DbImportTree tree, ProjectController projectController) {
         this.tree = tree;
         this.previousReverseEngineering = previousReverseEngineering;
         this.nextReverseEngineering = nextReverseEngineering;
+        this.projectController = projectController;
     }
 
     @Override
@@ -51,6 +54,7 @@ public class DbImportTreeUndoableEdit extends AbstractUndoableEdit {
     public void redo() throws CannotRedoException {
         tree.stopEditing();
         tree.setReverseEngineering(this.nextReverseEngineering);
+        projectController.getApplication().getMetaData().add(projectController.getCurrentDataMap(), tree.getReverseEngineering());
         tree.translateReverseEngineeringToTree(tree.getReverseEngineering(), false);
     }
 
@@ -58,6 +62,7 @@ public class DbImportTreeUndoableEdit extends AbstractUndoableEdit {
     public void undo() throws CannotUndoException {
         tree.stopEditing();
         tree.setReverseEngineering(this.previousReverseEngineering);
+        projectController.getApplication().getMetaData().add(projectController.getCurrentDataMap(), tree.getReverseEngineering());
         tree.translateReverseEngineeringToTree(tree.getReverseEngineering(), false);
     }
 }

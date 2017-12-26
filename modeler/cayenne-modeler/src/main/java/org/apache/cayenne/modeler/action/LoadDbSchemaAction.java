@@ -24,7 +24,6 @@ import org.apache.cayenne.dbsync.reverse.dbimport.IncludeProcedure;
 import org.apache.cayenne.dbsync.reverse.dbimport.IncludeTable;
 import org.apache.cayenne.dbsync.reverse.dbimport.ReverseEngineering;
 import org.apache.cayenne.dbsync.reverse.dbimport.Schema;
-import org.apache.cayenne.map.DataMap;
 import org.apache.cayenne.modeler.Application;
 import org.apache.cayenne.modeler.dialog.db.DataSourceWizard;
 import org.apache.cayenne.modeler.editor.DbImportModel;
@@ -54,6 +53,7 @@ public class LoadDbSchemaAction extends CayenneAction {
     private static final String ICON_NAME = "icon-sync.png";
     private static final String ACTION_NAME = "Load Db Schema";
     private static final String INCLUDE_ALL_PATTERN = "%";
+    private static final String EMPTY_DEFAULT_CATALOG = "";
     private static final int TABLE_INDEX = 3;
     private static final int SCHEMA_INDEX = 2;
     private static final int CATALOG_INDEX = 1;
@@ -74,6 +74,7 @@ public class LoadDbSchemaAction extends CayenneAction {
         DBConnectionInfo connectionInfo;
         if (!datamapPreferencesExist()) {
             final DataSourceWizard connectWizard = new DataSourceWizard(getProjectController(), "Load Db Schema");
+            connectWizard.setProjectController(getProjectController());
             if (!connectWizard.startupAction()) {
                 return;
             }
@@ -83,30 +84,31 @@ public class LoadDbSchemaAction extends CayenneAction {
             connectionInfo = getConnectionInfoFromPreferences();
         }
 
-        DataMap map = getProjectController().getCurrentDataMap();
         databaseReverseEngineering = new ReverseEngineering();
 
         try(Connection connection = connectionInfo.makeDataSource(getApplication().getClassLoadingService()).getConnection()) {
             String[] types = {"TABLE", "VIEW", "SYSTEM TABLE", "GLOBAL TEMPORARY", "LOCAL TEMPORARY", "ALIAS", "SYNONYM"};
-            int tableCount = 0;
             try (ResultSet rs = connection.getMetaData().getCatalogs()) {
+                String defaultCatalog = connection.getCatalog();
                 while (rs.next()) {
-                    ResultSet resultSet = connection.getMetaData().getTables(rs.getString(1), null, INCLUDE_ALL_PATTERN, types);
-                    while (resultSet.next()) {
-                        //if (tableCount < 1000) {
-                            String tableName = resultSet.getString(TABLE_INDEX);
-                            String schemaName = resultSet.getString(SCHEMA_INDEX);
-                            String catalogName = resultSet.getString(CATALOG_INDEX);
-                            packTable(tableName, catalogName, schemaName);
-                            tableCount++;
-                        //}
+                    ResultSet resultSet;
+                    if (defaultCatalog.equals(EMPTY_DEFAULT_CATALOG)) {
+                        resultSet = connection.getMetaData().getTables(rs.getString(1), null, INCLUDE_ALL_PATTERN, types);
+                    } else {
+                        resultSet = connection.getMetaData().getTables(defaultCatalog, null, INCLUDE_ALL_PATTERN, types);
                     }
-                    //if (tableCount < 1000) {
-                        packFunctions(connection);
-                    //}
+                    String tableName = "";
+                    String schemaName = "";
+                    String catalogName = "";
+                    while (resultSet.next()) {
+                        tableName = resultSet.getString(TABLE_INDEX);
+                        schemaName = resultSet.getString(SCHEMA_INDEX);
+                        catalogName = resultSet.getString(CATALOG_INDEX);
+                        packTable(tableName, catalogName, schemaName);
+                    }
+                    packFunctions(connection);
                 }
             }
-            System.out.println(tableCount);
 
             draggableTreePanel.getSourceTree().setEnabled(true);
             draggableTreePanel.getSourceTree().translateReverseEngineeringToTree(databaseReverseEngineering, true);
@@ -151,25 +153,31 @@ public class LoadDbSchemaAction extends CayenneAction {
     private void packFunctions(Connection connection) throws SQLException {
         Collection<Catalog> catalogs = databaseReverseEngineering.getCatalogs();
         for (Catalog catalog : catalogs) {
-            ResultSet funcResultSet = connection.getMetaData().getFunctions(catalog.getName(), null, "%");
-            while (funcResultSet.next()) {
-                IncludeProcedure includeProcedure = new IncludeProcedure(funcResultSet.getString(3));
-                catalog.addIncludeProcedure(includeProcedure);
+            ResultSet procResultSet = connection.getMetaData().getProcedures(catalog.getName(), null, "%");
+            while (procResultSet.next()) {
+                IncludeProcedure includeProcedure = new IncludeProcedure(procResultSet.getString(3));
+                if (!catalog.getIncludeProcedures().contains(includeProcedure)) {
+                    catalog.addIncludeProcedure(includeProcedure);
+                }
             }
         }
         for (Schema schema : databaseReverseEngineering.getSchemas()) {
-            ResultSet funcResultSet = connection.getMetaData().getFunctions(null, schema.getName(), "%");
-            while (funcResultSet.next()) {
-                IncludeProcedure includeProcedure = new IncludeProcedure(funcResultSet.getString(3));
-                schema.addIncludeProcedure(includeProcedure);
+            ResultSet procResultSet = connection.getMetaData().getProcedures(null, schema.getName(), "%");
+            while (procResultSet.next()) {
+                IncludeProcedure includeProcedure = new IncludeProcedure(procResultSet.getString(3));
+                if (!schema.getIncludeProcedures().contains(includeProcedure)) {
+                    schema.addIncludeProcedure(includeProcedure);
+                }
             }
         }
         for (Catalog catalog : catalogs) {
             for (Schema schema : catalog.getSchemas()) {
-                ResultSet funcResultSet = connection.getMetaData().getFunctions(catalog.getName(), schema.getName(), "%");
-                while (funcResultSet.next()) {
-                    IncludeProcedure includeProcedure = new IncludeProcedure(funcResultSet.getString(3));
-                    schema.addIncludeProcedure(includeProcedure);
+                ResultSet procResultSet = connection.getMetaData().getProcedures(catalog.getName(), schema.getName(), "%");
+                while (procResultSet.next()) {
+                    IncludeProcedure includeProcedure = new IncludeProcedure(procResultSet.getString(3));
+                    if (!schema.getIncludeProcedures().contains(includeProcedure)) {
+                        schema.addIncludeProcedure(includeProcedure);
+                    }
                 }
             }
         }
@@ -179,27 +187,37 @@ public class LoadDbSchemaAction extends CayenneAction {
         IncludeTable newTable = new IncludeTable();
         newTable.setPattern(tableName);
         if ((catalogName == null) && (schemaName == null)) {
-            databaseReverseEngineering.addIncludeTable(newTable);
+            if (!databaseReverseEngineering.getIncludeTables().contains(newTable)) {
+                databaseReverseEngineering.addIncludeTable(newTable);
+            }
         }
         if ((catalogName != null) && (schemaName == null)) {
             Catalog parentCatalog = getCatalogByName(databaseReverseEngineering.getCatalogs(), catalogName);
             if (parentCatalog != null) {
-                parentCatalog.addIncludeTable(newTable);
+                if (!parentCatalog.getIncludeTables().contains(newTable)) {
+                    parentCatalog.addIncludeTable(newTable);
+                }
             } else {
                 parentCatalog = new Catalog();
                 parentCatalog.setName(catalogName);
-                parentCatalog.addIncludeTable(newTable);
+                if (!parentCatalog.getIncludeTables().contains(newTable)) {
+                    parentCatalog.addIncludeTable(newTable);
+                }
                 databaseReverseEngineering.addCatalog(parentCatalog);
             }
         }
         if ((catalogName == null) && (schemaName != null)) {
             Schema parentSchema = getSchemaByName(databaseReverseEngineering.getSchemas(), schemaName);
             if (parentSchema != null) {
-                parentSchema.addIncludeTable(newTable);
+                if (!parentSchema.getIncludeTables().contains(newTable)) {
+                    parentSchema.addIncludeTable(newTable);
+                }
             } else {
                 parentSchema = new Schema();
                 parentSchema.setName(schemaName);
-                parentSchema.addIncludeTable(newTable);
+                if (!parentSchema.getIncludeTables().contains(newTable)) {
+                    parentSchema.addIncludeTable(newTable);
+                }
                 databaseReverseEngineering.addSchema(parentSchema);
             }
         }
@@ -209,11 +227,15 @@ public class LoadDbSchemaAction extends CayenneAction {
             if (parentCatalog != null) {
                 parentSchema = getSchemaByName(parentCatalog.getSchemas(), schemaName);
                 if (parentSchema != null) {
-                    parentSchema.addIncludeTable(newTable);
+                    if (!parentSchema.getIncludeTables().contains(newTable)) {
+                        parentSchema.addIncludeTable(newTable);
+                    }
                 } else {
                     parentSchema = new Schema();
                     parentSchema.setName(schemaName);
-                    parentSchema.addIncludeTable(newTable);
+                    if (!parentSchema.getIncludeTables().contains(newTable)) {
+                        parentSchema.addIncludeTable(newTable);
+                    }
                     parentCatalog.addSchema(parentSchema);
                 }
             } else {
@@ -221,7 +243,9 @@ public class LoadDbSchemaAction extends CayenneAction {
                 parentCatalog.setName(catalogName);
                 parentSchema = new Schema();
                 parentSchema.setName(schemaName);
-                parentSchema.addIncludeTable(newTable);
+                if (!parentSchema.getIncludeTables().contains(newTable)) {
+                    parentSchema.addIncludeTable(newTable);
+                }
                 databaseReverseEngineering.addCatalog(parentCatalog);
             }
         }
