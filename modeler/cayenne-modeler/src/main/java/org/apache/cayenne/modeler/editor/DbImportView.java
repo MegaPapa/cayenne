@@ -30,6 +30,7 @@ import org.apache.cayenne.modeler.dialog.db.load.DbImportTreeNode;
 import org.apache.cayenne.modeler.dialog.db.load.TransferableNode;
 import org.apache.cayenne.modeler.event.DataMapDisplayEvent;
 import org.apache.cayenne.modeler.event.DataMapDisplayListener;
+import org.apache.cayenne.modeler.util.CayenneAction;
 
 import javax.swing.JPanel;
 import java.awt.BorderLayout;
@@ -40,7 +41,7 @@ import java.awt.BorderLayout;
 public class DbImportView extends JPanel {
 
     private static final String MAIN_LAYOUT = "fill:160dlu, 5dlu, fill:50dlu, 5dlu, fill:160dlu";
-    private static final String HEADER_LAYOUT = "fill:120dlu, 15dlu, fill:25dlu";
+    private static final String HEADER_LAYOUT = "fill:70dlu, 15dlu, fill:75dlu";
     private static final String BUTTON_PANEL_LAYOUT = "fill:50dlu";
     private static final int ALL_LINE_SPAN = 5;
 
@@ -51,14 +52,12 @@ public class DbImportView extends JPanel {
 
     private ProjectController projectController;
 
-    private DbTreeColorMap colorMap;
-
     DbImportView(ProjectController projectController) {
         this.projectController = projectController;
         initFormElements();
         initListeners();
         buildForm();
-        colorMap.buildColorMap();
+        draggableTreePanel.getSourceTree().repaint();
     }
 
     private void initListeners() {
@@ -109,7 +108,11 @@ public class DbImportView extends JPanel {
         ReverseEngineeringAction reverseEngineeringAction = projectController.getApplication().getActionManager().
                 getAction(ReverseEngineeringAction.class);
         reverseEngineeringAction.setView(this);
-        reverseEngineeringHeaderBuilder.append(reverseEngineeringAction.buildButton(0));
+        CayenneAction.CayenneToolbarButton reverseEngineeringButton = (CayenneAction.CayenneToolbarButton)
+                reverseEngineeringAction.buildButton(0);
+        reverseEngineeringButton.setShowingText(true);
+        reverseEngineeringButton.setText("Import DB");
+        reverseEngineeringHeaderBuilder.append(reverseEngineeringButton);
         builder.append(reverseEngineeringHeaderBuilder.getPanel());
 
         DefaultFormBuilder databaseHeaderBuilder = new DefaultFormBuilder(headerLayout);
@@ -117,7 +120,10 @@ public class DbImportView extends JPanel {
         LoadDbSchemaAction loadDbSchemaAction = projectController.getApplication().getActionManager().
                 getAction(LoadDbSchemaAction.class);
         loadDbSchemaAction.setDraggableTreePanel(draggableTreePanel);
-        databaseHeaderBuilder.append(loadDbSchemaAction.buildButton(0));
+        CayenneAction.CayenneToolbarButton loadDbSchemaButton = (CayenneAction.CayenneToolbarButton) loadDbSchemaAction.buildButton(0);
+        loadDbSchemaButton.setShowingText(true);
+        loadDbSchemaButton.setText("Load DB Schema");
+        databaseHeaderBuilder.append(loadDbSchemaButton);
 
         builder.append("");
         builder.append(databaseHeaderBuilder.getPanel());
@@ -149,10 +155,9 @@ public class DbImportView extends JPanel {
         treePanel = new ReverseEngineeringTreePanel(projectController, reverseEngineeringTree);
         treePanel.setTreeToolbar(treeToolbar);
 
-        colorMap = new DbTreeColorMap(treePanel.getReverseEngineeringTree(), draggableTreePanel.getSourceTree());
-        model.setColorMap(colorMap);
-        draggableTreeModel.setColorMap(colorMap);
-        ((ColorTreeRenderer) draggableTreePanel.getSourceTree().getCellRenderer()).setColorMap(colorMap);
+        model.setDbSchemaTree(draggableTree);
+        draggableTreeModel.setDbSchemaTree(draggableTree);
+        ((ColorTreeRenderer) draggableTreePanel.getSourceTree().getCellRenderer()).setReverseEngineeringTree(reverseEngineeringTree);
 
         configPanel = new ReverseEngineeringConfigPanel(projectController);
     }

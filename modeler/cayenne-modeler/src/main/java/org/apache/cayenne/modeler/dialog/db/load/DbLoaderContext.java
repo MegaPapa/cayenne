@@ -21,9 +21,6 @@ package org.apache.cayenne.modeler.dialog.db.load;
 
 import java.io.File;
 import java.sql.Connection;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
@@ -138,7 +135,6 @@ public class DbLoaderContext {
         fillReverseEngineeringFromView(metaReverseEngineering, view);
         // Create copy of metaReverseEngineering
         ReverseEngineering reverseEngineering = new ReverseEngineering(metaReverseEngineering);
-        System.out.println(Arrays.toString(reverseEngineering.getTableTypes()));
 
         DbImportConfiguration config = new DbImportConfiguration() {
             @Override

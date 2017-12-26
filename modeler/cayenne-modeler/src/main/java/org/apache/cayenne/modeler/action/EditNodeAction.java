@@ -74,7 +74,7 @@ public class EditNodeAction extends TreeManipulationAction {
                 }
                 ReverseEngineering reverseEngineeringNewCopy = new ReverseEngineering(tree.getReverseEngineering());
                 getProjectController().getApplication().getUndoManager().addEdit(
-                        new DbImportTreeUndoableEdit(reverseEngineeringOldCopy, reverseEngineeringNewCopy, tree)
+                        new DbImportTreeUndoableEdit(reverseEngineeringOldCopy, reverseEngineeringNewCopy, tree, getProjectController())
                 );
             }
         }

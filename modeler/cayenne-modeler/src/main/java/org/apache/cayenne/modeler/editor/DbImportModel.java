@@ -27,26 +27,18 @@ import javax.swing.tree.TreeNode;
  */
 public class DbImportModel extends DefaultTreeModel {
 
-    private DbTreeColorMap colorMap;
+    private DbImportTree dbSchemaTree;
 
     public DbImportModel(TreeNode root) {
         super(root);
     }
 
-    public void buildColorMap() {
-        colorMap.buildColorMap();
-    }
-
     public void reload(TreeNode node) {
-        colorMap.buildColorMap();
         super.reload(node);
+        dbSchemaTree.repaint();
     }
 
-    public void setColorMap(DbTreeColorMap colorMap) {
-        this.colorMap = colorMap;
-    }
-
-    public DbTreeColorMap getColorMap() {
-        return colorMap;
+    public void setDbSchemaTree(DbImportTree dbSchemaTree) {
+        this.dbSchemaTree = dbSchemaTree;
     }
 }

@@ -153,7 +153,7 @@ public class DraggableTreePanel extends JScrollPane {
             public void valueChanged(TreeSelectionEvent e) {
                 DbImportModel model = (DbImportModel) sourceTree.getModel();
                 DbImportTreeNode root = (DbImportTreeNode) model.getRoot();
-                model.buildColorMap();
+                sourceTree.repaint();
                 if (root.getChildCount() > 0) {
                     model.nodesChanged(root, new int[]{root.getChildCount() - 1});
                 }

@@ -19,8 +19,6 @@
 
 package org.apache.cayenne.modeler.editor;
 
-import org.apache.cayenne.dbsync.reverse.dbimport.ReverseEngineering;
-import org.apache.cayenne.dbsync.reverse.filters.FiltersConfigBuilder;
 import org.apache.cayenne.modeler.ProjectController;
 import org.apache.cayenne.modeler.action.DeleteNodeAction;
 import org.apache.cayenne.modeler.action.EditNodeAction;
@@ -35,6 +33,7 @@ import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.TreePath;
 import java.awt.Component;
 import java.util.EventObject;
+import java.util.regex.Pattern;
 
 /**
  * @since 4.1
@@ -87,10 +86,7 @@ public class DbImportTreeCellEditor extends DefaultTreeCellEditor {
 
     private boolean isValidReverseEngineering() {
         try {
-            ReverseEngineering treeReverseEngineering = ((DbImportTree) tree).getReverseEngineering();
-            ReverseEngineering reverseEngineeringCopy = new ReverseEngineering(treeReverseEngineering);
-            FiltersConfigBuilder builder = new FiltersConfigBuilder(reverseEngineeringCopy);
-            builder.build();
+            Pattern.compile(super.getCellEditorValue().toString());
         } catch (Exception exception) {
             return false;
         }
@@ -99,10 +95,7 @@ public class DbImportTreeCellEditor extends DefaultTreeCellEditor {
 
     @Override
     public void cancelCellEditing() {
-        if (!isValidReverseEngineering()) {
-            tree.startEditingAtPath(tree.getSelectionPath());
-        }
-        if (!Util.isEmptyString(super.getCellEditorValue().toString()) && !insertableNodeExist()) {
+        if (!Util.isEmptyString(super.getCellEditorValue().toString()) && !insertableNodeExist() && (isValidReverseEngineering())) {
             EditNodeAction action = projectController.getApplication().getActionManager().getAction(EditNodeAction.class);
             action.setActionName(super.getCellEditorValue().toString());
             action.actionPerformed(null);

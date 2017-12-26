@@ -86,4 +86,19 @@ public class PatternParam {
         res.append(s).append(getClass().getSimpleName()).append(": ").append(pattern).append("\n");
         return res;
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (obj.getClass() != this.getClass()) {
+            return false;
+        }
+        PatternParam patternParam = (PatternParam) obj;
+        return patternParam.getPattern().equals(pattern);
+    }
 }
