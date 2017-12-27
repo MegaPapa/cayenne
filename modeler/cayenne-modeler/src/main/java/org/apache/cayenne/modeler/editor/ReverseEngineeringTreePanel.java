@@ -82,6 +82,7 @@ class ReverseEngineeringTreePanel extends JScrollPane {
         popups.put(Catalog.class, new CatalogPopUpMenu());
         popups.put(Schema.class, new SchemaPopUpMenu());
         popups.put(ReverseEngineering.class, new RootPopUpMenu());
+        popups.put(String.class, new RootPopUpMenu());
         popups.put(IncludeTable.class, new IncludeTablePopUpMenu());
         popups.put(ExcludeTable.class, new DefaultPopUpMenu());
         popups.put(IncludeColumn.class, new DefaultPopUpMenu());

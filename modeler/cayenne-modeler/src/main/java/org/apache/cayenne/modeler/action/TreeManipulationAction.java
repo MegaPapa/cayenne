@@ -60,6 +60,14 @@ public abstract class TreeManipulationAction extends CayenneAction {
         initLevels();
     }
 
+    protected boolean reverseEngineeringIsEmpty() {
+        ReverseEngineering reverseEngineering = tree.getReverseEngineering();
+        return ((reverseEngineering.getCatalogs().size() == 0) && (reverseEngineering.getSchemas().size() == 0)
+                && (reverseEngineering.getIncludeTables().size() == 0) && (reverseEngineering.getExcludeTables().size() == 0)
+                && (reverseEngineering.getIncludeColumns().size() == 0) && (reverseEngineering.getExcludeColumns().size() == 0)
+                && (reverseEngineering.getIncludeProcedures().size() == 0) && (reverseEngineering.getExcludeProcedures().size() == 0));
+    }
+
     private void initLevels() {
         levels = new HashMap<>();
 
@@ -127,7 +135,11 @@ public abstract class TreeManipulationAction extends CayenneAction {
     protected void updateAfterInsert(boolean updateSelected) {
         updateModel(updateSelected);
         if (!movedFromDbSchema) {
-            tree.startEditingAtPath(new TreePath(((DbImportTreeNode) selectedElement.getLastChild()).getPath()));
+            if (updateSelected) {
+                tree.startEditingAtPath(new TreePath(((DbImportTreeNode) selectedElement.getLastChild()).getPath()));
+            } else {
+                tree.startEditingAtPath(new TreePath(((DbImportTreeNode) parentElement.getLastChild()).getPath()));
+            }
         }
         movedFromDbSchema = false;
         isMultipleAction = false;

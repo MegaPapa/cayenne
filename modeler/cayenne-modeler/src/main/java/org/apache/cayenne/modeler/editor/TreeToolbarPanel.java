@@ -86,8 +86,16 @@ class TreeToolbarPanel extends JToolBar {
         deleteButton.setEnabled(false);
     }
 
+    private boolean isLabelSelected() {
+        DbImportTreeNode selectedNode = (DbImportTreeNode) reverseEngineeringTree.getSelectionPath().getLastPathComponent();
+        if (selectedNode.getUserObject().getClass() == String.class) {
+            return true;
+        }
+        return false;
+    }
+
     void lockButtons() {
-        if (reverseEngineeringTree.getLastSelectedPathComponent() != null) {
+        if ((reverseEngineeringTree.getLastSelectedPathComponent() != null) && (!isLabelSelected())) {
             DbImportTreeNode selectedNode = ((DbImportTreeNode) reverseEngineeringTree.getLastSelectedPathComponent());
             DbImportTreeNode parentNode = (DbImportTreeNode) selectedNode.getParent();
             if (parentNode != null) {

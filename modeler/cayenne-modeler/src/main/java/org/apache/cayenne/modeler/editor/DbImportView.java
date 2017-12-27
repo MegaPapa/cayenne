@@ -199,8 +199,4 @@ public class DbImportView extends JPanel {
         return configPanel.getStripFromTableNames().getComponent().getText();
     }
 
-    public String getDefaultPackage() {
-        return configPanel.getDefaultPackage().getComponent().getText();
-    }
-
 }

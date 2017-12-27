@@ -19,6 +19,8 @@
 
 package org.apache.cayenne.modeler.editor;
 
+import org.apache.cayenne.modeler.dialog.db.load.DbImportTreeNode;
+
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
 
@@ -33,7 +35,15 @@ public class DbImportModel extends DefaultTreeModel {
         super(root);
     }
 
+    private void preprocessTree() {
+        DbImportTreeNode rootNode = (DbImportTreeNode) getRoot();
+        if (rootNode.getChildCount() == 0) {
+            rootNode.add(new DbImportTreeNode(("Configuration is empty.")));
+        }
+    }
+
     public void reload(TreeNode node) {
+        preprocessTree();
         super.reload(node);
         dbSchemaTree.repaint();
     }

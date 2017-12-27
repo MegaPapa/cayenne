@@ -46,7 +46,6 @@ public class ReverseEngineeringConfigPanel extends JPanel {
     private JComboBox<String> strategyCombo;
     private TextAdapter meaningfulPk;
     private TextAdapter stripFromTableNames;
-    private TextAdapter defaultPackage;
     private JCheckBox skipRelationshipsLoading;
     private JCheckBox skipPrimaryKeyLoading;
     private JCheckBox forceDataMapCatalog;
@@ -70,7 +69,6 @@ public class ReverseEngineeringConfigPanel extends JPanel {
 
         panelBuilder.append("Tables with Meaningful PK Pattern:", meaningfulPk.getComponent());
         panelBuilder.append("Strip from table names:", stripFromTableNames.getComponent());
-        panelBuilder.append("Default package:", defaultPackage.getComponent());
         panelBuilder.append("Skip relationships loading:", skipRelationshipsLoading);
         panelBuilder.append("Skip primary key loading:", skipPrimaryKeyLoading);
         panelBuilder.append("Force datamap catalog:", forceDataMapCatalog);
@@ -94,7 +92,6 @@ public class ReverseEngineeringConfigPanel extends JPanel {
     void initializeTextFields(ReverseEngineering reverseEngineering) {
         meaningfulPk.setText(reverseEngineering.getMeaningfulPkTables());
         stripFromTableNames.setText(reverseEngineering.getStripFromTableNames());
-        defaultPackage.setText(reverseEngineering.getDefaultPackage());
     }
 
     private ReverseEngineering getReverseEngineeringBySelectedMap() {
@@ -138,17 +135,6 @@ public class ReverseEngineeringConfigPanel extends JPanel {
         };
         stripFromTableNames.getComponent().setToolTipText("<html>Regex that matches the part of the table name that needs to be stripped off " +
                 "when generating ObjEntity name</html>");
-
-        defaultPackage = new TextAdapter(new JTextField()) {
-            protected void updateModel(String text) {
-                getReverseEngineeringBySelectedMap().setDefaultPackage(text);
-                projectController.setDirty(true);
-            }
-        };
-        defaultPackage.getComponent().setToolTipText("<html>A Java package that will be set as the imported DataMap default and a package " +
-                "of all the persistent Java classes. This is a required attribute if the \"map\"<br> itself does not " +
-                "already contain a default package, as otherwise all the persistent classes will be mapped with no " +
-                "package, and will not compile.</html>");
         skipRelationshipsLoading = new JCheckBox();
         skipPrimaryKeyLoading = new JCheckBox();
         forceDataMapCatalog = new JCheckBox();
@@ -213,10 +199,6 @@ public class ReverseEngineeringConfigPanel extends JPanel {
 
     TextAdapter getStripFromTableNames() {
         return stripFromTableNames;
-    }
-
-    public TextAdapter getDefaultPackage() {
-        return defaultPackage;
     }
 
     JCheckBox getSkipRelationshipsLoading() {
