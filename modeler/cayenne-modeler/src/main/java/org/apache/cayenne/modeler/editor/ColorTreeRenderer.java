@@ -41,6 +41,7 @@ public class ColorTreeRenderer extends DbImportTreeCellRenderer {
     private static final Color ACCEPT_COLOR = new Color(60,179,113);
     private static final Color EXCLUDE_COLOR = new Color(178, 0, 0);
     private static final Color NON_INCLUDE_COLOR = Color.LIGHT_GRAY;
+    private static final Color LABEL_COLOR = Color.BLACK;
     private static final int EXCLUDE_TABLE_RATE = -10000;
 
     private DbImportTree reverseEngineeringTree;
@@ -179,7 +180,9 @@ public class ColorTreeRenderer extends DbImportTreeCellRenderer {
         }
 
         ReverseEngineering reverseEngineering = reverseEngineeringTree.getReverseEngineering();
-        if ((reverseEngineering.getCatalogs().isEmpty()) && (reverseEngineering.getSchemas().isEmpty()) && (reverseEngineering.getIncludeTables().isEmpty()) && (node.getUserObject().getClass() != IncludeProcedure.class)) {
+        if ((reverseEngineering.getCatalogs().isEmpty()) && (reverseEngineering.getSchemas().isEmpty())
+                && (reverseEngineering.getIncludeTables().isEmpty())
+                && (node.getUserObject().getClass() != IncludeProcedure.class)) {
             bypassResult++;
         }
 
@@ -288,6 +291,10 @@ public class ColorTreeRenderer extends DbImportTreeCellRenderer {
                                                   boolean hasFocus) {
         super.getTreeCellRendererComponent(tree, value, sel,
                 expanded, leaf, row, hasFocus);
+        if (node.getUserObject().getClass() == String.class) {
+            setForeground(LABEL_COLOR);
+            return this;
+        }
         if ((node.getUserObject().getClass() == Schema.class) || (node.getUserObject().getClass() == Catalog.class)
                 || (isFirstNodeIsPrimitive(tree))) {
             flag = false;

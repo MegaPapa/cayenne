@@ -94,6 +94,9 @@ public abstract class AddPatternParamAction extends TreeManipulationAction {
         parentElement = (DbImportTreeNode) selectedElement.getParent();
         Object selectedObject;
         ReverseEngineering reverseEngineeringOldCopy = new ReverseEngineering(tree.getReverseEngineering());
+        if (reverseEngineeringIsEmpty()) {
+            ((DbImportTreeNode) tree.getModel().getRoot()).removeAllChildren();
+        }
         if (canBeInserted()) {
             selectedObject = selectedElement.getUserObject();
             if (selectedObject instanceof FilterContainer) {

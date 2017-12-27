@@ -61,6 +61,8 @@ public class DbImportTreeNode extends DefaultMutableTreeNode {
             return getFormattedName(userObject.getClass().getSimpleName(), ((FilterContainer) userObject).getName());
         } else if (userObject instanceof PatternParam) {
             return getFormattedName(userObject.getClass().getSimpleName(), ((PatternParam) userObject).getPattern());
+        } else if (userObject != null) {
+            return userObject.toString();
         }
         return "";
     }

@@ -58,7 +58,9 @@ public class AddIncludeTableAction extends TreeManipulationAction {
         parentElement = (DbImportTreeNode) selectedElement.getParent();
         ReverseEngineering reverseEngineeringOldCopy = new ReverseEngineering(tree.getReverseEngineering());
         IncludeTable newTable = new IncludeTable(name);
-
+        if (reverseEngineeringIsEmpty()) {
+            ((DbImportTreeNode) tree.getModel().getRoot()).removeAllChildren();
+        }
         if (canBeInserted()) {
             ((FilterContainer) selectedElement.getUserObject()).addIncludeTable(newTable);
             selectedElement.add(new DbImportTreeNode(newTable));

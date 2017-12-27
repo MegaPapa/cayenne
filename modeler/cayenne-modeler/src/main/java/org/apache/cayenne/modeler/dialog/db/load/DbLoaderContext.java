@@ -123,7 +123,6 @@ public class DbLoaderContext {
         reverseEngineering.setMeaningfulPkTables(view.getMeaningfulPk());
         reverseEngineering.setNamingStrategy(view.getNamingStrategy());
         reverseEngineering.setStripFromTableNames(view.getStripFromTableNames());
-        reverseEngineering.setDefaultPackage(view.getDefaultPackage());
     }
 
     public boolean buildConfig(DBConnectionInfo connectionInfo, DbImportView view) {

@@ -60,6 +60,9 @@ public class AddCatalogAction extends TreeManipulationAction {
         }
         Catalog newCatalog = new Catalog(name);
         ReverseEngineering reverseEngineeringOldCopy = new ReverseEngineering(tree.getReverseEngineering());
+        if (reverseEngineeringIsEmpty()) {
+            ((DbImportTreeNode) tree.getModel().getRoot()).removeAllChildren();
+        }
         if (canBeInserted()) {
             ((ReverseEngineering) selectedElement.getUserObject()).addCatalog(newCatalog);
             selectedElement.add(new DbImportTreeNode(newCatalog));

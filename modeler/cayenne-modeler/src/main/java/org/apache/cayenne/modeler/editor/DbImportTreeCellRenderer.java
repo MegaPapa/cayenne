@@ -78,7 +78,11 @@ public class DbImportTreeCellRenderer extends DefaultTreeCellRenderer {
 
         super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
         node = (DbImportTreeNode) value;
-        setIcon(getIconByNodeType(node.getUserObject().getClass()));
+        if (icons.get(node.getUserObject().getClass()) != null) {
+            setIcon(getIconByNodeType(node.getUserObject().getClass()));
+        } else {
+            setIcon(null);
+        }
         return this;
     }
 }
