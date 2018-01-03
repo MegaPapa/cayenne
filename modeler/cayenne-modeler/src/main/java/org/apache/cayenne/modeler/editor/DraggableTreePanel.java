@@ -41,6 +41,7 @@ import org.apache.cayenne.modeler.action.MoveImportNodeAction;
 import org.apache.cayenne.modeler.action.MoveInvertNodeAction;
 import org.apache.cayenne.modeler.action.TreeManipulationAction;
 import org.apache.cayenne.modeler.dialog.db.load.DbImportTreeNode;
+import org.apache.cayenne.modeler.util.CayenneAction;
 
 import javax.activation.ActivationDataFlavor;
 import javax.activation.DataHandler;
@@ -83,11 +84,13 @@ public class DraggableTreePanel extends JScrollPane {
     private static final int THIRD_LEVEL = 5;
     private static final int FOURTH_LEVEL = 2;
     private static final int FIFTH_LEVEL = 3;
+    private static final String MOVE_BUTTON_LABEL = "Include";
+    private static final String MOVE_INV_BUTTON_LABEL = "Exclude";
 
     private DbImportTree sourceTree;
     private DbImportTree targetTree;
-    private JButton moveButton;
-    private JButton moveInvertButton;
+    private CayenneAction.CayenneToolbarButton moveButton;
+    private CayenneAction.CayenneToolbarButton moveInvertButton;
 
     private ProjectController projectController;
     private Map<Class, Integer> levels;
@@ -291,13 +294,17 @@ public class DraggableTreePanel extends JScrollPane {
         action.setPanel(this);
         action.setSourceTree(sourceTree);
         action.setTargetTree(targetTree);
-        moveButton = action.buildButton();
+        moveButton = (CayenneAction.CayenneToolbarButton) action.buildButton();
+        moveButton.setShowingText(true);
+        moveButton.setText(MOVE_BUTTON_LABEL);
         MoveInvertNodeAction actionInv = projectController.getApplication().
                 getActionManager().getAction(MoveInvertNodeAction.class);
         actionInv.setPanel(this);
         actionInv.setSourceTree(sourceTree);
         actionInv.setTargetTree(targetTree);
-        moveInvertButton = actionInv.buildButton();
+        moveInvertButton = (CayenneAction.CayenneToolbarButton) actionInv.buildButton();
+        moveInvertButton.setShowingText(true);
+        moveInvertButton.setText(MOVE_INV_BUTTON_LABEL);
 
 
         DefaultTreeCellRenderer renderer = (DefaultTreeCellRenderer) sourceTree.getCellRenderer();
