@@ -79,9 +79,7 @@ public class DbImportView extends JPanel {
                     treePanel.updateTree();
                     DbImportTreeNode root = ((DbImportTreeNode)draggableTreePanel.getSourceTree().getModel().getRoot());
                     root.removeAllChildren();
-                    DbImportModel model = (DbImportModel) draggableTreePanel.getSourceTree().getModel();
-                    model.reload();
-                    draggableTreePanel.getSourceTree().setEnabled(false);
+                    draggableTreePanel.updateTree(projectController.getCurrentDataMap());
                     draggableTreePanel.getMoveButton().setEnabled(false);
                     draggableTreePanel.getMoveInvertButton().setEnabled(false);
                 }
