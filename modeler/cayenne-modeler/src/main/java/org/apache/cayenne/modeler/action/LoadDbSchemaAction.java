@@ -112,6 +112,7 @@ public class LoadDbSchemaAction extends CayenneAction {
 
             draggableTreePanel.getSourceTree().setEnabled(true);
             draggableTreePanel.getSourceTree().translateReverseEngineeringToTree(databaseReverseEngineering, true);
+            draggableTreePanel.bindReverseEngineeringToDatamap(getProjectController().getCurrentDataMap(), databaseReverseEngineering);
             ((DbImportModel) draggableTreePanel.getSourceTree().getModel()).reload();
         } catch (SQLException exception) {
             JOptionPane.showMessageDialog(

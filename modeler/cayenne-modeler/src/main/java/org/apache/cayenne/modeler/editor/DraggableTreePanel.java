@@ -28,6 +28,7 @@ import org.apache.cayenne.dbsync.reverse.dbimport.IncludeProcedure;
 import org.apache.cayenne.dbsync.reverse.dbimport.IncludeTable;
 import org.apache.cayenne.dbsync.reverse.dbimport.ReverseEngineering;
 import org.apache.cayenne.dbsync.reverse.dbimport.Schema;
+import org.apache.cayenne.map.DataMap;
 import org.apache.cayenne.modeler.ProjectController;
 import org.apache.cayenne.modeler.action.AddCatalogAction;
 import org.apache.cayenne.modeler.action.AddExcludeColumnAction;
@@ -91,6 +92,7 @@ public class DraggableTreePanel extends JScrollPane {
     private DbImportTree targetTree;
     private CayenneAction.CayenneToolbarButton moveButton;
     private CayenneAction.CayenneToolbarButton moveInvertButton;
+    private Map<DataMap, ReverseEngineering> databaseStructures;
 
     private ProjectController projectController;
     private Map<Class, Integer> levels;
@@ -102,6 +104,7 @@ public class DraggableTreePanel extends JScrollPane {
         this.targetTree = targetTree;
         this.sourceTree = sourceTree;
         this.projectController = projectController;
+        this.databaseStructures = new HashMap<>();
         initLevels();
         initElement();
         initActions();
@@ -118,6 +121,18 @@ public class DraggableTreePanel extends JScrollPane {
         actions.put(ExcludeColumn.class, AddExcludeColumnAction.class);
         actions.put(IncludeProcedure.class, AddIncludeProcedureAction.class);
         actions.put(ExcludeProcedure.class, AddExcludeProcedureAction.class);
+    }
+
+    public void updateTree(DataMap dataMap) {
+        DbImportModel model = (DbImportModel) sourceTree.getModel();
+        model.reload();
+        if (databaseStructures.get(dataMap) != null) {
+            sourceTree.setReverseEngineering(databaseStructures.get(dataMap));
+            sourceTree.translateReverseEngineeringToTree(databaseStructures.get(dataMap), true);
+            sourceTree.setEnabled(true);
+        } else {
+            sourceTree.setEnabled(false);
+        }
     }
 
     private void initListeners() {
@@ -404,6 +419,10 @@ public class DraggableTreePanel extends JScrollPane {
             return action;
         }
         return null;
+    }
+
+    public void bindReverseEngineeringToDatamap(DataMap dataMap, ReverseEngineering reverseEngineering) {
+        databaseStructures.put(dataMap, reverseEngineering);
     }
 
     public DbImportTree getSourceTree() {
