@@ -60,6 +60,9 @@ public class DbImportTreeCellEditor extends DefaultTreeCellEditor {
 
     @Override
     public Object getCellEditorValue() {
+        if (tree.getSelectionPath() == null) {
+            return "";
+        }
         DbImportTreeNode node = (DbImportTreeNode) tree.getSelectionPath().getLastPathComponent();
         return node.getUserObject();
     }
@@ -77,6 +80,10 @@ public class DbImportTreeCellEditor extends DefaultTreeCellEditor {
     @Override
     public boolean isCellEditable(EventObject e) {
         if (tree.getSelectionPath() != null) {
+            // Disable label nodes editing
+            if (((DbImportTreeNode) tree.getSelectionPath().getLastPathComponent()).getUserObject().getClass() == String.class) {
+                return false;
+            }
             if (tree.getSelectionPath().getLastPathComponent() == tree.getModel().getRoot()) {
                 return false;
             }
@@ -95,6 +102,9 @@ public class DbImportTreeCellEditor extends DefaultTreeCellEditor {
 
     @Override
     public void cancelCellEditing() {
+        if (tree.getSelectionPath() == null) {
+            return;
+        }
         if (!Util.isEmptyString(super.getCellEditorValue().toString()) && !insertableNodeExist() && (isValidReverseEngineering())) {
             EditNodeAction action = projectController.getApplication().getActionManager().getAction(EditNodeAction.class);
             action.setActionName(super.getCellEditorValue().toString());

@@ -129,7 +129,14 @@ public abstract class TreeManipulationAction extends CayenneAction {
         insertableNodeName = null;
         DbImportModel model = (DbImportModel) tree.getModel();
         getProjectController().setDirty(true);
+        TreePath savedPath = null;
+        if (!updateSelected) {
+            savedPath = new TreePath(parentElement.getPath());
+        }
         model.reload(updateSelected ? selectedElement : parentElement);
+        if ((savedPath != null) && (parentElement.getUserObject().getClass() != ReverseEngineering.class)) {
+            tree.setSelectionPath(savedPath);
+        }
     }
 
     protected void updateAfterInsert(boolean updateSelected) {
