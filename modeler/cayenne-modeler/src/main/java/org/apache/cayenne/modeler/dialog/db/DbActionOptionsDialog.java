@@ -43,11 +43,8 @@ import org.apache.cayenne.modeler.util.CayenneDialog;
  */
 public class DbActionOptionsDialog extends CayenneDialog {
 
-    protected static final String WILDCARD_PATTERN = ".*";
     public static final int CANCEL = 0;
     public static final int SELECT = 1;
-    public static final int ADVANCED_CONFIG = 2;
-    public static final int SIMPLE_CONFIG = 3;
 
     protected int choice;
     private JLabel schemaLabel;
