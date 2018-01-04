@@ -53,6 +53,7 @@ public class ColorTreeRenderer extends DbImportTreeCellRenderer {
         super();
     }
 
+    // Create parents chain
     private ArrayList<DbImportTreeNode> getParents(DbImportTreeNode node) {
         ArrayList<DbImportTreeNode> parents = new ArrayList<>();
         DbImportTreeNode tmpNode = node;
@@ -85,12 +86,27 @@ public class ColorTreeRenderer extends DbImportTreeCellRenderer {
     }
 
     private boolean namesIsEqual(DbImportTreeNode reverseEngineeringNode) {
-        if ((reverseEngineeringNode.getUserObject().getClass() == Schema.class)
-            || (reverseEngineeringNode.getUserObject().getClass() == Catalog.class)) {
+        if (isContainer(reverseEngineeringNode)) {
             return node.getSimpleNodeName().equals(reverseEngineeringNode.getSimpleNodeName());
         } else {
             return (node.getSimpleNodeName().matches(reverseEngineeringNode.getSimpleNodeName()));
         }
+    }
+
+    private boolean isContainer(DbImportTreeNode node) {
+        return (node.getUserObject().getClass() == Schema.class) || (node.getUserObject().getClass() == Catalog.class);
+    }
+
+    private boolean isIncludeTable(DbImportTreeNode node) {
+        return (node.getUserObject().getClass() == IncludeTable.class);
+    }
+
+    private boolean isEmptyContainer(DbImportTreeNode rootNode) {
+        return ((getChildIncludeTableCount(rootNode) == 0) && (!existFirstLevelIncludeTable));
+    }
+
+    private boolean isParentIncluded() {
+        return ((node.getParent() != null) && (((DbImportTreeNode) node.getParent()).isColorized()));
     }
 
     // Compare node with current rendered node
@@ -104,6 +120,21 @@ public class ColorTreeRenderer extends DbImportTreeCellRenderer {
         return false;
     }
 
+    // Compare reverseEngineeringNode with node.getParent()
+    private boolean compareWithParent(DbImportTreeNode reverseEngineeringNode) {
+        if ((reverseEngineeringNode == null) || (node.getParent() == null)) {
+            return false;
+        }
+        if ((((DbImportTreeNode)node.getParent()).getUserObject().getClass() == reverseEngineeringNode.getUserObject().getClass())
+                && (((DbImportTreeNode)node.getParent()).getSimpleNodeName().equals(reverseEngineeringNode.getSimpleNodeName()))
+                && (((DbImportTreeNode)node.getParent()).getLevel() >= reverseEngineeringNode.getLevel())
+                && (parentsIsEquals(reverseEngineeringNode))) {
+            return true;
+        }
+        return false;
+    }
+
+    // Compare parents chain
     private boolean parentsIsEquals(DbImportTreeNode reverseEngineeringNode) {
         ArrayList<DbImportTreeNode> reverseEngineeringNodeParents = getParents(reverseEngineeringNode);
         ArrayList<DbImportTreeNode> dbNodeParents = getParents((DbImportTreeNode) node.getParent());
@@ -124,45 +155,16 @@ public class ColorTreeRenderer extends DbImportTreeCellRenderer {
         return true;
     }
 
-    // Compare reverseEngineeringNode with node.getParent()
-    private boolean compareWithParent(DbImportTreeNode reverseEngineeringNode) {
-        if ((reverseEngineeringNode == null) || (node.getParent() == null)) {
-            return false;
-        }
-        if ((((DbImportTreeNode)node.getParent()).getUserObject().getClass() == reverseEngineeringNode.getUserObject().getClass())
-                && (((DbImportTreeNode)node.getParent()).getSimpleNodeName().equals(reverseEngineeringNode.getSimpleNodeName()))
-                && (((DbImportTreeNode)node.getParent()).getLevel() >= reverseEngineeringNode.getLevel())
-                && (parentsIsEquals(reverseEngineeringNode))) {
-            return true;
-        }
-        return false;
-    }
-
     // Get child include table count in node, if exists
     private int getChildIncludeTableCount(DbImportTreeNode parentNode) {
-        if (parentNode.getUserObject().getClass() == IncludeTable.class) {
+        if (isIncludeTable(parentNode)) {
             return 1;
         }
         int childCount = parentNode.getChildCount();
         int result = 0;
         for (int i = 0; i < childCount; i++) {
             DbImportTreeNode tmpNode = (DbImportTreeNode) parentNode.getChildAt(i);
-            if (tmpNode.getUserObject().getClass() == IncludeTable.class) {
-                result++;
-            }
-        }
-        return result;
-    }
-
-    private int getChildIncludeProcedureCount(DbImportTreeNode parentNode) {
-        if (parentNode.getUserObject().getClass() == IncludeProcedure.class) {
-            return 1;
-        }
-        int childCount = parentNode.getChildCount();
-        int result = 0;
-        for (int i = 0; i < childCount; i++) {
-            DbImportTreeNode tmpNode = (DbImportTreeNode) parentNode.getChildAt(i);
-            if (tmpNode.getUserObject().getClass() == IncludeProcedure.class) {
+            if (isIncludeTable(tmpNode)) {
                 result++;
             }
         }
@@ -179,6 +181,10 @@ public class ColorTreeRenderer extends DbImportTreeCellRenderer {
             bypassResult++;
         }
 
+        if (nodesIsEqual(rootNode)) {
+            bypassResult++;
+        }
+
         ReverseEngineering reverseEngineering = reverseEngineeringTree.getReverseEngineering();
         if ((reverseEngineering.getCatalogs().isEmpty()) && (reverseEngineering.getSchemas().isEmpty())
                 && (reverseEngineering.getIncludeTables().isEmpty())
@@ -186,7 +192,13 @@ public class ColorTreeRenderer extends DbImportTreeCellRenderer {
             bypassResult++;
         }
 
-        if ((nodesIsEqual(rootNode) && (getChildIncludeTableCount(rootNode) == 0)) && (!existFirstLevelIncludeTable)) {
+        if (nodesIsEqual(rootNode) && isEmptyContainer(rootNode)) {
+            flag = true;
+            return 1;
+        }
+
+        if (compareWithParent(rootNode) && (rootNode.getUserObject().getClass() != ReverseEngineering.class) &&
+                isEmptyContainer(rootNode) && (isIncludeTable(node))) {
             flag = true;
             return 1;
         }
@@ -255,17 +267,13 @@ public class ColorTreeRenderer extends DbImportTreeCellRenderer {
         existCatalogsOrSchemas = false;
         for (int i = 0; i < childCount; i++) {
             DbImportTreeNode tmpNode = (DbImportTreeNode) root.getChildAt(i);
-            if (tmpNode.getUserObject().getClass() == IncludeTable.class) {
+            if (isIncludeTable(tmpNode)) {
                 existFirstLevelIncludeTable = true;
             }
-            if ((tmpNode.getUserObject().getClass() == Schema.class) || (tmpNode.getUserObject().getClass() == Catalog.class)) {
+            if (isContainer(tmpNode)) {
                 existCatalogsOrSchemas = true;
             }
         }
-    }
-
-    private boolean reverseEngineeringHasNoTables(ReverseEngineering reverseEngineering) {
-        return ((reverseEngineering.getCatalogs().size() == 0) && (reverseEngineering.getSchemas().size() == 0));
     }
 
     // Check, is DatabaseTree started with IncludeTable or IncludeProcedure
@@ -276,7 +284,7 @@ public class ColorTreeRenderer extends DbImportTreeCellRenderer {
             return false;
         }
         DbImportTreeNode firstElement = (DbImportTreeNode) root.getChildAt(firstChildIndex);
-        if ((firstElement.getUserObject().getClass() == IncludeTable.class)
+        if ((isIncludeTable(firstElement))
                 || (firstElement.getUserObject().getClass() == IncludeProcedure.class)) {
             return true;
         }
@@ -295,8 +303,7 @@ public class ColorTreeRenderer extends DbImportTreeCellRenderer {
             setForeground(LABEL_COLOR);
             return this;
         }
-        if ((node.getUserObject().getClass() == Schema.class) || (node.getUserObject().getClass() == Catalog.class)
-                || (isFirstNodeIsPrimitive(tree))) {
+        if (isContainer(node) || (isFirstNodeIsPrimitive(tree))) {
             flag = false;
         }
         if (selected) {
@@ -320,7 +327,7 @@ public class ColorTreeRenderer extends DbImportTreeCellRenderer {
                 node.setColorized(true);
                 return this;
             }
-            if ((node.getParent() != null) && (((DbImportTreeNode) node.getParent()).isColorized())) {
+            if (isParentIncluded()) {
                 setForeground(getColorByNodeType(root));
                 node.setColorized(true);
                 return this;
@@ -330,8 +337,7 @@ public class ColorTreeRenderer extends DbImportTreeCellRenderer {
             node.setColorized(false);
             return this;
         }
-        if (((node.getParent() != null) && (((DbImportTreeNode) node.getParent()).isColorized()))
-                || (reverseEngineeringTree.getSelectionPath() != null)) {
+        if ((isParentIncluded()) || (reverseEngineeringTree.getSelectionPath() != null)) {
             setForeground(getColorByNodeType(root));
             node.setColorized(true);
             return this;

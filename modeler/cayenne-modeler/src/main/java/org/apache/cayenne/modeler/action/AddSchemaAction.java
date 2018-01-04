@@ -61,7 +61,7 @@ public class AddSchemaAction extends TreeManipulationAction {
         ReverseEngineering reverseEngineeringOldCopy = new ReverseEngineering(tree.getReverseEngineering());
         ReverseEngineering currentReverseEngineering = (ReverseEngineering)
                 ((DbImportTreeNode) tree.getModel().getRoot()).getUserObject();
-        if ((currentReverseEngineering.isEmptyContainer()) && (currentReverseEngineering.getSchemas().size() == 0)) {
+        if (reverseEngineeringIsEmpty()) {
             ((DbImportTreeNode) tree.getModel().getRoot()).removeAllChildren();
         }
         if (canBeInserted()) {
