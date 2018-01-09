@@ -47,6 +47,7 @@ public class AddCatalogAction extends TreeManipulationAction {
 
     @Override
     public void performAction(ActionEvent e) {
+        boolean updateSelected;
         tree.stopEditing();
         String name = insertableNodeName != null ? insertableNodeName : "";
         if (tree.getSelectionPath() == null) {
@@ -66,11 +67,14 @@ public class AddCatalogAction extends TreeManipulationAction {
         if (canBeInserted()) {
             ((ReverseEngineering) selectedElement.getUserObject()).addCatalog(newCatalog);
             selectedElement.add(new DbImportTreeNode(newCatalog));
-            updateAfterInsert(true);
+            updateSelected = true;
         } else {
             ((ReverseEngineering) parentElement.getUserObject()).addCatalog(newCatalog);
             parentElement.add(new DbImportTreeNode(newCatalog));
-            updateAfterInsert(false);
+            updateSelected = false;
+        }
+        if (!isMultipleAction) {
+            updateAfterInsert(updateSelected);
         }
         ReverseEngineering reverseEngineeringNewCopy = new ReverseEngineering(tree.getReverseEngineering());
         if (isMultipleAction) {

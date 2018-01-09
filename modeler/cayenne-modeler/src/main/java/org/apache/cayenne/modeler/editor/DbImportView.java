@@ -32,7 +32,9 @@ import org.apache.cayenne.modeler.event.DataMapDisplayEvent;
 import org.apache.cayenne.modeler.event.DataMapDisplayListener;
 import org.apache.cayenne.modeler.util.CayenneAction;
 
+import javax.swing.JButton;
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import java.awt.BorderLayout;
 
 /**
@@ -43,12 +45,16 @@ public class DbImportView extends JPanel {
     private static final String MAIN_LAYOUT = "fill:160dlu, 5dlu, fill:50dlu, 5dlu, fill:160dlu";
     private static final String HEADER_LAYOUT = "fill:70dlu, 15dlu, fill:75dlu";
     private static final String BUTTON_PANEL_LAYOUT = "fill:50dlu";
+    private static final String PROGRESS_PANEL_LAYOUT = "fill:160dlu, 60dlu, fill:160dlu";
     private static final int ALL_LINE_SPAN = 5;
 
     private TreeToolbarPanel treeToolbar;
     private ReverseEngineeringTreePanel treePanel;
     private ReverseEngineeringConfigPanel configPanel;
     private DraggableTreePanel draggableTreePanel;
+    private JProgressBar loadDbSchemaProgress;
+    private JProgressBar reverseEngineeringProgress;
+    private CayenneAction.CayenneToolbarButton loadDbSchemaButton;
 
     private ProjectController projectController;
 
@@ -118,7 +124,7 @@ public class DbImportView extends JPanel {
         LoadDbSchemaAction loadDbSchemaAction = projectController.getApplication().getActionManager().
                 getAction(LoadDbSchemaAction.class);
         loadDbSchemaAction.setDraggableTreePanel(draggableTreePanel);
-        CayenneAction.CayenneToolbarButton loadDbSchemaButton = (CayenneAction.CayenneToolbarButton) loadDbSchemaAction.buildButton(0);
+        loadDbSchemaButton = (CayenneAction.CayenneToolbarButton) loadDbSchemaAction.buildButton(0);
         loadDbSchemaButton.setShowingText(true);
         loadDbSchemaButton.setText("Load DB Schema");
         databaseHeaderBuilder.append(loadDbSchemaButton);
@@ -128,6 +134,19 @@ public class DbImportView extends JPanel {
         builder.append(treePanel);
         builder.append(buttonBuilder.getPanel());
         builder.append(draggableTreePanel);
+
+        FormLayout progressLayout = new FormLayout(PROGRESS_PANEL_LAYOUT, "fill:10dlu"); // REPLACE TO DYNAMIC ROW SPECIFICATION
+        DefaultFormBuilder progressBarBuilder = new DefaultFormBuilder(progressLayout);
+        loadDbSchemaProgress = new JProgressBar();
+        reverseEngineeringProgress = new JProgressBar();
+        loadDbSchemaProgress.setIndeterminate(true);
+        loadDbSchemaProgress.setVisible(false);
+        reverseEngineeringProgress.setIndeterminate(true);
+        reverseEngineeringProgress.setVisible(false);
+        progressBarBuilder.append(reverseEngineeringProgress);
+        progressBarBuilder.append(loadDbSchemaProgress);
+        builder.append(progressBarBuilder.getPanel(), ALL_LINE_SPAN);
+
         builder.append(configPanel, ALL_LINE_SPAN);
         this.setLayout(new BorderLayout());
         add(builder.getPanel(), BorderLayout.CENTER);
@@ -149,7 +168,7 @@ public class DbImportView extends JPanel {
         reverseEngineeringTree.setShowsRootHandles(true);
 
         draggableTreePanel = new DraggableTreePanel(projectController, draggableTree, reverseEngineeringTree);
-        treeToolbar = new TreeToolbarPanel(projectController, reverseEngineeringTree);
+        treeToolbar = new TreeToolbarPanel(projectController, reverseEngineeringTree, draggableTreePanel);
         treePanel = new ReverseEngineeringTreePanel(projectController, reverseEngineeringTree);
         treePanel.setTreeToolbar(treeToolbar);
 
@@ -197,4 +216,23 @@ public class DbImportView extends JPanel {
         return configPanel.getStripFromTableNames().getComponent().getText();
     }
 
+    public JProgressBar getLoadDbSchemaProgress() {
+        return loadDbSchemaProgress;
+    }
+
+    public void lockToolbarButtons() {
+        treeToolbar.changeToolbarButtonsState(false);
+    }
+
+    public void unlockToolbarButtons() {
+        treeToolbar.unlockButtons();
+    }
+
+    public JProgressBar getReverseEngineeringProgress() {
+        return reverseEngineeringProgress;
+    }
+
+    public JButton getLoadDbSchemaButton() {
+        return loadDbSchemaButton;
+    }
 }

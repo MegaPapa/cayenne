@@ -27,6 +27,7 @@ import org.apache.cayenne.dbsync.reverse.dbimport.Schema;
 import org.apache.cayenne.modeler.Application;
 import org.apache.cayenne.modeler.dialog.db.DataSourceWizard;
 import org.apache.cayenne.modeler.editor.DbImportModel;
+import org.apache.cayenne.modeler.editor.DbImportView;
 import org.apache.cayenne.modeler.editor.DraggableTreePanel;
 import org.apache.cayenne.modeler.pref.DBConnectionInfo;
 import org.apache.cayenne.modeler.pref.DataMapDefaults;
@@ -37,6 +38,7 @@ import java.awt.event.ActionEvent;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.Collection;
 
 import static org.apache.cayenne.modeler.pref.DBConnectionInfo.DB_ADAPTER_PROPERTY;
@@ -71,56 +73,74 @@ public class LoadDbSchemaAction extends CayenneAction {
 
     @Override
     public void performAction(ActionEvent e) {
-        DBConnectionInfo connectionInfo;
-        if (!datamapPreferencesExist()) {
-            final DataSourceWizard connectWizard = new DataSourceWizard(getProjectController(), "Load Db Schema");
-            connectWizard.setProjectController(getProjectController());
-            if (!connectWizard.startupAction()) {
-                return;
-            }
-            connectionInfo = connectWizard.getConnectionInfo();
-            saveConnectionInfo(connectWizard);
-        } else {
-            connectionInfo = getConnectionInfoFromPreferences();
-        }
-
-        databaseReverseEngineering = new ReverseEngineering();
-
-        try(Connection connection = connectionInfo.makeDataSource(getApplication().getClassLoadingService()).getConnection()) {
-            String[] types = {"TABLE", "VIEW", "SYSTEM TABLE", "GLOBAL TEMPORARY", "LOCAL TEMPORARY", "ALIAS", "SYNONYM"};
-            try (ResultSet rs = connection.getMetaData().getCatalogs()) {
-                String defaultCatalog = connection.getCatalog();
-                while (rs.next()) {
-                    ResultSet resultSet;
-                    if (defaultCatalog.equals(EMPTY_DEFAULT_CATALOG)) {
-                        resultSet = connection.getMetaData().getTables(rs.getString(1), null, INCLUDE_ALL_PATTERN, types);
-                    } else {
-                        resultSet = connection.getMetaData().getTables(defaultCatalog, null, INCLUDE_ALL_PATTERN, types);
+        final DbImportView rootParent = ((DbImportView) draggableTreePanel.getParent().getParent());
+        rootParent.getLoadDbSchemaProgress().setVisible(true);
+        rootParent.getLoadDbSchemaButton().setEnabled(false);
+        Thread thread = new Thread(){
+            @Override
+            public void run() {
+                LoadDbSchemaAction.this.setEnabled(false);
+                draggableTreePanel.getMoveButton().setEnabled(false);
+                draggableTreePanel.getMoveInvertButton().setEnabled(false);
+                rootParent.lockToolbarButtons();
+                DBConnectionInfo connectionInfo;
+                if (!datamapPreferencesExist()) {
+                    final DataSourceWizard connectWizard = new DataSourceWizard(getProjectController(), "Load Db Schema");
+                    connectWizard.setProjectController(getProjectController());
+                    if (!connectWizard.startupAction()) {
+                        return;
                     }
-                    String tableName = "";
-                    String schemaName = "";
-                    String catalogName = "";
-                    while (resultSet.next()) {
-                        tableName = resultSet.getString(TABLE_INDEX);
-                        schemaName = resultSet.getString(SCHEMA_INDEX);
-                        catalogName = resultSet.getString(CATALOG_INDEX);
-                        packTable(tableName, catalogName, schemaName);
+                    connectionInfo = connectWizard.getConnectionInfo();
+                    saveConnectionInfo(connectWizard);
+                } else {
+                    connectionInfo = getConnectionInfoFromPreferences();
+                }
+
+                databaseReverseEngineering = new ReverseEngineering();
+
+                try(Connection connection = connectionInfo.makeDataSource(getApplication().getClassLoadingService()).getConnection()) {
+                    String[] types = {"TABLE", "VIEW", "SYSTEM TABLE", "GLOBAL TEMPORARY", "LOCAL TEMPORARY", "ALIAS", "SYNONYM"};
+                    try (ResultSet rs = connection.getMetaData().getCatalogs()) {
+                        String defaultCatalog = connection.getCatalog();
+                        while (rs.next()) {
+                            ResultSet resultSet;
+                            if (defaultCatalog.equals(EMPTY_DEFAULT_CATALOG)) {
+                                resultSet = connection.getMetaData().getTables(rs.getString(1), null, INCLUDE_ALL_PATTERN, types);
+                            } else {
+                                resultSet = connection.getMetaData().getTables(defaultCatalog, null, INCLUDE_ALL_PATTERN, types);
+                            }
+                            String tableName = "";
+                            String schemaName = "";
+                            String catalogName = "";
+                            while (resultSet.next()) {
+                                tableName = resultSet.getString(TABLE_INDEX);
+                                schemaName = resultSet.getString(SCHEMA_INDEX);
+                                catalogName = resultSet.getString(CATALOG_INDEX);
+                                packTable(tableName, catalogName, schemaName);
+                            }
+                            packFunctions(connection);
+                        }
                     }
-                    packFunctions(connection);
+
+                    draggableTreePanel.getSourceTree().setEnabled(true);
+                    draggableTreePanel.getSourceTree().translateReverseEngineeringToTree(databaseReverseEngineering, true);
+                    draggableTreePanel.bindReverseEngineeringToDatamap(getProjectController().getCurrentDataMap(), databaseReverseEngineering);
+                    ((DbImportModel) draggableTreePanel.getSourceTree().getModel()).reload();
+                } catch (SQLException exception) {
+                    JOptionPane.showMessageDialog(
+                            Application.getFrame(),
+                            exception.getMessage(),
+                            "Error db schema loading",
+                            JOptionPane.ERROR_MESSAGE);
+                }
+                finally {
+                    rootParent.getLoadDbSchemaButton().setEnabled(true);
+                    rootParent.getLoadDbSchemaProgress().setVisible(false);
+                    rootParent.unlockToolbarButtons();
                 }
             }
-
-            draggableTreePanel.getSourceTree().setEnabled(true);
-            draggableTreePanel.getSourceTree().translateReverseEngineeringToTree(databaseReverseEngineering, true);
-            draggableTreePanel.bindReverseEngineeringToDatamap(getProjectController().getCurrentDataMap(), databaseReverseEngineering);
-            ((DbImportModel) draggableTreePanel.getSourceTree().getModel()).reload();
-        } catch (SQLException exception) {
-            JOptionPane.showMessageDialog(
-                    Application.getFrame(),
-                    exception.getMessage(),
-                    "Error db schema loading",
-                    JOptionPane.ERROR_MESSAGE);
-        }
+        };
+        thread.start();
     }
 
     private boolean datamapPreferencesExist() {

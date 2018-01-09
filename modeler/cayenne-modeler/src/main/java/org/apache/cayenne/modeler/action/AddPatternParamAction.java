@@ -86,6 +86,7 @@ public abstract class AddPatternParamAction extends TreeManipulationAction {
     public void performAction(ActionEvent e) {
         tree.stopEditing();
         String name = insertableNodeName != null ? insertableNodeName : "";
+        boolean updateSelected;
         if (tree.getSelectionPath() == null) {
             TreePath root = new TreePath(tree.getModel().getRoot());
             tree.setSelectionPath(root);
@@ -104,7 +105,7 @@ public abstract class AddPatternParamAction extends TreeManipulationAction {
             } else if (selectedObject instanceof IncludeTable) {
                 addPatternParamToIncludeTable(paramClass, selectedObject, name, selectedElement);
             }
-            updateAfterInsert(true);
+            updateSelected = true;
         } else {
             selectedObject = parentElement.getUserObject();
             if (selectedObject instanceof FilterContainer) {
@@ -112,7 +113,10 @@ public abstract class AddPatternParamAction extends TreeManipulationAction {
             } else if (selectedObject instanceof IncludeTable) {
                 addPatternParamToIncludeTable(paramClass, selectedObject, name, parentElement);
             }
-            updateAfterInsert(false);
+            updateSelected = false;
+        }
+        if (!isMultipleAction) {
+            updateAfterInsert(updateSelected);
         }
         ReverseEngineering reverseEngineeringNewCopy = new ReverseEngineering(tree.getReverseEngineering());
         if (isMultipleAction) {

@@ -55,6 +55,7 @@ public class DbImportTreeUndoableEdit extends AbstractUndoableEdit {
         tree.stopEditing();
         tree.setReverseEngineering(this.nextReverseEngineering);
         projectController.getApplication().getMetaData().add(projectController.getCurrentDataMap(), tree.getReverseEngineering());
+        projectController.setDirty(true);
         tree.translateReverseEngineeringToTree(tree.getReverseEngineering(), false);
     }
 
@@ -63,6 +64,7 @@ public class DbImportTreeUndoableEdit extends AbstractUndoableEdit {
         tree.stopEditing();
         tree.setReverseEngineering(this.previousReverseEngineering);
         projectController.getApplication().getMetaData().add(projectController.getCurrentDataMap(), tree.getReverseEngineering());
+        projectController.setDirty(true);
         tree.translateReverseEngineeringToTree(tree.getReverseEngineering(), false);
     }
 }
