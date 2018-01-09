@@ -48,6 +48,7 @@ public class AddIncludeTableAction extends TreeManipulationAction {
 
     @Override
     public void performAction(ActionEvent e) {
+        boolean updateSelected;
         tree.stopEditing();
         String name = insertableNodeName != null ? insertableNodeName : "";
         if (tree.getSelectionPath() == null) {
@@ -64,11 +65,14 @@ public class AddIncludeTableAction extends TreeManipulationAction {
         if (canBeInserted()) {
             ((FilterContainer) selectedElement.getUserObject()).addIncludeTable(newTable);
             selectedElement.add(new DbImportTreeNode(newTable));
-            updateAfterInsert(true);
+            updateSelected = true;
         } else {
             ((FilterContainer) parentElement.getUserObject()).addIncludeTable(newTable);
             parentElement.add(new DbImportTreeNode(newTable));
-            updateAfterInsert(false);
+            updateSelected = false;
+        }
+        if (!isMultipleAction) {
+            updateAfterInsert(updateSelected);
         }
         ReverseEngineering reverseEngineeringNewCopy = new ReverseEngineering(tree.getReverseEngineering());
         if (isMultipleAction) {

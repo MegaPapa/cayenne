@@ -31,6 +31,7 @@ import org.apache.cayenne.dbsync.reverse.dbimport.Schema;
 import org.apache.cayenne.modeler.Application;
 import org.apache.cayenne.modeler.dialog.db.load.DbImportTreeNode;
 import org.apache.cayenne.modeler.editor.DbImportTree;
+import org.apache.cayenne.modeler.editor.DbImportView;
 import org.apache.cayenne.modeler.editor.DraggableTreePanel;
 import org.apache.cayenne.modeler.undo.DbImportTreeUndoableEdit;
 import org.apache.cayenne.modeler.util.CayenneAction;
@@ -80,7 +81,8 @@ public class MoveImportNodeAction extends CayenneAction {
         if (targetTree.getSelectionPath() != null) {
             DbImportTreeNode node = (DbImportTreeNode) targetTree.getSelectionPath().getLastPathComponent();
             if ((node.getUserObject().getClass() == Catalog.class)
-                    || (node.getUserObject().getClass() == Schema.class)) {
+                    || (node.getUserObject().getClass() == Schema.class)
+                    || (node.getUserObject().getClass() == ReverseEngineering.class)) {
                 selectedElement = (DbImportTreeNode) targetTree.getSelectionPath().getLastPathComponent();
             } else {
                 selectedElement = (DbImportTreeNode) targetTree.getSelectionPath().getParentPath().getLastPathComponent();
@@ -106,37 +108,59 @@ public class MoveImportNodeAction extends CayenneAction {
     @Override
     public void performAction(ActionEvent e) {
         TreePath[] paths = sourceTree.getSelectionPaths();
+        DbImportView rootParent = (DbImportView) panel.getParent().getParent();
+        rootParent.getReverseEngineeringProgress().setVisible(true);
         if (paths != null) {
             boolean isChanged = false;
             ReverseEngineering reverseEngineeringOldCopy = new ReverseEngineering(targetTree.getReverseEngineering());
-            for (TreePath path : paths) {
-                DbImportTreeNode selectedElement = (DbImportTreeNode) path.getLastPathComponent();
-                TreeManipulationAction action;
-                if (!moveInverted) {
-                    action = panel.getActionByNodeType(selectedElement.getUserObject().getClass());
-                } else {
-                    action = panel.getActionByNodeType(classMap.get(selectedElement.getUserObject().getClass()));
-                }
-                if (action != null) {
-                    if (paths.length > 1) {
-                        action.setMultipleAction(true);
+            try {
+                rootParent.lockToolbarButtons();
+                for (TreePath path : paths) {
+                    DbImportTreeNode selectedElement = (DbImportTreeNode) path.getLastPathComponent();
+                    TreeManipulationAction action;
+                    if (!moveInverted) {
+                        action = panel.getActionByNodeType(selectedElement.getUserObject().getClass());
                     } else {
-                        action.setMultipleAction(false);
+                        action = panel.getActionByNodeType(classMap.get(selectedElement.getUserObject().getClass()));
                     }
-                    if (canInsert(path)) {
-                        action.setInsertableNodeName(selectedElement.getSimpleNodeName());
-                        action.setTree(targetTree);
-                        action.setMovedFromDbSchema(true);
-                        action.actionPerformed(e);
-                        isChanged = true;
+                    if (action != null) {
+                        if (paths.length > 1) {
+                            action.setMultipleAction(true);
+                        } else {
+                            action.setMultipleAction(false);
+                        }
+                        if (canInsert(path)) {
+                            action.setInsertableNodeName(selectedElement.getSimpleNodeName());
+                            action.setTree(targetTree);
+                            action.setMovedFromDbSchema(true);
+                            action.actionPerformed(e);
+                            isChanged = true;
+                        }
                     }
                 }
-            }
-            if ((isChanged)) {
-                ReverseEngineering reverseEngineeringNewCopy = new ReverseEngineering(targetTree.getReverseEngineering());
-                getProjectController().getApplication().getUndoManager().addEdit(
-                        new DbImportTreeUndoableEdit(reverseEngineeringOldCopy, reverseEngineeringNewCopy, targetTree, getProjectController())
-                );
+                if (paths.length > 1) {
+                    int parentRow;
+                    getProjectController().setDirty(true);
+                    DbImportTreeNode node = (DbImportTreeNode) targetTree.getSelectionPath().getLastPathComponent();
+                    if ((node.getUserObject().getClass() == ReverseEngineering.class)
+                            || (node.getUserObject().getClass() == Catalog.class)
+                            || (node.getUserObject().getClass() == Schema.class)) {
+                        parentRow = targetTree.getRowForPath(new TreePath(targetTree.getSelectionPath().getPath()));
+                    } else {
+                        parentRow = targetTree.getRowForPath(new TreePath(targetTree.getSelectionPath().getParentPath().getPath()));
+                    }
+                    targetTree.translateReverseEngineeringToTree(targetTree.getReverseEngineering(), false);
+                    targetTree.expandRow(parentRow);
+                }
+                if (isChanged) {
+                    ReverseEngineering reverseEngineeringNewCopy = new ReverseEngineering(targetTree.getReverseEngineering());
+                    getProjectController().getApplication().getUndoManager().addEdit(
+                            new DbImportTreeUndoableEdit(reverseEngineeringOldCopy, reverseEngineeringNewCopy, targetTree, getProjectController())
+                    );
+                }
+            } finally {
+                rootParent.getReverseEngineeringProgress().setVisible(false);
+                rootParent.unlockToolbarButtons();
             }
         }
     }

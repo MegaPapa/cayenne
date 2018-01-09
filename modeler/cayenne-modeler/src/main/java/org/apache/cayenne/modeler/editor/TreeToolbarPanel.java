@@ -72,10 +72,10 @@ class TreeToolbarPanel extends JToolBar {
     private Map<Class, List<JButton>> levels;
     private ProjectController projectController;
 
-    TreeToolbarPanel(ProjectController projectController, DbImportTree reverseEngineeringTree) {
+    TreeToolbarPanel(ProjectController projectController, DbImportTree reverseEngineeringTree, DraggableTreePanel treePanel) {
         this.projectController = projectController;
         this.reverseEngineeringTree = reverseEngineeringTree;
-        createButtons();
+        createButtons(treePanel);
         initLevels();
         addButtons();
     }
@@ -173,7 +173,7 @@ class TreeToolbarPanel extends JToolBar {
         this.add(configureButton);
     }
 
-    private void changeToolbarButtonsState(boolean state) {
+    void changeToolbarButtonsState(boolean state) {
         schemaButton.setEnabled(state);
         catalogButton.setEnabled(state);
         includeTableButton.setEnabled(state);
@@ -209,7 +209,7 @@ class TreeToolbarPanel extends JToolBar {
         return action.buildButton(position);
     }
 
-    private void createButtons() {
+    private void createButtons(DraggableTreePanel panel) {
         schemaButton = createButton(AddSchemaAction.class, 0);
         catalogButton = createButton(AddCatalogAction.class, 0);
         includeTableButton = createButton(AddIncludeTableAction.class, 1);
@@ -219,7 +219,10 @@ class TreeToolbarPanel extends JToolBar {
         includeProcedureButton = createButton(AddIncludeProcedureAction.class, 2, IncludeProcedure.class);
         excludeProcedureButton = createButton(AddExcludeProcedureAction.class, 3, ExcludeProcedure.class);
         editButton = createButton(EditNodeAction.class, 0);
-        deleteButton = createButton(DeleteNodeAction.class, 0);
+        DeleteNodeAction deleteNodeAction = projectController.getApplication().getActionManager().getAction(DeleteNodeAction.class);
+        deleteNodeAction.setTree(reverseEngineeringTree);
+        deleteNodeAction.setPanel(panel);
+        deleteButton = deleteNodeAction.buildButton(0);
         GetDbConnectionAction action = projectController.getApplication().getActionManager().getAction(GetDbConnectionAction.class);
         configureButton = action.buildButton(0);
     }

@@ -49,6 +49,7 @@ public class AddSchemaAction extends TreeManipulationAction {
 
     @Override
     public void performAction(ActionEvent e) {
+        boolean updateSelected;
         tree.stopEditing();
         String name = insertableNodeName != null ? insertableNodeName : "";
         if (tree.getSelectionPath() == null) {
@@ -59,15 +60,13 @@ public class AddSchemaAction extends TreeManipulationAction {
         parentElement = (DbImportTreeNode) selectedElement.getParent();
         Schema newSchema = new Schema(name);
         ReverseEngineering reverseEngineeringOldCopy = new ReverseEngineering(tree.getReverseEngineering());
-        ReverseEngineering currentReverseEngineering = (ReverseEngineering)
-                ((DbImportTreeNode) tree.getModel().getRoot()).getUserObject();
         if (reverseEngineeringIsEmpty()) {
             ((DbImportTreeNode) tree.getModel().getRoot()).removeAllChildren();
         }
         if (canBeInserted()) {
             ((SchemaContainer) selectedElement.getUserObject()).addSchema(newSchema);
             selectedElement.add(new DbImportTreeNode(newSchema));
-            updateAfterInsert(true);
+            updateSelected = true;
         } else {
             if (parentElement.getUserObject().getClass() == ReverseEngineering.class) {
                 ((ReverseEngineering) parentElement.getUserObject()).addSchema(newSchema);
@@ -75,7 +74,10 @@ public class AddSchemaAction extends TreeManipulationAction {
                 ((Catalog) parentElement.getUserObject()).addSchema(newSchema);
             }
             parentElement.add(new DbImportTreeNode(newSchema));
-            updateAfterInsert(false);
+            updateSelected = false;
+        }
+        if (!isMultipleAction) {
+            updateAfterInsert(updateSelected);
         }
         ReverseEngineering reverseEngineeringNewCopy = new ReverseEngineering(tree.getReverseEngineering());
         if (isMultipleAction) {

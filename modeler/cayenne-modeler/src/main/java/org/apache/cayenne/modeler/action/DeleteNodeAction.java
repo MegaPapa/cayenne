@@ -32,6 +32,8 @@ import org.apache.cayenne.dbsync.reverse.dbimport.ReverseEngineering;
 import org.apache.cayenne.dbsync.reverse.dbimport.Schema;
 import org.apache.cayenne.modeler.Application;
 import org.apache.cayenne.modeler.dialog.db.load.DbImportTreeNode;
+import org.apache.cayenne.modeler.editor.DbImportView;
+import org.apache.cayenne.modeler.editor.DraggableTreePanel;
 import org.apache.cayenne.modeler.undo.DbImportTreeUndoableEdit;
 
 import javax.swing.tree.DefaultTreeModel;
@@ -45,6 +47,8 @@ public class DeleteNodeAction extends TreeManipulationAction {
 
     private static final String ACTION_NAME = "Delete";
     private static final String ICON_NAME = "icon-trash.png";
+
+    private DraggableTreePanel panel;
 
     public DeleteNodeAction(Application application) {
         super(ACTION_NAME, application);
@@ -119,9 +123,13 @@ public class DeleteNodeAction extends TreeManipulationAction {
     @Override
     public void performAction(ActionEvent e) {
         tree.stopEditing();
-        TreePath[] paths = tree.getSelectionPaths();
+        final TreePath[] paths = tree.getSelectionPaths();
+        final DbImportView rootParent = ((DbImportView) panel.getParent().getParent());
+        rootParent.getLoadDbSchemaButton().setEnabled(false);
+        rootParent.getReverseEngineeringProgress().setVisible(true);
         if (paths != null) {
             ReverseEngineering reverseEngineeringOldCopy = new ReverseEngineering(tree.getReverseEngineering());
+            rootParent.lockToolbarButtons();
             for (TreePath path : paths) {
                 selectedElement = (DbImportTreeNode) path.getLastPathComponent();
                 parentElement = (DbImportTreeNode) selectedElement.getParent();
@@ -141,12 +149,25 @@ public class DeleteNodeAction extends TreeManipulationAction {
                         deleteChilds(includeTable);
                     }
                 }
+            }
+            if (paths.length > 1) {
+                getProjectController().setDirty(true);
+                int parentRow = tree.getRowForPath(new TreePath(parentElement.getPath()));
+                tree.translateReverseEngineeringToTree(tree.getReverseEngineering(), false);
+                tree.expandRow(parentRow);
+            } else {
                 updateParentChilds();
             }
             ReverseEngineering reverseEngineeringNewCopy = new ReverseEngineering(tree.getReverseEngineering());
             getProjectController().getApplication().getUndoManager().addEdit(
                     new DbImportTreeUndoableEdit(reverseEngineeringOldCopy, reverseEngineeringNewCopy, tree, getProjectController())
             );
+            rootParent.getLoadDbSchemaButton().setEnabled(true);
+            rootParent.getReverseEngineeringProgress().setVisible(false);
         }
+    }
+
+    public void setPanel(DraggableTreePanel panel) {
+        this.panel = panel;
     }
 }
