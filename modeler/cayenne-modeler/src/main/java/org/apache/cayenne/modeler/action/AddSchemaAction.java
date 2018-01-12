@@ -49,26 +49,29 @@ public class AddSchemaAction extends TreeManipulationAction {
 
     @Override
     public void performAction(ActionEvent e) {
-        boolean updateSelected;
+        boolean updateSelected = false;
         tree.stopEditing();
         String name = insertableNodeName != null ? insertableNodeName : "";
         if (tree.getSelectionPath() == null) {
-            TreePath root = new TreePath(tree.getModel().getRoot());
+            TreePath root = new TreePath(tree.getRootNode());
             tree.setSelectionPath(root);
         }
-        selectedElement = (DbImportTreeNode) tree.getSelectionPath().getLastPathComponent();
+        selectedElement = tree.getSelectedNode();
         parentElement = (DbImportTreeNode) selectedElement.getParent();
+        if (parentElement == null) {
+            parentElement = tree.getRootNode();
+        }
         Schema newSchema = new Schema(name);
         ReverseEngineering reverseEngineeringOldCopy = new ReverseEngineering(tree.getReverseEngineering());
         if (reverseEngineeringIsEmpty()) {
-            ((DbImportTreeNode) tree.getModel().getRoot()).removeAllChildren();
+            tree.getRootNode().removeAllChildren();
         }
-        if (canBeInserted()) {
+        if (canBeInserted(selectedElement)) {
             ((SchemaContainer) selectedElement.getUserObject()).addSchema(newSchema);
             selectedElement.add(new DbImportTreeNode(newSchema));
             updateSelected = true;
-        } else {
-            if (parentElement.getUserObject().getClass() == ReverseEngineering.class) {
+        } else if (canInsert()) {
+            if (parentElement.isReverseEngineering()) {
                 ((ReverseEngineering) parentElement.getUserObject()).addSchema(newSchema);
             } else {
                 ((Catalog) parentElement.getUserObject()).addSchema(newSchema);
@@ -82,7 +85,8 @@ public class AddSchemaAction extends TreeManipulationAction {
         ReverseEngineering reverseEngineeringNewCopy = new ReverseEngineering(tree.getReverseEngineering());
         if (isMultipleAction) {
             getProjectController().getApplication().getUndoManager().addEdit(
-                    new DbImportTreeUndoableEdit(reverseEngineeringOldCopy, reverseEngineeringNewCopy, tree, getProjectController())
+                    new DbImportTreeUndoableEdit(
+                            reverseEngineeringOldCopy, reverseEngineeringNewCopy, tree, getProjectController())
             );
         }
     }

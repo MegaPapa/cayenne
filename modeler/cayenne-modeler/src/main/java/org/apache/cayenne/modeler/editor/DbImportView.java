@@ -83,7 +83,7 @@ public class DbImportView extends JPanel {
                     configPanel.fillCheckboxes(reverseEngineering);
                     configPanel.initializeTextFields(reverseEngineering);
                     treePanel.updateTree();
-                    DbImportTreeNode root = ((DbImportTreeNode)draggableTreePanel.getSourceTree().getModel().getRoot());
+                    DbImportTreeNode root = draggableTreePanel.getSourceTree().getRootNode();
                     root.removeAllChildren();
                     draggableTreePanel.updateTree(projectController.getCurrentDataMap());
                     draggableTreePanel.getMoveButton().setEnabled(false);
@@ -135,14 +135,14 @@ public class DbImportView extends JPanel {
         builder.append(buttonBuilder.getPanel());
         builder.append(draggableTreePanel);
 
-        FormLayout progressLayout = new FormLayout(PROGRESS_PANEL_LAYOUT, "fill:10dlu"); // REPLACE TO DYNAMIC ROW SPECIFICATION
-        DefaultFormBuilder progressBarBuilder = new DefaultFormBuilder(progressLayout);
         loadDbSchemaProgress = new JProgressBar();
         reverseEngineeringProgress = new JProgressBar();
         loadDbSchemaProgress.setIndeterminate(true);
         loadDbSchemaProgress.setVisible(false);
         reverseEngineeringProgress.setIndeterminate(true);
         reverseEngineeringProgress.setVisible(false);
+        FormLayout progressLayout = new FormLayout(PROGRESS_PANEL_LAYOUT, "fill:10dlu");
+        DefaultFormBuilder progressBarBuilder = new DefaultFormBuilder(progressLayout);
         progressBarBuilder.append(reverseEngineeringProgress);
         progressBarBuilder.append(loadDbSchemaProgress);
         builder.append(progressBarBuilder.getPanel(), ALL_LINE_SPAN);

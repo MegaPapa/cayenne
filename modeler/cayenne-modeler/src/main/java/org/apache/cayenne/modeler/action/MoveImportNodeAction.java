@@ -38,6 +38,7 @@ import org.apache.cayenne.modeler.util.CayenneAction;
 
 import javax.swing.tree.TreePath;
 import java.awt.event.ActionEvent;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -79,16 +80,16 @@ public class MoveImportNodeAction extends CayenneAction {
         DbImportTreeNode sourceElement = (DbImportTreeNode) path.getLastPathComponent();
         DbImportTreeNode selectedElement;
         if (targetTree.getSelectionPath() != null) {
-            DbImportTreeNode node = (DbImportTreeNode) targetTree.getSelectionPath().getLastPathComponent();
+            DbImportTreeNode node = targetTree.getSelectedNode();
             if ((node.getUserObject().getClass() == Catalog.class)
                     || (node.getUserObject().getClass() == Schema.class)
                     || (node.getUserObject().getClass() == ReverseEngineering.class)) {
-                selectedElement = (DbImportTreeNode) targetTree.getSelectionPath().getLastPathComponent();
+                selectedElement = targetTree.getSelectedNode();
             } else {
                 selectedElement = (DbImportTreeNode) targetTree.getSelectionPath().getParentPath().getLastPathComponent();
             }
         } else {
-            selectedElement = (DbImportTreeNode) targetTree.getModel().getRoot();
+            selectedElement = targetTree.getRootNode();
         }
         if ((sourceElement.getUserObject().getClass() == selectedElement.getUserObject().getClass())
                 && (sourceElement.getSimpleNodeName().equals(selectedElement.getSimpleNodeName()))) {
@@ -108,16 +109,15 @@ public class MoveImportNodeAction extends CayenneAction {
     @Override
     public void performAction(ActionEvent e) {
         TreePath[] paths = sourceTree.getSelectionPaths();
+        TreeManipulationAction action = null;
         DbImportView rootParent = (DbImportView) panel.getParent().getParent();
         rootParent.getReverseEngineeringProgress().setVisible(true);
         if (paths != null) {
             boolean isChanged = false;
             ReverseEngineering reverseEngineeringOldCopy = new ReverseEngineering(targetTree.getReverseEngineering());
             try {
-                rootParent.lockToolbarButtons();
                 for (TreePath path : paths) {
                     DbImportTreeNode selectedElement = (DbImportTreeNode) path.getLastPathComponent();
-                    TreeManipulationAction action;
                     if (!moveInverted) {
                         action = panel.getActionByNodeType(selectedElement.getUserObject().getClass());
                     } else {
@@ -138,29 +138,25 @@ public class MoveImportNodeAction extends CayenneAction {
                         }
                     }
                 }
-                if (paths.length > 1) {
-                    int parentRow;
+                if ((paths.length > 1) && (targetTree.getSelectionPath() != null)) {
                     getProjectController().setDirty(true);
-                    DbImportTreeNode node = (DbImportTreeNode) targetTree.getSelectionPath().getLastPathComponent();
-                    if ((node.getUserObject().getClass() == ReverseEngineering.class)
-                            || (node.getUserObject().getClass() == Catalog.class)
-                            || (node.getUserObject().getClass() == Schema.class)) {
-                        parentRow = targetTree.getRowForPath(new TreePath(targetTree.getSelectionPath().getPath()));
-                    } else {
-                        parentRow = targetTree.getRowForPath(new TreePath(targetTree.getSelectionPath().getParentPath().getPath()));
-                    }
+                    ArrayList<DbImportTreeNode> expandList = targetTree.getTreeExpandList();
                     targetTree.translateReverseEngineeringToTree(targetTree.getReverseEngineering(), false);
-                    targetTree.expandRow(parentRow);
+                    targetTree.expandTree(expandList);
                 }
                 if (isChanged) {
                     ReverseEngineering reverseEngineeringNewCopy = new ReverseEngineering(targetTree.getReverseEngineering());
                     getProjectController().getApplication().getUndoManager().addEdit(
-                            new DbImportTreeUndoableEdit(reverseEngineeringOldCopy, reverseEngineeringNewCopy, targetTree, getProjectController())
+                            new DbImportTreeUndoableEdit(
+                                    reverseEngineeringOldCopy, reverseEngineeringNewCopy, targetTree, getProjectController()
+                            )
                     );
                 }
             } finally {
                 rootParent.getReverseEngineeringProgress().setVisible(false);
-                rootParent.unlockToolbarButtons();
+                if (action != null) {
+                    action.resetActionFlags();
+                }
             }
         }
     }

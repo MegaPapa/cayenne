@@ -88,17 +88,17 @@ public abstract class AddPatternParamAction extends TreeManipulationAction {
         String name = insertableNodeName != null ? insertableNodeName : "";
         boolean updateSelected;
         if (tree.getSelectionPath() == null) {
-            TreePath root = new TreePath(tree.getModel().getRoot());
+            TreePath root = new TreePath(tree.getRootNode());
             tree.setSelectionPath(root);
         }
-        selectedElement = (DbImportTreeNode) tree.getSelectionPath().getLastPathComponent();
+        selectedElement = tree.getSelectedNode();
         parentElement = (DbImportTreeNode) selectedElement.getParent();
         Object selectedObject;
         ReverseEngineering reverseEngineeringOldCopy = new ReverseEngineering(tree.getReverseEngineering());
         if (reverseEngineeringIsEmpty()) {
-            ((DbImportTreeNode) tree.getModel().getRoot()).removeAllChildren();
+            tree.getRootNode().removeAllChildren();
         }
-        if (canBeInserted()) {
+        if (canBeInserted(selectedElement)) {
             selectedObject = selectedElement.getUserObject();
             if (selectedObject instanceof FilterContainer) {
                 addPatternParamToContainer(paramClass, selectedObject, name, selectedElement);
@@ -107,6 +107,9 @@ public abstract class AddPatternParamAction extends TreeManipulationAction {
             }
             updateSelected = true;
         } else {
+            if (parentElement == null) {
+                parentElement = tree.getRootNode();
+            }
             selectedObject = parentElement.getUserObject();
             if (selectedObject instanceof FilterContainer) {
                 addPatternParamToContainer(paramClass, selectedObject, name, parentElement);

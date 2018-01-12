@@ -113,10 +113,10 @@ class ReverseEngineeringTreePanel extends JScrollPane {
                     DefaultPopUpMenu popupMenu;
                     DbImportTreeNode selectedElement;
                     if (reverseEngineeringTree.getSelectionPath() != null) {
-                        selectedElement = (DbImportTreeNode) reverseEngineeringTree.getSelectionPath().getLastPathComponent();
+                        selectedElement = reverseEngineeringTree.getSelectedNode();
                         popupMenu = popups.get(selectedElement.getUserObject().getClass());
                     } else {
-                        selectedElement = (DbImportTreeNode) reverseEngineeringTree.getModel().getRoot();
+                        selectedElement = reverseEngineeringTree.getRootNode();
                         popupMenu = popups.get(ReverseEngineering.class);
                     }
                     if (popupMenu != null) {

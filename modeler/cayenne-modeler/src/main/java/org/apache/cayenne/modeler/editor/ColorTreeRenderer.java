@@ -19,6 +19,7 @@
 
 package org.apache.cayenne.modeler.editor;
 
+import org.apache.cayenne.dbsync.reverse.dbimport.ExcludeTable;
 import org.apache.cayenne.modeler.dialog.db.load.DbImportTreeNode;
 
 import javax.swing.JTree;
@@ -50,11 +51,11 @@ public class ColorTreeRenderer extends DbImportTreeCellRenderer {
         super.getTreeCellRendererComponent(tree, value, sel,
                 expanded, leaf, row, hasFocus);
         handler.setDbSchemaNode(node);
-        if (handler.isLabel(node)) {
+        if (node.isLabel()) {
             setForeground(LABEL_COLOR);
             return this;
         }
-        if (handler.isContainer(node) || (handler.isFirstNodeIsPrimitive(tree))) {
+        if (handler.isContainer(node) || (handler.isFirstNodeIsPrimitive((DbImportTree) tree))) {
             handler.setFlag(false);
         }
         if (selected) {
@@ -66,9 +67,9 @@ public class ColorTreeRenderer extends DbImportTreeCellRenderer {
         handler.findFirstLevelIncludeTable();
 
         if (reverseEngineeringTree.getSelectionPath() != null) {
-            root = (DbImportTreeNode) reverseEngineeringTree.getSelectionPath().getLastPathComponent();
+            root = reverseEngineeringTree.getSelectedNode();
         } else {
-            root = (DbImportTreeNode) reverseEngineeringTree.getModel().getRoot();
+            root = reverseEngineeringTree.getRootNode();
         }
         ((DbImportTreeNode) tree.getModel().getRoot()).setColorized(true);
 

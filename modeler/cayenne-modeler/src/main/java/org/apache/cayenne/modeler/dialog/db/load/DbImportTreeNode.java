@@ -19,9 +19,15 @@
 
 package org.apache.cayenne.modeler.dialog.db.load;
 
+import org.apache.cayenne.dbsync.reverse.dbimport.Catalog;
+import org.apache.cayenne.dbsync.reverse.dbimport.ExcludeProcedure;
+import org.apache.cayenne.dbsync.reverse.dbimport.ExcludeTable;
 import org.apache.cayenne.dbsync.reverse.dbimport.FilterContainer;
+import org.apache.cayenne.dbsync.reverse.dbimport.IncludeProcedure;
+import org.apache.cayenne.dbsync.reverse.dbimport.IncludeTable;
 import org.apache.cayenne.dbsync.reverse.dbimport.PatternParam;
 import org.apache.cayenne.dbsync.reverse.dbimport.ReverseEngineering;
+import org.apache.cayenne.dbsync.reverse.dbimport.Schema;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 
@@ -42,6 +48,38 @@ public class DbImportTreeNode extends DefaultMutableTreeNode {
         this.userObject = userObject;
         this.allowsChildren = allowsChildren;
         parent = null;
+    }
+
+    public boolean isIncludeTable() {
+        return (getUserObject().getClass() == IncludeTable.class);
+    }
+
+    public boolean isExcludeTable() {
+        return (getUserObject().getClass() == ExcludeTable.class);
+    }
+
+    public boolean isExcludeProcedure() {
+        return (getUserObject().getClass() == ExcludeProcedure.class);
+    }
+
+    public boolean isIncludeProcedure() {
+        return (getUserObject().getClass() == IncludeProcedure.class);
+    }
+
+    public boolean isLabel() {
+        return (getUserObject().getClass() == String.class);
+    }
+
+    public boolean isSchema() {
+        return (getUserObject().getClass() == Schema.class);
+    }
+
+    public boolean isCatalog() {
+        return (getUserObject().getClass() == Catalog.class);
+    }
+
+    public boolean isReverseEngineering() {
+        return (getUserObject().getClass() == ReverseEngineering.class);
     }
 
     public DbImportTreeNode(Object userObject) {

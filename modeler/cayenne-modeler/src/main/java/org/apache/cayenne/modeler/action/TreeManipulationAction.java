@@ -119,10 +119,29 @@ public abstract class TreeManipulationAction extends CayenneAction {
         return tree;
     }
 
-    protected boolean canBeInserted() {
-        Class selectedObjectClass = selectedElement.getUserObject().getClass();
+    protected boolean canBeInserted(DbImportTreeNode node) {
+        if (node == null) {
+            return false;
+        }
+        Class selectedObjectClass = node.getUserObject().getClass();
         List<Class> childs = levels.get(selectedObjectClass);
         return childs != null && childs.contains(insertableNodeClass);
+    }
+
+    protected boolean canInsert() {
+        if (selectedElement == null) {
+            return true;
+        }
+        if (parentElement != null) {
+            for (int i = 0; i < parentElement.getChildCount(); i++) {
+                DbImportTreeNode child = (DbImportTreeNode) parentElement.getChildAt(i);
+                if (child.getSimpleNodeName().equals(insertableNodeName)
+                        && (child.getUserObject().getClass() == insertableNodeClass)) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     protected void updateModel(boolean updateSelected) {
@@ -148,8 +167,13 @@ public abstract class TreeManipulationAction extends CayenneAction {
                 tree.startEditingAtPath(new TreePath(((DbImportTreeNode) parentElement.getLastChild()).getPath()));
             }
         }
+        resetActionFlags();
+    }
+
+    public void resetActionFlags() {
         movedFromDbSchema = false;
         isMultipleAction = false;
+        insertableNodeName = "";
     }
 
     public void setInsertableNodeName(String nodeName) {

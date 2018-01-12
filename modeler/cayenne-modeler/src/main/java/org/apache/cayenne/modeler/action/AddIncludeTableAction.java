@@ -48,25 +48,28 @@ public class AddIncludeTableAction extends TreeManipulationAction {
 
     @Override
     public void performAction(ActionEvent e) {
-        boolean updateSelected;
+        boolean updateSelected = false;
         tree.stopEditing();
         String name = insertableNodeName != null ? insertableNodeName : "";
         if (tree.getSelectionPath() == null) {
-            TreePath root = new TreePath(tree.getModel().getRoot());
+            TreePath root = new TreePath(tree.getRootNode());
             tree.setSelectionPath(root);
         }
-        selectedElement = (DbImportTreeNode) tree.getSelectionPath().getLastPathComponent();
+        selectedElement = tree.getSelectedNode();
         parentElement = (DbImportTreeNode) selectedElement.getParent();
         ReverseEngineering reverseEngineeringOldCopy = new ReverseEngineering(tree.getReverseEngineering());
         IncludeTable newTable = new IncludeTable(name);
         if (reverseEngineeringIsEmpty()) {
-            ((DbImportTreeNode) tree.getModel().getRoot()).removeAllChildren();
+            tree.getRootNode().removeAllChildren();
         }
-        if (canBeInserted()) {
+        if (canBeInserted(selectedElement)) {
             ((FilterContainer) selectedElement.getUserObject()).addIncludeTable(newTable);
             selectedElement.add(new DbImportTreeNode(newTable));
             updateSelected = true;
         } else {
+            if (parentElement == null) {
+                parentElement = tree.getRootNode();
+            }
             ((FilterContainer) parentElement.getUserObject()).addIncludeTable(newTable);
             parentElement.add(new DbImportTreeNode(newTable));
             updateSelected = false;
