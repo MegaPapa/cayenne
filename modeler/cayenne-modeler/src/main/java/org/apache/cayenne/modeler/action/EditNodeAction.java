@@ -58,7 +58,7 @@ public class EditNodeAction extends TreeManipulationAction {
             }
         }
         if (tree.getSelectionPath() != null) {
-            selectedElement = (DbImportTreeNode) tree.getSelectionPath().getLastPathComponent();
+            selectedElement = tree.getSelectedNode();
             parentElement = (DbImportTreeNode) selectedElement.getParent();
             if (parentElement != null) {
                 Object selectedObject = selectedElement.getUserObject();

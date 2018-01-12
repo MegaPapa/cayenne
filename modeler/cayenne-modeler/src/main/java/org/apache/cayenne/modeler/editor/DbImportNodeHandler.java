@@ -37,11 +37,11 @@ import java.util.ArrayList;
  */
 class DbImportNodeHandler {
 
-    static final Color ACCEPT_COLOR = new Color(60,179,113);
-    static final Color EXCLUDE_COLOR = new Color(178, 0, 0);
+    private static final Color ACCEPT_COLOR = new Color(60,179,113);
+    private static final Color EXCLUDE_COLOR = new Color(178, 0, 0);
     static final Color NON_INCLUDE_COLOR = Color.LIGHT_GRAY;
     static final Color LABEL_COLOR = Color.BLACK;
-    static final int EXCLUDE_TABLE_RATE = -10000;
+    private static final int EXCLUDE_TABLE_RATE = -10000;
 
     private boolean existFirstLevelIncludeTable;
     private boolean existCatalogsOrSchemas;
@@ -93,20 +93,12 @@ class DbImportNodeHandler {
         return (node.getUserObject().getClass() == Schema.class) || (node.getUserObject().getClass() == Catalog.class);
     }
 
-    private boolean isIncludeTable(DbImportTreeNode node) {
-        return (node.getUserObject().getClass() == IncludeTable.class);
-    }
-
     private boolean isEmptyContainer(DbImportTreeNode rootNode) {
         return ((getChildIncludeTableCount(rootNode) == 0) && (!existFirstLevelIncludeTable));
     }
 
     boolean isParentIncluded() {
         return ((dbSchemaNode.getParent() != null) && (((DbImportTreeNode) dbSchemaNode.getParent()).isColorized()));
-    }
-
-    boolean isLabel(DbImportTreeNode node) {
-        return (node.getUserObject().getClass() == String.class);
     }
 
     // Compare node with current rendered node
@@ -155,20 +147,41 @@ class DbImportNodeHandler {
         return true;
     }
 
-    // Get child include table count in node, if exists
+    // Get child IncludeTable count in node, if exists
     private int getChildIncludeTableCount(DbImportTreeNode parentNode) {
-        if (isIncludeTable(parentNode)) {
+        if (parentNode.isIncludeTable()) {
             return 1;
         }
         int childCount = parentNode.getChildCount();
         int result = 0;
         for (int i = 0; i < childCount; i++) {
             DbImportTreeNode tmpNode = (DbImportTreeNode) parentNode.getChildAt(i);
-            if (isIncludeTable(tmpNode)) {
+            if (tmpNode.isIncludeTable()) {
                 result++;
             }
         }
         return result;
+    }
+
+    private boolean findExclude(DbImportTreeNode rootNode) {
+        int childCount = rootNode.getChildCount();
+        for (int i = 0; i < childCount; i++) {
+            DbImportTreeNode tmpNode = (DbImportTreeNode) rootNode.getChildAt(i);
+            if (tmpNode.getChildCount() > 0) {
+                if (tmpNode.isExcludeTable() || tmpNode.isExcludeProcedure()) {
+                    return true;
+                }
+            }
+            if (dbSchemaNode.getParent() != null) {
+                if (nodesIsEqual(tmpNode)) {
+                    if (tmpNode.isExcludeTable() || tmpNode.isExcludeProcedure()) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 
     int bypassTree(DbImportTreeNode rootNode) {
@@ -188,25 +201,31 @@ class DbImportNodeHandler {
         ReverseEngineering reverseEngineering = reverseEngineeringTree.getReverseEngineering();
         if ((reverseEngineering.getCatalogs().isEmpty()) && (reverseEngineering.getSchemas().isEmpty())
                 && (reverseEngineering.getIncludeTables().isEmpty())
-                && (dbSchemaNode.getUserObject().getClass() != IncludeProcedure.class)) {
+                && (!dbSchemaNode.isIncludeProcedure())) {
             bypassResult++;
         }
 
         if (nodesIsEqual(rootNode) && isEmptyContainer(rootNode)) {
             flag = true;
+            if (findExclude(rootNode)) {
+                return EXCLUDE_TABLE_RATE;
+            }
             return 1;
         }
 
-        if (compareWithParent(rootNode) && (rootNode.getUserObject().getClass() != ReverseEngineering.class) &&
-                isEmptyContainer(rootNode) && (isIncludeTable(dbSchemaNode))) {
+        if (compareWithParent(rootNode) && (!rootNode.isReverseEngineering()) &&
+                isEmptyContainer(rootNode) && (dbSchemaNode.isIncludeTable())) {
             flag = true;
+            if (findExclude(rootNode)) {
+                return EXCLUDE_TABLE_RATE;
+            }
             return 1;
         }
 
         if (flag) {
             for (int i = 0; i < childCount; i++) {
                 DbImportTreeNode tmpNode = (DbImportTreeNode) rootNode.getChildAt(i);
-                if ((dbSchemaNode.getUserObject().getClass() == IncludeProcedure.class) && (nodesIsEqual(tmpNode))) {
+                if (dbSchemaNode.isIncludeProcedure() && (nodesIsEqual(tmpNode))) {
                     int tmpNodeChildCount = tmpNode.getChildCount();
                     if (tmpNodeChildCount > 0) {
                         bypassResult += bypassTree((DbImportTreeNode) rootNode.getChildAt(i));
@@ -215,11 +234,11 @@ class DbImportNodeHandler {
                     hasProcedures = true;
                 }
             }
-            if ((rootNode.getUserObject().getClass() != ExcludeTable.class) && (!nodesIsEqual(rootNode))
-                    && (dbSchemaNode.getUserObject().getClass() != IncludeProcedure.class)) {
+            if ((!rootNode.isExcludeTable()) && (!nodesIsEqual(rootNode))
+                    && (!dbSchemaNode.isIncludeProcedure())) {
                 bypassResult++;
             } else {
-                if ((!hasProcedures) && (dbSchemaNode.getUserObject().getClass() != IncludeProcedure.class)) {
+                if ((!hasProcedures) && (!dbSchemaNode.isIncludeProcedure())) {
                     bypassResult += EXCLUDE_TABLE_RATE;
                 }
             }
@@ -229,20 +248,18 @@ class DbImportNodeHandler {
             DbImportTreeNode tmpNode = (DbImportTreeNode) rootNode.getChildAt(i);
             if (tmpNode.getChildCount() > 0) {
                 bypassResult += bypassTree(tmpNode);
-                if ((tmpNode.getUserObject().getClass() == ExcludeTable.class)
-                        || (tmpNode.getUserObject().getClass() == ExcludeProcedure.class)) {
-                    bypassResult = EXCLUDE_TABLE_RATE;
+                if (tmpNode.isExcludeTable() || tmpNode.isExcludeProcedure()) {
+                    bypassResult += EXCLUDE_TABLE_RATE;
                 }
             } else if (compareWithParent(tmpNode) && !(existFirstLevelIncludeTable)) {
-                if (dbSchemaNode.getUserObject().getClass() != IncludeProcedure.class) {
+                if (!dbSchemaNode.isIncludeProcedure()) {
                     bypassResult++;
                 }
             }
             if (dbSchemaNode.getParent() != null) {
                 if (nodesIsEqual(tmpNode)) {
-                    if ((tmpNode.getUserObject().getClass() == ExcludeTable.class)
-                            || (tmpNode.getUserObject().getClass() == ExcludeProcedure.class)) {
-                        bypassResult = EXCLUDE_TABLE_RATE;
+                    if (tmpNode.isExcludeTable() || tmpNode.isExcludeProcedure()) {
+                        bypassResult += EXCLUDE_TABLE_RATE;
                     }
                     bypassResult++;
                 }
@@ -252,8 +269,7 @@ class DbImportNodeHandler {
     }
 
     Color getColorByNodeType(DbImportTreeNode node) {
-        if ((node.getUserObject().getClass() == ExcludeTable.class)
-                || (node.getUserObject().getClass() == ExcludeProcedure.class)) {
+        if (node.isExcludeTable() || node.isExcludeProcedure()) {
             return EXCLUDE_COLOR;
         } else {
             return ACCEPT_COLOR;
@@ -261,13 +277,13 @@ class DbImportNodeHandler {
     }
 
     void findFirstLevelIncludeTable() {
-        DbImportTreeNode root = (DbImportTreeNode) reverseEngineeringTree.getModel().getRoot();
+        DbImportTreeNode root = reverseEngineeringTree.getRootNode();
         int childCount = root.getChildCount();
         existFirstLevelIncludeTable = false;
         existCatalogsOrSchemas = false;
         for (int i = 0; i < childCount; i++) {
             DbImportTreeNode tmpNode = (DbImportTreeNode) root.getChildAt(i);
-            if (isIncludeTable(tmpNode)) {
+            if (tmpNode.isIncludeTable()) {
                 existFirstLevelIncludeTable = true;
             }
             if (isContainer(tmpNode)) {
@@ -277,21 +293,20 @@ class DbImportNodeHandler {
     }
 
     // Check, is DatabaseTree started with IncludeTable or IncludeProcedure
-    boolean isFirstNodeIsPrimitive(JTree tree) {
+    boolean isFirstNodeIsPrimitive(DbImportTree tree) {
         final int firstChildIndex = 0;
-        DbImportTreeNode root = (DbImportTreeNode) tree.getModel().getRoot();
+        DbImportTreeNode root = tree.getRootNode();
         if (root.getChildCount() == 0) {
             return false;
         }
         DbImportTreeNode firstElement = (DbImportTreeNode) root.getChildAt(firstChildIndex);
-        if ((isIncludeTable(firstElement))
-                || (firstElement.getUserObject().getClass() == IncludeProcedure.class)) {
+        if (firstElement.isIncludeTable() || firstElement.isIncludeProcedure()) {
             return true;
         }
         return false;
     }
 
-    private boolean nodesClassesComparation(Class firstClass, Class secondClass) {
+    public boolean nodesClassesComparation(Class firstClass, Class secondClass) {
         if (firstClass.equals(secondClass)) {
             return true;
         }

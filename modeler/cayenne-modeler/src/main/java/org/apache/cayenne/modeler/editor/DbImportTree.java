@@ -31,6 +31,8 @@ import org.apache.cayenne.modeler.dialog.db.load.TransferableNode;
 import javax.swing.JTree;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
+import javax.swing.tree.TreePath;
+import java.util.ArrayList;
 import java.util.Collection;
 
 /**
@@ -61,6 +63,43 @@ public class DbImportTree extends JTree {
         printParams(reverseEngineering.getIncludeProcedures(), root);
         printParams(reverseEngineering.getExcludeProcedures(), root);
         model.reload();
+    }
+
+    private ArrayList<DbImportTreeNode> createTreeExpandList(DbImportTreeNode rootNode, ArrayList<DbImportTreeNode> resultList) {
+        for (int i = 0; i < rootNode.getChildCount(); i++) {
+            DbImportTreeNode childNode = (DbImportTreeNode) rootNode.getChildAt(i);
+            TreePath childPath = new TreePath(childNode.getPath());
+            if (isExpanded(childPath)) {
+                resultList.add(childNode);
+            }
+            if (childNode.getChildCount() > 0) {
+                createTreeExpandList(childNode, resultList);
+            }
+        }
+        return resultList;
+    }
+
+    public ArrayList<DbImportTreeNode> getTreeExpandList() {
+        ArrayList<DbImportTreeNode> resultList = new ArrayList<>();
+        return createTreeExpandList(getRootNode(), resultList);
+    }
+
+    private void expandBeginningWithNode(DbImportTreeNode rootNode, ArrayList<DbImportTreeNode> list) {
+        for (int i = 0; i < rootNode.getChildCount(); i++) {
+            DbImportTreeNode childNode = (DbImportTreeNode) rootNode.getChildAt(i);
+            list.forEach((element) -> {
+                if (element.equals(childNode)) {
+                    this.expandPath(new TreePath(childNode.getPath()));
+                }
+            });
+            if (childNode.getChildCount() > 0) {
+                expandBeginningWithNode(childNode, list);
+            }
+        }
+    }
+
+    public void expandTree(ArrayList<DbImportTreeNode> expandIndexesList) {
+        expandBeginningWithNode(getRootNode(), expandIndexesList);
     }
 
     private <T extends PatternParam> void printParams(Collection<T> collection, DbImportTreeNode parent) {
@@ -111,6 +150,14 @@ public class DbImportTree extends JTree {
                 parent.add(node);
             }
         }
+    }
+
+    public DbImportTreeNode getSelectedNode() {
+        return (DbImportTreeNode) this.getSelectionPath().getLastPathComponent();
+    }
+
+    public DbImportTreeNode getRootNode() {
+        return (DbImportTreeNode) this.getModel().getRoot();
     }
 
     public ReverseEngineering getReverseEngineering() {

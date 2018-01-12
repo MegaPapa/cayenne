@@ -52,8 +52,6 @@ import javax.swing.JComponent;
 import javax.swing.JScrollPane;
 import javax.swing.JTree;
 import javax.swing.TransferHandler;
-import javax.swing.event.TreeSelectionEvent;
-import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.TreePath;
 import java.awt.datatransfer.DataFlavor;
@@ -166,26 +164,23 @@ public class DraggableTreePanel extends JScrollPane {
             @Override
             public void keyReleased(KeyEvent e) {}
         });
-        targetTree.addTreeSelectionListener(new TreeSelectionListener() {
-            @Override
-            public void valueChanged(TreeSelectionEvent e) {
-                DbImportModel model = (DbImportModel) sourceTree.getModel();
-                DbImportTreeNode root = (DbImportTreeNode) model.getRoot();
-                sourceTree.repaint();
-                if (root.getChildCount() > 0) {
-                    model.nodesChanged(root, new int[]{root.getChildCount() - 1});
-                }
-                if (canBeMoved()) {
-                    moveButton.setEnabled(true);
-                    if (canBeInverted()) {
-                        moveInvertButton.setEnabled(true);
-                    } else {
-                        moveInvertButton.setEnabled(false);
-                    }
+        targetTree.addTreeSelectionListener(e -> {
+            DbImportModel model = (DbImportModel) sourceTree.getModel();
+            DbImportTreeNode root = (DbImportTreeNode) model.getRoot();
+            sourceTree.repaint();
+            if (root.getChildCount() > 0) {
+                model.nodesChanged(root, new int[]{root.getChildCount() - 1});
+            }
+            if (canBeMoved()) {
+                moveButton.setEnabled(true);
+                if (canBeInverted()) {
+                    moveInvertButton.setEnabled(true);
                 } else {
-                    moveButton.setEnabled(false);
                     moveInvertButton.setEnabled(false);
                 }
+            } else {
+                moveButton.setEnabled(false);
+                moveInvertButton.setEnabled(false);
             }
         });
 
@@ -240,7 +235,7 @@ public class DraggableTreePanel extends JScrollPane {
 
     private boolean canBeInverted() {
         if (sourceTree.getSelectionPath() != null) {
-            DbImportTreeNode selectedElement = (DbImportTreeNode) sourceTree.getSelectionPath().getLastPathComponent();
+            DbImportTreeNode selectedElement = sourceTree.getSelectedNode();
             if (selectedElement == null) {
                 return false;
             }
@@ -273,22 +268,18 @@ public class DraggableTreePanel extends JScrollPane {
                 return new DataHandler(nodes, localObjectFlavor.getMimeType());
             }
         });
-        sourceTree.addTreeSelectionListener(new TreeSelectionListener() {
-
-            @Override
-            public void valueChanged(TreeSelectionEvent e) {
-                if (sourceTree.getLastSelectedPathComponent() != null) {
-                    if (canBeMoved()) {
-                        moveButton.setEnabled(true);
-                        if (canBeInverted()) {
-                            moveInvertButton.setEnabled(true);
-                        } else {
-                            moveInvertButton.setEnabled(false);
-                        }
+        sourceTree.addTreeSelectionListener(e -> {
+            if (sourceTree.getLastSelectedPathComponent() != null) {
+                if (canBeMoved()) {
+                    moveButton.setEnabled(true);
+                    if (canBeInverted()) {
+                        moveInvertButton.setEnabled(true);
                     } else {
                         moveInvertButton.setEnabled(false);
-                        moveButton.setEnabled(false);
                     }
+                } else {
+                    moveInvertButton.setEnabled(false);
+                    moveButton.setEnabled(false);
                 }
             }
         });
@@ -380,14 +371,14 @@ public class DraggableTreePanel extends JScrollPane {
 
     private boolean canBeMoved() {
         if (sourceTree.getSelectionPath() != null) {
-            DbImportTreeNode selectedElement = (DbImportTreeNode) sourceTree.getSelectionPath().getLastPathComponent();
+            DbImportTreeNode selectedElement = sourceTree.getSelectedNode();
             if (selectedElement == null) {
                 return false;
             }
             Class draggableElementClass = selectedElement.getUserObject().getClass();
             Class reverseEngineeringElementClass;
             if (targetTree.getSelectionPath() != null) {
-                selectedElement = (DbImportTreeNode) targetTree.getSelectionPath().getLastPathComponent();
+                selectedElement = targetTree.getSelectedNode();
                 DbImportTreeNode parent = (DbImportTreeNode) selectedElement.getParent();
                 if (parent != null) {
                     reverseEngineeringElementClass = parent.getUserObject().getClass();

@@ -47,14 +47,14 @@ public class AddCatalogAction extends TreeManipulationAction {
 
     @Override
     public void performAction(ActionEvent e) {
-        boolean updateSelected;
+        boolean updateSelected = false;
         tree.stopEditing();
         String name = insertableNodeName != null ? insertableNodeName : "";
         if (tree.getSelectionPath() == null) {
-            TreePath root = new TreePath(tree.getModel().getRoot());
+            TreePath root = new TreePath(tree.getRootNode());
             tree.setSelectionPath(root);
         }
-        selectedElement = (DbImportTreeNode) tree.getSelectionPath().getLastPathComponent();
+        selectedElement = tree.getSelectedNode();
         parentElement = (DbImportTreeNode) selectedElement.getParent();
         if (parentElement == null) {
             parentElement = selectedElement;
@@ -62,13 +62,13 @@ public class AddCatalogAction extends TreeManipulationAction {
         Catalog newCatalog = new Catalog(name);
         ReverseEngineering reverseEngineeringOldCopy = new ReverseEngineering(tree.getReverseEngineering());
         if (reverseEngineeringIsEmpty()) {
-            ((DbImportTreeNode) tree.getModel().getRoot()).removeAllChildren();
+            tree.getRootNode().removeAllChildren();
         }
-        if (canBeInserted()) {
+        if (canBeInserted(selectedElement)) {
             ((ReverseEngineering) selectedElement.getUserObject()).addCatalog(newCatalog);
             selectedElement.add(new DbImportTreeNode(newCatalog));
             updateSelected = true;
-        } else {
+        } else if (canInsert()) {
             ((ReverseEngineering) parentElement.getUserObject()).addCatalog(newCatalog);
             parentElement.add(new DbImportTreeNode(newCatalog));
             updateSelected = false;

@@ -39,6 +39,7 @@ import org.apache.cayenne.modeler.undo.DbImportTreeUndoableEdit;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import java.awt.event.ActionEvent;
+import java.util.ArrayList;
 
 /**
  * @since 4.1
@@ -152,9 +153,9 @@ public class DeleteNodeAction extends TreeManipulationAction {
             }
             if (paths.length > 1) {
                 getProjectController().setDirty(true);
-                int parentRow = tree.getRowForPath(new TreePath(parentElement.getPath()));
+                ArrayList<DbImportTreeNode> expandList = tree.getTreeExpandList();
                 tree.translateReverseEngineeringToTree(tree.getReverseEngineering(), false);
-                tree.expandRow(parentRow);
+                tree.expandTree(expandList);
             } else {
                 updateParentChilds();
             }

@@ -87,7 +87,7 @@ class TreeToolbarPanel extends JToolBar {
     }
 
     private boolean isLabelSelected() {
-        DbImportTreeNode selectedNode = (DbImportTreeNode) reverseEngineeringTree.getSelectionPath().getLastPathComponent();
+        DbImportTreeNode selectedNode = reverseEngineeringTree.getSelectedNode();
         if (selectedNode.getUserObject().getClass() == String.class) {
             return true;
         }
