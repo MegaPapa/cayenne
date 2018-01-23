@@ -299,7 +299,6 @@ public class DefaultDbImportActionTest {
         when(dataSourceFactory.getDataSource((DataNodeDescriptor)any())).thenReturn(mock);
 
         MergerTokenFactoryProvider mergerTokenFactoryProvider = mock(MergerTokenFactoryProvider.class);
-        DataChannelMetaData metaData = mock(DataChannelMetaData.class);
         when(mergerTokenFactoryProvider.get((DbAdapter)any())).thenReturn(new DefaultMergerTokenFactory());
 
         return new DefaultDbImportAction(log, projectSaver, dataSourceFactory, adapterFactory, mapLoader, mergerTokenFactoryProvider, metaData) {
