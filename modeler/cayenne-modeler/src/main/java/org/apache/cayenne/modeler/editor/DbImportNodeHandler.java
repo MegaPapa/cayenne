@@ -28,9 +28,8 @@ import org.apache.cayenne.dbsync.reverse.dbimport.ReverseEngineering;
 import org.apache.cayenne.dbsync.reverse.dbimport.Schema;
 import org.apache.cayenne.modeler.dialog.db.load.DbImportTreeNode;
 
-import javax.swing.JTree;
+import javax.swing.tree.TreePath;
 import java.awt.Color;
-import java.util.ArrayList;
 
 /**
  * @since 4.1
@@ -45,47 +44,15 @@ class DbImportNodeHandler {
 
     private boolean existFirstLevelIncludeTable;
     private boolean existCatalogsOrSchemas;
-    private boolean flag;
+    private boolean hasEntitiesInEmptyContainer;
     private DbImportTreeNode dbSchemaNode;
     private DbImportTree reverseEngineeringTree;
-
-    // Create parents chain
-    private ArrayList<DbImportTreeNode> getParents(DbImportTreeNode node) {
-        ArrayList<DbImportTreeNode> parents = new ArrayList<>();
-        DbImportTreeNode tmpNode = node;
-        while (tmpNode.getParent() != null) {
-            parents.add((DbImportTreeNode) tmpNode.getParent());
-            tmpNode = (DbImportTreeNode) tmpNode.getParent();
-        }
-        return parents;
-    }
-
-    // Compare parent chains
-    private boolean parentsIsEqual(DbImportTreeNode reverseEngineeringNode) {
-        ArrayList<DbImportTreeNode> reverseEngineeringNodeParents = getParents(reverseEngineeringNode);
-        ArrayList<DbImportTreeNode> dbNodeParents = getParents(dbSchemaNode);
-        for (DbImportTreeNode node : reverseEngineeringNodeParents) {
-            int deleteIndex = -1;
-            for (int i = 0; i < dbNodeParents.size(); i++) {
-                if (node.getSimpleNodeName().equals(dbNodeParents.get(i).getSimpleNodeName())) {
-                    deleteIndex = i;
-                    break;
-                }
-            }
-            if (deleteIndex != -1) {
-                dbNodeParents.remove(deleteIndex);
-            } else {
-                return false;
-            }
-        }
-        return true;
-    }
 
     private boolean namesIsEqual(DbImportTreeNode reverseEngineeringNode) {
         if (isContainer(reverseEngineeringNode)) {
             return dbSchemaNode.getSimpleNodeName().equals(reverseEngineeringNode.getSimpleNodeName());
         } else {
-            return (dbSchemaNode.getSimpleNodeName().matches(reverseEngineeringNode.getSimpleNodeName()));
+            return (dbSchemaNode.getSimpleNodeName().toLowerCase().matches(reverseEngineeringNode.getSimpleNodeName().toLowerCase()));
         }
     }
 
@@ -102,14 +69,43 @@ class DbImportNodeHandler {
     }
 
     // Compare node with current rendered node
-    private boolean nodesIsEqual(DbImportTreeNode reverseEngineeringNode) {
+    public boolean nodesIsEqual(DbImportTreeNode reverseEngineeringNode) {
+        TreePath[] paths = reverseEngineeringTree.getSelectionPaths();
+        for (TreePath path : paths != null ? paths : new TreePath[0]) {
+            DbImportTreeNode node = (DbImportTreeNode) path.getLastPathComponent();
+            if ((nodesClassesComparation(node.getUserObject().getClass(), dbSchemaNode.getUserObject().getClass()))
+                    && namesIsEqual(node)
+                    && (dbSchemaNode.getLevel() >= node.getLevel())
+                    && (dbSchemaNode.parentsIsEqual(node))) {
+                return true;
+            }
+        }
         if ((nodesClassesComparation(reverseEngineeringNode.getUserObject().getClass(), dbSchemaNode.getUserObject().getClass()))
                 && namesIsEqual(reverseEngineeringNode)
                 && (dbSchemaNode.getLevel() >= reverseEngineeringNode.getLevel())
-                && (parentsIsEqual(reverseEngineeringNode))) {
+                && (dbSchemaNode.parentsIsEqual(reverseEngineeringNode))) {
             return true;
         }
         return false;
+    }
+
+    public boolean checkTreesLevels(DbImportTree dbTree) {
+        if (dbTree.getRootNode().getChildCount() == 0) {
+            return false;
+        }
+        DbImportTreeNode dbNode = (DbImportTreeNode) dbTree.getRootNode().getChildAt(0);
+        int childCount = reverseEngineeringTree.getRootNode().getChildCount();
+        for (int i = 0; i < childCount; i++) {
+            if (((DbImportTreeNode) reverseEngineeringTree.getRootNode().getChildAt(i)).
+                    getUserObject().getClass() == Catalog.class) {
+                if (dbNode.getUserObject().getClass() == Catalog.class) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     // Compare reverseEngineeringNode with node.getParent()
@@ -120,31 +116,10 @@ class DbImportNodeHandler {
         if ((((DbImportTreeNode)dbSchemaNode.getParent()).getUserObject().getClass() == reverseEngineeringNode.getUserObject().getClass())
                 && (((DbImportTreeNode)dbSchemaNode.getParent()).getSimpleNodeName().equals(reverseEngineeringNode.getSimpleNodeName()))
                 && (((DbImportTreeNode)dbSchemaNode.getParent()).getLevel() >= reverseEngineeringNode.getLevel())
-                && (parentsIsEquals(reverseEngineeringNode))) {
+                && (((DbImportTreeNode)dbSchemaNode.getParent())).parentsIsEqual(reverseEngineeringNode)) {
             return true;
         }
         return false;
-    }
-
-    // Compare parents chain
-    private boolean parentsIsEquals(DbImportTreeNode reverseEngineeringNode) {
-        ArrayList<DbImportTreeNode> reverseEngineeringNodeParents = getParents(reverseEngineeringNode);
-        ArrayList<DbImportTreeNode> dbNodeParents = getParents((DbImportTreeNode) dbSchemaNode.getParent());
-        for (DbImportTreeNode node : reverseEngineeringNodeParents) {
-            int deleteIndex = -1;
-            for (int i = 0; i < dbNodeParents.size(); i++) {
-                if (node.getSimpleNodeName().equals(dbNodeParents.get(i).getSimpleNodeName())) {
-                    deleteIndex = i;
-                    break;
-                }
-            }
-            if (deleteIndex != -1) {
-                dbNodeParents.remove(deleteIndex);
-            } else {
-                return false;
-            }
-        }
-        return true;
     }
 
     // Get child IncludeTable count in node, if exists
@@ -163,7 +138,8 @@ class DbImportNodeHandler {
         return result;
     }
 
-    private boolean findExclude(DbImportTreeNode rootNode) {
+    // Find Exclude-node in configuration
+    private boolean foundExclude(DbImportTreeNode rootNode) {
         int childCount = rootNode.getChildCount();
         for (int i = 0; i < childCount; i++) {
             DbImportTreeNode tmpNode = (DbImportTreeNode) rootNode.getChildAt(i);
@@ -184,6 +160,12 @@ class DbImportNodeHandler {
         return false;
     }
 
+    /*
+    *  Recursively bypasses DbImportTree,
+    *  Increment result if rendered node exists in configuration tree,
+    *  Subtract EXCLUDE_TABLE_RATE from result, if found Exclude-node for rendered node,
+    *  Return 0, if rendered node not found.
+    */
     int bypassTree(DbImportTreeNode rootNode) {
         int bypassResult = 0;
         int childCount = rootNode.getChildCount();
@@ -206,8 +188,8 @@ class DbImportNodeHandler {
         }
 
         if (nodesIsEqual(rootNode) && isEmptyContainer(rootNode)) {
-            flag = true;
-            if (findExclude(rootNode)) {
+            hasEntitiesInEmptyContainer = true;
+            if (foundExclude(rootNode)) {
                 return EXCLUDE_TABLE_RATE;
             }
             return 1;
@@ -215,14 +197,14 @@ class DbImportNodeHandler {
 
         if (compareWithParent(rootNode) && (!rootNode.isReverseEngineering()) &&
                 isEmptyContainer(rootNode) && (dbSchemaNode.isIncludeTable())) {
-            flag = true;
-            if (findExclude(rootNode)) {
+            hasEntitiesInEmptyContainer = true;
+            if (foundExclude(rootNode)) {
                 return EXCLUDE_TABLE_RATE;
             }
             return 1;
         }
 
-        if (flag) {
+        if (hasEntitiesInEmptyContainer) {
             for (int i = 0; i < childCount; i++) {
                 DbImportTreeNode tmpNode = (DbImportTreeNode) rootNode.getChildAt(i);
                 if (dbSchemaNode.isIncludeProcedure() && (nodesIsEqual(tmpNode))) {
@@ -269,6 +251,18 @@ class DbImportNodeHandler {
     }
 
     Color getColorByNodeType(DbImportTreeNode node) {
+        if ((reverseEngineeringTree.getSelectionPaths() != null) &&(reverseEngineeringTree.getSelectionPaths().length > 1)) {
+            for (TreePath path : reverseEngineeringTree.getSelectionPaths()) {
+                DbImportTreeNode pathNode = (DbImportTreeNode) path.getLastPathComponent();
+                if (pathNode.getSimpleNodeName().equals(dbSchemaNode.getSimpleNodeName())) {
+                    if (pathNode.isExcludeTable() || pathNode.isExcludeProcedure()) {
+                        return EXCLUDE_COLOR;
+                    } else {
+                        return ACCEPT_COLOR;
+                    }
+                }
+            }
+        }
         if (node.isExcludeTable() || node.isExcludeProcedure()) {
             return EXCLUDE_COLOR;
         } else {
@@ -329,12 +323,12 @@ class DbImportNodeHandler {
         return existCatalogsOrSchemas;
     }
 
-    public boolean getFlag() {
-        return flag;
+    public boolean getHasEntitiesInEmptyContainer() {
+        return hasEntitiesInEmptyContainer;
     }
 
-    public void setFlag(boolean newFlag) {
-        flag = newFlag;
+    public void setHasEntitiesInEmptyContainer(boolean newFlag) {
+        hasEntitiesInEmptyContainer = newFlag;
     }
 
     public void setDbSchemaNode(DbImportTreeNode dbSchemaNode) {

@@ -41,7 +41,7 @@ public class TransferableNode extends DbImportTreeNode implements Transferable {
     private static final DataFlavor schemaFlavor = new DataFlavor(Schema.class, Schema.class.getSimpleName());
     private static final DataFlavor includeTableFlavor = new DataFlavor(IncludeTable.class, IncludeTable.class.getSimpleName());
     private static final DataFlavor patternParamFlavor = new DataFlavor(PatternParam.class, PatternParam.class.getSimpleName());
-    private static final DataFlavor[] flavors = new DataFlavor[] { catalogFlavor, schemaFlavor,
+    public static final DataFlavor[] flavors = new DataFlavor[] { catalogFlavor, schemaFlavor,
                                                                     includeTableFlavor, patternParamFlavor };
 
     public TransferableNode(Object userObject) {
@@ -69,27 +69,6 @@ public class TransferableNode extends DbImportTreeNode implements Transferable {
             return userObject;
         } else {
             return null;
-        }
-    }
-
-    public String getNodeName() {
-        if (userObject instanceof FilterContainer) {
-            return getFormattedName(userObject.getClass().getSimpleName(), ((FilterContainer) userObject).getName());
-        } else if (userObject instanceof IncludeTable) {
-            return getFormattedName("Table", ((PatternParam) userObject).getPattern());
-        } else if (userObject instanceof IncludeProcedure) {
-            return getFormattedName("Procedure", ((PatternParam) userObject).getPattern());
-        }
-        return "";
-    }
-
-    public String toString() {
-        if (userObject == null) {
-            return "";
-        } else if (userObject instanceof ReverseEngineering) {
-            return "Database:";
-        } else {
-            return getNodeName();
         }
     }
 }

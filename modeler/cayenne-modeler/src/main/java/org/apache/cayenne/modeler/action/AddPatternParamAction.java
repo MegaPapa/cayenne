@@ -85,13 +85,17 @@ public abstract class AddPatternParamAction extends TreeManipulationAction {
     @Override
     public void performAction(ActionEvent e) {
         tree.stopEditing();
-        String name = insertableNodeName != null ? insertableNodeName : "";
+        String name = insertableNodeName != null ? insertableNodeName : EMPTY_NAME;
         boolean updateSelected;
         if (tree.getSelectionPath() == null) {
             TreePath root = new TreePath(tree.getRootNode());
             tree.setSelectionPath(root);
         }
-        selectedElement = tree.getSelectedNode();
+        if (foundNode == null) {
+            selectedElement = tree.getSelectedNode();
+        } else {
+            selectedElement = foundNode;
+        }
         parentElement = (DbImportTreeNode) selectedElement.getParent();
         Object selectedObject;
         ReverseEngineering reverseEngineeringOldCopy = new ReverseEngineering(tree.getReverseEngineering());
@@ -122,10 +126,11 @@ public abstract class AddPatternParamAction extends TreeManipulationAction {
             updateAfterInsert(updateSelected);
         }
         ReverseEngineering reverseEngineeringNewCopy = new ReverseEngineering(tree.getReverseEngineering());
-        if (isMultipleAction) {
-            getProjectController().getApplication().getUndoManager().addEdit(
-                    new DbImportTreeUndoableEdit(reverseEngineeringOldCopy, reverseEngineeringNewCopy, tree, getProjectController())
+        if ((!isMultipleAction) && (!insertableNodeName.equals(EMPTY_NAME))) {
+            DbImportTreeUndoableEdit undoableEdit = new DbImportTreeUndoableEdit(
+                    reverseEngineeringOldCopy, reverseEngineeringNewCopy, tree, getProjectController()
             );
+            getProjectController().getApplication().getUndoManager().addEdit(undoableEdit);
         }
     }
 

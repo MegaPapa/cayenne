@@ -41,6 +41,7 @@ import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
 
 /**
  * @since 4.1
@@ -49,6 +50,7 @@ public class MoveImportNodeAction extends CayenneAction {
 
     private static final String ICON_NAME = "icon-backward.png";
     private static final String ACTION_NAME = "Include";
+    private static final String EMPTY_NAME = "";
 
     private DbImportTree sourceTree;
     private DbImportTree targetTree;
@@ -70,35 +72,42 @@ public class MoveImportNodeAction extends CayenneAction {
         classMap.put(IncludeTable.class, ExcludeTable.class);
         classMap.put(IncludeColumn.class, ExcludeColumn.class);
         classMap.put(IncludeProcedure.class, ExcludeProcedure.class);
+        classMap.put(Schema.class, Schema.class);
+        classMap.put(Catalog.class, Catalog.class);
     }
 
     public String getIconName() {
         return ICON_NAME;
     }
 
-    private boolean canInsert(TreePath path) {
+    private boolean canInsert(TreePath path, DbImportTreeNode foundNode) {
         DbImportTreeNode sourceElement = (DbImportTreeNode) path.getLastPathComponent();
         DbImportTreeNode selectedElement;
-        if (targetTree.getSelectionPath() != null) {
-            DbImportTreeNode node = targetTree.getSelectedNode();
-            if ((node.getUserObject().getClass() == Catalog.class)
-                    || (node.getUserObject().getClass() == Schema.class)
-                    || (node.getUserObject().getClass() == ReverseEngineering.class)) {
-                selectedElement = targetTree.getSelectedNode();
+        if (foundNode == null) {
+            if (targetTree.getSelectionPath() != null) {
+                DbImportTreeNode node = targetTree.getSelectedNode();
+                if ((node.getUserObject().getClass() == Catalog.class)
+                        || (node.getUserObject().getClass() == Schema.class)
+                        || (node.getUserObject().getClass() == ReverseEngineering.class)) {
+                    selectedElement = targetTree.getSelectedNode();
+                } else {
+                    selectedElement = (DbImportTreeNode) targetTree.getSelectionPath().
+                            getParentPath().getLastPathComponent();
+                }
             } else {
-                selectedElement = (DbImportTreeNode) targetTree.getSelectionPath().getParentPath().getLastPathComponent();
+                selectedElement = targetTree.getRootNode();
             }
         } else {
-            selectedElement = targetTree.getRootNode();
+            selectedElement = foundNode;
         }
-        if ((sourceElement.getUserObject().getClass() == selectedElement.getUserObject().getClass())
+        if ((nodeClassesIsSameTypes(sourceElement, selectedElement))
                 && (sourceElement.getSimpleNodeName().equals(selectedElement.getSimpleNodeName()))) {
             return false;
         }
         int childCount = selectedElement.getChildCount();
         for (int i = 0; i < childCount; i++) {
             DbImportTreeNode child = (DbImportTreeNode) selectedElement.getChildAt(i);
-            if ((sourceElement.getUserObject().getClass() == child.getUserObject().getClass())
+            if ((nodeClassesIsSameTypes(sourceElement, child))
                 && (sourceElement.getSimpleNodeName().equals(child.getSimpleNodeName()))) {
                 return false;
             }
@@ -110,6 +119,7 @@ public class MoveImportNodeAction extends CayenneAction {
     public void performAction(ActionEvent e) {
         TreePath[] paths = sourceTree.getSelectionPaths();
         TreeManipulationAction action = null;
+        String insertableName = EMPTY_NAME;
         DbImportView rootParent = (DbImportView) panel.getParent().getParent();
         rootParent.getReverseEngineeringProgress().setVisible(true);
         if (paths != null) {
@@ -118,6 +128,29 @@ public class MoveImportNodeAction extends CayenneAction {
             try {
                 for (TreePath path : paths) {
                     DbImportTreeNode selectedElement = (DbImportTreeNode) path.getLastPathComponent();
+                    DbImportTreeNode previousNode;
+                    DbImportTreeNode foundNode = targetTree.findNodeByParentsChain(
+                            targetTree.getRootNode(), selectedElement, 0
+                    );
+                    if (foundNode == null) {
+                        for (int i = selectedElement.getParents().size() - 2; i >= 0; i--) {
+                            DbImportTreeNode insertedNode = selectedElement.getParents().get(i);
+                            previousNode = targetTree.findNodeByParentsChain(targetTree.getRootNode(), insertedNode, 0);
+                            TreeManipulationAction manipulationAction = panel.getActionByNodeType(
+                                    insertedNode.getUserObject().getClass()
+                            );
+                            if (canInsert(new TreePath(insertedNode.getPath()), previousNode)) {
+                                manipulationAction.setFoundNode(previousNode);
+                                manipulationAction.setInsertableNodeName(insertedNode.getSimpleNodeName());
+                                manipulationAction.setTree(targetTree);
+                                manipulationAction.setMovedFromDbSchema(true);
+                                manipulationAction.actionPerformed(e);
+                                manipulationAction.setFoundNode(null);
+                                manipulationAction.setMultipleAction(false);
+                            }
+                        }
+                    }
+                    foundNode = targetTree.findNodeByParentsChain(targetTree.getRootNode(), selectedElement, 0);
                     if (!moveInverted) {
                         action = panel.getActionByNodeType(selectedElement.getUserObject().getClass());
                     } else {
@@ -129,12 +162,18 @@ public class MoveImportNodeAction extends CayenneAction {
                         } else {
                             action.setMultipleAction(false);
                         }
-                        if (canInsert(path)) {
-                            action.setInsertableNodeName(selectedElement.getSimpleNodeName());
+                        if (canInsert(path, foundNode)) {
+                            insertableName = selectedElement.getSimpleNodeName();
+                            action.setFoundNode(foundNode);
+                            action.setInsertableNodeName(Matcher.quoteReplacement(insertableName));
                             action.setTree(targetTree);
                             action.setMovedFromDbSchema(true);
                             action.actionPerformed(e);
+                            action.setFoundNode(null);
                             isChanged = true;
+                            sourceTree.setSelectionRow(-1);
+                            panel.getMoveButton().setEnabled(false);
+                            panel.getMoveInvertButton().setEnabled(false);
                         }
                     }
                 }
@@ -144,13 +183,12 @@ public class MoveImportNodeAction extends CayenneAction {
                     targetTree.translateReverseEngineeringToTree(targetTree.getReverseEngineering(), false);
                     targetTree.expandTree(expandList);
                 }
-                if (isChanged) {
+                if ((isChanged) && (!insertableName.equals(EMPTY_NAME))) {
                     ReverseEngineering reverseEngineeringNewCopy = new ReverseEngineering(targetTree.getReverseEngineering());
-                    getProjectController().getApplication().getUndoManager().addEdit(
-                            new DbImportTreeUndoableEdit(
-                                    reverseEngineeringOldCopy, reverseEngineeringNewCopy, targetTree, getProjectController()
-                            )
+                    DbImportTreeUndoableEdit undoableEdit = new DbImportTreeUndoableEdit(
+                            reverseEngineeringOldCopy, reverseEngineeringNewCopy, targetTree, getProjectController()
                     );
+                    getProjectController().getApplication().getUndoManager().addEdit(undoableEdit);
                 }
             } finally {
                 rootParent.getReverseEngineeringProgress().setVisible(false);
@@ -159,6 +197,25 @@ public class MoveImportNodeAction extends CayenneAction {
                 }
             }
         }
+    }
+
+    private boolean nodeClassesIsSameTypes(DbImportTreeNode sourceElement, DbImportTreeNode selectedElement) {
+        if (sourceElement.getUserObject().getClass() == selectedElement.getUserObject().getClass()) {
+            return true;
+        }
+        if (sourceElement.getUserObject().getClass() == IncludeTable.class) {
+            if ((selectedElement.getUserObject().getClass() == IncludeTable.class)
+                || (selectedElement.getUserObject().getClass() == ExcludeTable.class)) {
+                return true;
+            }
+        }
+        if (sourceElement.getUserObject().getClass() == IncludeProcedure.class) {
+            if ((selectedElement.getUserObject().getClass() == IncludeProcedure.class)
+                    || (selectedElement.getUserObject().getClass() == ExcludeProcedure.class)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public void setSourceTree(DbImportTree sourceTree) {

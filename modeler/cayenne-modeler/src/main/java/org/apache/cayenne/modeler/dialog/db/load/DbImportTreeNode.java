@@ -30,6 +30,7 @@ import org.apache.cayenne.dbsync.reverse.dbimport.ReverseEngineering;
 import org.apache.cayenne.dbsync.reverse.dbimport.Schema;
 
 import javax.swing.tree.DefaultMutableTreeNode;
+import java.util.ArrayList;
 
 
 /**
@@ -84,6 +85,43 @@ public class DbImportTreeNode extends DefaultMutableTreeNode {
 
     public DbImportTreeNode(Object userObject) {
         this(userObject, true);
+    }
+
+    // Compare parents chain
+    public boolean parentsIsEqual(DbImportTreeNode reverseEngineeringNode) {
+        ArrayList<DbImportTreeNode> reverseEngineeringNodeParents;
+        if (reverseEngineeringNode == null) {
+                reverseEngineeringNodeParents = new ArrayList<>();
+        } else {
+             reverseEngineeringNodeParents = reverseEngineeringNode.getParents();
+        }
+        ArrayList<DbImportTreeNode> dbNodeParents = getParents();
+        for (DbImportTreeNode node : reverseEngineeringNodeParents) {
+            int deleteIndex = -1;
+            for (int i = 0; i < dbNodeParents.size(); i++) {
+                if (node.getSimpleNodeName().equals(dbNodeParents.get(i).getSimpleNodeName())) {
+                    deleteIndex = i;
+                    break;
+                }
+            }
+            if (deleteIndex != -1) {
+                dbNodeParents.remove(deleteIndex);
+            } else {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // Create parents chain
+    public ArrayList<DbImportTreeNode> getParents() {
+        ArrayList<DbImportTreeNode> parents = new ArrayList<>();
+        DbImportTreeNode tmpNode = this;
+        while (tmpNode.getParent() != null) {
+            parents.add((DbImportTreeNode) tmpNode.getParent());
+            tmpNode = (DbImportTreeNode) tmpNode.getParent();
+        }
+        return parents;
     }
 
     protected String getFormattedName(String className, String nodeName) {

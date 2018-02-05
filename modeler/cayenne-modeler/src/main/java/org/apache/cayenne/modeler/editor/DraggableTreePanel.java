@@ -42,10 +42,9 @@ import org.apache.cayenne.modeler.action.MoveImportNodeAction;
 import org.apache.cayenne.modeler.action.MoveInvertNodeAction;
 import org.apache.cayenne.modeler.action.TreeManipulationAction;
 import org.apache.cayenne.modeler.dialog.db.load.DbImportTreeNode;
+import org.apache.cayenne.modeler.dialog.db.load.TransferableNode;
 import org.apache.cayenne.modeler.util.CayenneAction;
 
-import javax.activation.ActivationDataFlavor;
-import javax.activation.DataHandler;
 import javax.swing.DropMode;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -71,11 +70,6 @@ import java.util.Map;
  * @since 4.1
  */
 public class DraggableTreePanel extends JScrollPane {
-
-    private static final DataFlavor localObjectFlavor = new ActivationDataFlavor(
-            DbImportTreeNode[].class,
-            DataFlavor.javaJVMLocalObjectMimeType,
-            "Array of selected DbImportTreeNodes");
 
     private static final int ROOT_LEVEL = 14;
     private static final int FIRST_LEVEL = 11;
@@ -183,7 +177,6 @@ public class DraggableTreePanel extends JScrollPane {
                 moveInvertButton.setEnabled(false);
             }
         });
-
         targetTree.setDragEnabled(true);
         targetTree.setTransferHandler(new TransferHandler() {
 
@@ -197,9 +190,7 @@ public class DraggableTreePanel extends JScrollPane {
                 if (!support.isDrop()) {
                     return false;
                 }
-                JTree.DropLocation dropLocation =
-                        (JTree.DropLocation)support.getDropLocation();
-                return dropLocation.getPath() != null;
+                return true;
             }
 
             @Override
@@ -254,7 +245,7 @@ public class DraggableTreePanel extends JScrollPane {
 
             @Override
             public int getSourceActions(JComponent c) {
-                return COPY_OR_MOVE;
+                return COPY;
             }
 
             @Override
@@ -265,7 +256,22 @@ public class DraggableTreePanel extends JScrollPane {
                 for (int i = 0; i < paths.length; i++) {
                     nodes[i] = (DbImportTreeNode) paths[i].getLastPathComponent();
                 }
-                return new DataHandler(nodes, localObjectFlavor.getMimeType());
+                return new Transferable() {
+                    @Override
+                    public DataFlavor[] getTransferDataFlavors() {
+                        return TransferableNode.flavors;
+                    }
+
+                    @Override
+                    public boolean isDataFlavorSupported(DataFlavor flavor) {
+                        return true;
+                    }
+
+                    @Override
+                    public Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException, IOException {
+                        return nodes;
+                    }
+                };
             }
         });
         sourceTree.addTreeSelectionListener(e -> {

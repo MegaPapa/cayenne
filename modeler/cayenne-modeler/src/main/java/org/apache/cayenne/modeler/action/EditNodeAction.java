@@ -39,7 +39,7 @@ public class EditNodeAction extends TreeManipulationAction {
 
     private String actionName;
 
-    public EditNodeAction(Application application) {
+    EditNodeAction(Application application) {
         super(ACTION_NAME, application);
     }
 
@@ -57,6 +57,9 @@ public class EditNodeAction extends TreeManipulationAction {
                 tree.startEditingAtPath(tree.getSelectionPath());
             }
         }
+        if (actionName == null) {
+            return;
+        }
         if (tree.getSelectionPath() != null) {
             selectedElement = tree.getSelectedNode();
             parentElement = (DbImportTreeNode) selectedElement.getParent();
@@ -73,9 +76,12 @@ public class EditNodeAction extends TreeManipulationAction {
                     selectedElement = null;
                 }
                 ReverseEngineering reverseEngineeringNewCopy = new ReverseEngineering(tree.getReverseEngineering());
-                getProjectController().getApplication().getUndoManager().addEdit(
-                        new DbImportTreeUndoableEdit(reverseEngineeringOldCopy, reverseEngineeringNewCopy, tree, getProjectController())
-                );
+                if (!actionName.equals(EMPTY_NAME)) {
+                    DbImportTreeUndoableEdit undoableEdit = new DbImportTreeUndoableEdit(
+                            reverseEngineeringOldCopy, reverseEngineeringNewCopy, tree, getProjectController()
+                    );
+                    getProjectController().getApplication().getUndoManager().addEdit(undoableEdit);
+                }
             }
         }
     }

@@ -38,7 +38,7 @@ public class AddSchemaAction extends TreeManipulationAction {
     private static final String ACTION_NAME = "Add Schema";
     private static final String ICON_NAME = "icon-save-as-image.png";
 
-    public AddSchemaAction(Application application) {
+    AddSchemaAction(Application application) {
         super(ACTION_NAME, application);
         insertableNodeClass = Schema.class;
     }
@@ -51,12 +51,16 @@ public class AddSchemaAction extends TreeManipulationAction {
     public void performAction(ActionEvent e) {
         boolean updateSelected = false;
         tree.stopEditing();
-        String name = insertableNodeName != null ? insertableNodeName : "";
+        String name = insertableNodeName != null ? insertableNodeName : EMPTY_NAME;
         if (tree.getSelectionPath() == null) {
             TreePath root = new TreePath(tree.getRootNode());
             tree.setSelectionPath(root);
         }
-        selectedElement = tree.getSelectedNode();
+        if (foundNode == null) {
+            selectedElement = tree.getSelectedNode();
+        } else {
+            selectedElement = foundNode;
+        }
         parentElement = (DbImportTreeNode) selectedElement.getParent();
         if (parentElement == null) {
             parentElement = tree.getRootNode();
@@ -83,11 +87,11 @@ public class AddSchemaAction extends TreeManipulationAction {
             updateAfterInsert(updateSelected);
         }
         ReverseEngineering reverseEngineeringNewCopy = new ReverseEngineering(tree.getReverseEngineering());
-        if (isMultipleAction) {
-            getProjectController().getApplication().getUndoManager().addEdit(
-                    new DbImportTreeUndoableEdit(
-                            reverseEngineeringOldCopy, reverseEngineeringNewCopy, tree, getProjectController())
+        if ((!isMultipleAction) && (!insertableNodeName.equals(EMPTY_NAME))) {
+            DbImportTreeUndoableEdit undoableEdit = new DbImportTreeUndoableEdit(
+                    reverseEngineeringOldCopy, reverseEngineeringNewCopy, tree, getProjectController()
             );
+            getProjectController().getApplication().getUndoManager().addEdit(undoableEdit);
         }
     }
 }

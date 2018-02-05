@@ -119,6 +119,7 @@ public class ModelerDbImportAction extends DefaultDbImportAction {
             JOptionPane optionPane = new JOptionPane("Detected changes: No changes to import.", JOptionPane.PLAIN_MESSAGE);
             JDialog dialog = optionPane.createDialog(DIALOG_TITLE);
             dialog.setModal(false);
+            dialog.setAlwaysOnTop(true);
             dialog.setVisible(true);
         }
         return hasChanges;
