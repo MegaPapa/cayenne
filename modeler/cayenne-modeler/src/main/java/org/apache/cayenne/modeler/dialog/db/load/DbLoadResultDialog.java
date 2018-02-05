@@ -60,6 +60,7 @@ public class DbLoadResultDialog extends JDialog {
         this.pack();
         this.setLocationRelativeTo(null);
         this.setModal(false);
+        this.setAlwaysOnTop(true);
     }
 
     private void initElements() {

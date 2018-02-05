@@ -19,7 +19,7 @@
 
 package org.apache.cayenne.modeler.editor;
 
-import org.apache.cayenne.dbsync.reverse.dbimport.ExcludeTable;
+import org.apache.cayenne.dbsync.reverse.dbimport.IncludeProcedure;
 import org.apache.cayenne.modeler.dialog.db.load.DbImportTreeNode;
 
 import javax.swing.JTree;
@@ -36,6 +36,7 @@ public class ColorTreeRenderer extends DbImportTreeCellRenderer {
 
     private DbImportNodeHandler handler;
     private DbImportTree reverseEngineeringTree;
+
 
     public ColorTreeRenderer() {
         super();
@@ -56,16 +57,20 @@ public class ColorTreeRenderer extends DbImportTreeCellRenderer {
             return this;
         }
         if (handler.isContainer(node) || (handler.isFirstNodeIsPrimitive((DbImportTree) tree))) {
-            handler.setFlag(false);
+            handler.setHasEntitiesInEmptyContainer(false);
         }
         if (selected) {
             setForeground(Color.WHITE);
-            node.setColorized(true);
+            node.setColorized(node.isColorized());
             return this;
         }
         DbImportTreeNode root;
         handler.findFirstLevelIncludeTable();
-
+        if (!handler.checkTreesLevels((DbImportTree) tree)) {
+            setForeground(NON_INCLUDE_COLOR);
+            node.setColorized(false);
+            return this;
+        }
         if (reverseEngineeringTree.getSelectionPath() != null) {
             root = reverseEngineeringTree.getSelectedNode();
         } else {
@@ -73,12 +78,39 @@ public class ColorTreeRenderer extends DbImportTreeCellRenderer {
         }
         ((DbImportTreeNode) tree.getModel().getRoot()).setColorized(true);
 
-        if (handler.bypassTree(root) > 0) {
-            if (!handler.isExistCatalogsOrSchemas()) {
-                setForeground(handler.getColorByNodeType(root));
-                node.setColorized(true);
-                return this;
+        int bypassResult = handler.bypassTree(root);
+        if (bypassResult > 0) {
+            // Case on IncludeProcedure on zero level is selected
+            if (root.getUserObject().getClass() == IncludeProcedure.class) {
+                if (handler.nodesIsEqual(root)) {
+                    setForeground(handler.getColorByNodeType(root));
+                    node.setColorized(true);
+                    return this;
+                } else {
+                    setForeground(NON_INCLUDE_COLOR);
+                    node.setColorized(false);
+                    return this;
+                }
             }
+            // If ReverseEngineering doesn't have catalogs or schemas on zero level
+            if (!handler.isExistCatalogsOrSchemas()) {
+                if ((root.isExcludeTable()) || (root.isExcludeProcedure())) {
+                    if (handler.nodesIsEqual(root)) {
+                        setForeground(handler.getColorByNodeType(root));
+                        node.setColorized(true);
+                        return this;
+                    }
+                    setForeground(NON_INCLUDE_COLOR);
+                    node.setColorized(false);
+                    return this;
+                }
+                if (root.equals(node)) {
+                    setForeground(handler.getColorByNodeType(root));
+                    node.setColorized(true);
+                    return this;
+                }
+            }
+            // Recursion painting, if parent is colorized
             if (handler.isParentIncluded()) {
                 setForeground(handler.getColorByNodeType(root));
                 node.setColorized(true);
@@ -94,6 +126,11 @@ public class ColorTreeRenderer extends DbImportTreeCellRenderer {
             node.setColorized(true);
             return this;
         } else {
+            if (!handler.isExistCatalogsOrSchemas()) {
+                setForeground(handler.getColorByNodeType(root));
+                node.setColorized(true);
+                return this;
+            }
             setForeground(NON_INCLUDE_COLOR);
             node.setColorized(false);
             return this;

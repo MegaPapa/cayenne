@@ -46,21 +46,24 @@ import java.util.Map;
  */
 public abstract class TreeManipulationAction extends CayenneAction {
 
+    static final String EMPTY_NAME = "";
+
     protected DbImportTree tree;
     protected DbImportTreeNode selectedElement;
-    protected DbImportTreeNode parentElement;
-    protected String insertableNodeName;
-    protected Class insertableNodeClass;
-    protected boolean isMultipleAction;
+    DbImportTreeNode parentElement;
+    DbImportTreeNode foundNode;
+    String insertableNodeName;
+    Class insertableNodeClass;
+    boolean isMultipleAction;
     private boolean movedFromDbSchema;
-    Map<Class, List<Class>> levels;
+    private Map<Class, List<Class>> levels;
 
     public TreeManipulationAction(String name, Application application) {
         super(name, application);
         initLevels();
     }
 
-    protected boolean reverseEngineeringIsEmpty() {
+    boolean reverseEngineeringIsEmpty() {
         ReverseEngineering reverseEngineering = tree.getReverseEngineering();
         return ((reverseEngineering.getCatalogs().size() == 0) && (reverseEngineering.getSchemas().size() == 0)
                 && (reverseEngineering.getIncludeTables().size() == 0) && (reverseEngineering.getExcludeTables().size() == 0)
@@ -119,7 +122,7 @@ public abstract class TreeManipulationAction extends CayenneAction {
         return tree;
     }
 
-    protected boolean canBeInserted(DbImportTreeNode node) {
+    boolean canBeInserted(DbImportTreeNode node) {
         if (node == null) {
             return false;
         }
@@ -128,7 +131,7 @@ public abstract class TreeManipulationAction extends CayenneAction {
         return childs != null && childs.contains(insertableNodeClass);
     }
 
-    protected boolean canInsert() {
+    boolean canInsert() {
         if (selectedElement == null) {
             return true;
         }
@@ -158,7 +161,7 @@ public abstract class TreeManipulationAction extends CayenneAction {
         }
     }
 
-    protected void updateAfterInsert(boolean updateSelected) {
+    void updateAfterInsert(boolean updateSelected) {
         updateModel(updateSelected);
         if (!movedFromDbSchema) {
             if (updateSelected) {
@@ -170,21 +173,25 @@ public abstract class TreeManipulationAction extends CayenneAction {
         resetActionFlags();
     }
 
-    public void resetActionFlags() {
+    void resetActionFlags() {
         movedFromDbSchema = false;
         isMultipleAction = false;
         insertableNodeName = "";
     }
 
-    public void setInsertableNodeName(String nodeName) {
+    void setInsertableNodeName(String nodeName) {
         this.insertableNodeName = nodeName;
     }
 
-    public void setMultipleAction(boolean multipleAction) {
+    void setMultipleAction(boolean multipleAction) {
         isMultipleAction = multipleAction;
     }
 
-    public void setMovedFromDbSchema(boolean movedFromDbSchema) {
+    void setMovedFromDbSchema(boolean movedFromDbSchema) {
         this.movedFromDbSchema = movedFromDbSchema;
+    }
+
+    void setFoundNode(DbImportTreeNode node) {
+        this.foundNode = node;
     }
 }

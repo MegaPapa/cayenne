@@ -29,7 +29,6 @@ import org.apache.cayenne.modeler.dialog.db.load.DbImportTreeNode;
 import org.apache.cayenne.modeler.dialog.db.load.TransferableNode;
 
 import javax.swing.JTree;
-import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import java.util.ArrayList;
@@ -50,7 +49,7 @@ public class DbImportTree extends JTree {
     public void translateReverseEngineeringToTree(ReverseEngineering reverseEngineering, boolean isTransferable) {
         this.isTransferable = isTransferable;
         this.reverseEngineering = reverseEngineering;
-        DefaultTreeModel model = (DefaultTreeModel)this.getModel();
+        DbImportModel model = (DbImportModel) this.getModel();
         DbImportTreeNode root = (DbImportTreeNode) model.getRoot();
         root.removeAllChildren();
         root.setUserObject(reverseEngineering);
@@ -63,6 +62,37 @@ public class DbImportTree extends JTree {
         printParams(reverseEngineering.getIncludeProcedures(), root);
         printParams(reverseEngineering.getExcludeProcedures(), root);
         model.reload();
+    }
+
+    public DbImportTreeNode findNodeByParentsChain(DbImportTreeNode rootNode, DbImportTreeNode movedNode, int depth) {
+        String parentName = ((DbImportTreeNode) movedNode.getParent()).getSimpleNodeName();
+        if ((rootNode.parentsIsEqual(((DbImportTreeNode) movedNode.getParent())))
+                && (rootNode.getSimpleNodeName().equals(parentName))) {
+            return rootNode;
+        }
+        for (int i = 0; i < rootNode.getChildCount(); i++) {
+            DbImportTreeNode childNode = (DbImportTreeNode) rootNode.getChildAt(i);
+            DbImportTreeNode node = findNodeByParentsChain(childNode, movedNode, depth++);
+            if (node != null) {
+                return node;
+            }
+        }
+        return null;
+    }
+
+    public DbImportTreeNode findNode(DbImportTreeNode rootNode, DbImportTreeNode movedNode, int depth) {
+        String parentName = movedNode.getSimpleNodeName();
+        if ((rootNode.parentsIsEqual(movedNode)) && (rootNode.getSimpleNodeName().equals(parentName))) {
+            return rootNode;
+        }
+        for (int i = 0; i < rootNode.getChildCount(); i++) {
+            DbImportTreeNode childNode = (DbImportTreeNode) rootNode.getChildAt(i);
+            DbImportTreeNode node = findNode(childNode, movedNode, depth++);
+            if (node != null) {
+                return node;
+            }
+        }
+        return null;
     }
 
     private ArrayList<DbImportTreeNode> createTreeExpandList(DbImportTreeNode rootNode, ArrayList<DbImportTreeNode> resultList) {

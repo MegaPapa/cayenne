@@ -19,6 +19,7 @@
 
 package org.apache.cayenne.modeler.editor;
 
+import org.apache.cayenne.dbsync.reverse.dbimport.ReverseEngineering;
 import org.apache.cayenne.modeler.dialog.db.load.DbImportTreeNode;
 
 import javax.swing.tree.DefaultTreeModel;
@@ -30,14 +31,30 @@ import javax.swing.tree.TreeNode;
 public class DbImportModel extends DefaultTreeModel {
 
     private DbImportTree dbSchemaTree;
+    private boolean canBeCleaned;
 
-    public DbImportModel(TreeNode root) {
+    DbImportModel(TreeNode root) {
         super(root);
+    }
+
+    private void clearReverseEngineering(ReverseEngineering reverseEngineering) {
+        reverseEngineering.getSchemas().clear();
+        reverseEngineering.getCatalogs().clear();
+        reverseEngineering.getIncludeTables().clear();
+        reverseEngineering.getExcludeTables().clear();
+        reverseEngineering.getIncludeColumns().clear();
+        reverseEngineering.getExcludeColumns().clear();
+        reverseEngineering.getIncludeProcedures().clear();
+        reverseEngineering.getExcludeProcedures().clear();
     }
 
     private void preprocessTree() {
         DbImportTreeNode rootNode = (DbImportTreeNode) getRoot();
         if (rootNode.getChildCount() == 0) {
+            ReverseEngineering reverseEngineering = ((ReverseEngineering) rootNode.getUserObject());
+            if (canBeCleaned) {
+                clearReverseEngineering(reverseEngineering);
+            }
             rootNode.add(new DbImportTreeNode(("Configuration is empty.")));
         }
     }
@@ -50,5 +67,9 @@ public class DbImportModel extends DefaultTreeModel {
 
     public void setDbSchemaTree(DbImportTree dbSchemaTree) {
         this.dbSchemaTree = dbSchemaTree;
+    }
+
+    public void setCanBeCleaned(boolean canBeCleaned) {
+        this.canBeCleaned = canBeCleaned;
     }
 }

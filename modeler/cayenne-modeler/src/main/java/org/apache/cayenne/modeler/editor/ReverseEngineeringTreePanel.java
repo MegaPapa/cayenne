@@ -38,12 +38,13 @@ import org.apache.cayenne.modeler.dialog.db.load.RootPopUpMenu;
 import org.apache.cayenne.modeler.dialog.db.load.SchemaPopUpMenu;
 
 import javax.swing.JScrollPane;
+import javax.swing.JTree;
 import javax.swing.SwingUtilities;
-import javax.swing.event.TreeSelectionEvent;
-import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultTreeCellRenderer;
+import javax.swing.tree.TreePath;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -53,15 +54,18 @@ import java.util.Map;
 class ReverseEngineeringTreePanel extends JScrollPane {
 
     private DbImportTree reverseEngineeringTree;
+    private DbImportTree dbSchemaTree;
 
     private ProjectController projectController;
     private TreeToolbarPanel treeToolbar;
     private Map<Class, DefaultPopUpMenu> popups;
 
-    ReverseEngineeringTreePanel(ProjectController projectController, DbImportTree reverseEngineeringTree) {
+    ReverseEngineeringTreePanel(ProjectController projectController, DbImportTree reverseEngineeringTree,
+                                DbImportTree dbSchemaTree) {
         super(reverseEngineeringTree);
         this.projectController = projectController;
         this.reverseEngineeringTree = reverseEngineeringTree;
+        this.dbSchemaTree = dbSchemaTree;
         reverseEngineeringTree.setEditable(true);
         reverseEngineeringTree.setCellRenderer(new DbImportTreeCellRenderer());
         DbImportTreeCellEditor editor = new DbImportTreeCellEditor(reverseEngineeringTree,
@@ -92,18 +96,17 @@ class ReverseEngineeringTreePanel extends JScrollPane {
     }
 
     private void initListeners() {
-        reverseEngineeringTree.addTreeSelectionListener(new TreeSelectionListener() {
-            @Override
-            public void valueChanged(TreeSelectionEvent e) {
-                treeToolbar.lockButtons();
-            }
-        });
+        reverseEngineeringTree.addTreeSelectionListener(e -> treeToolbar.lockButtons());
         reverseEngineeringTree.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                if (reverseEngineeringTree.getRowForLocation(e.getX(),e.getY()) == -1) {
+                if (reverseEngineeringTree.getRowForLocation(e.getX(), e.getY()) == -1) {
                     reverseEngineeringTree.setSelectionRow(-1);
+                    ArrayList<DbImportTreeNode> expandList = dbSchemaTree.getTreeExpandList();
+                    ((DbImportModel) dbSchemaTree.getModel()).reload(dbSchemaTree.getRootNode());
+                    dbSchemaTree.expandTree(expandList);
                 }
+
                 if (SwingUtilities.isRightMouseButton(e)) {
                     if (reverseEngineeringTree.isEditing()) {
                         return;
@@ -126,9 +129,24 @@ class ReverseEngineeringTreePanel extends JScrollPane {
                         popupMenu.setTree(reverseEngineeringTree);
                         popupMenu.show(e.getComponent(), e.getX(), e.getY());
                     }
+                } else if (reverseEngineeringTree.getSelectionPath() != null) {
+                    DbImportTreeNode findedNode = dbSchemaTree.findNode(
+                            dbSchemaTree.getRootNode(), reverseEngineeringTree.getSelectedNode(), 0
+                    );
+                    if (findedNode != null) {
+                        dbSchemaTree.expandPath(new TreePath(((DbImportTreeNode) findedNode.getParent()).getPath()));
+                        scrollToNode(dbSchemaTree, findedNode);
+                    }
                 }
             }
         });
+    }
+
+    private void scrollToNode(JTree tree, DbImportTreeNode node) {
+        TreePath path = new TreePath(node.getPath());
+        tree.scrollPathToVisible(path);
+        DraggableTreePanel parentPanel = ((DraggableTreePanel) dbSchemaTree.getParent().getParent());
+        parentPanel.getHorizontalScrollBar().setValue(0);
     }
 
     private ReverseEngineering getReverseEngineeringBySelectedMap() {
