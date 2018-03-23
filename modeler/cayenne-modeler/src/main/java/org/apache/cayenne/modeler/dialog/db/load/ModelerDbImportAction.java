@@ -58,11 +58,9 @@ public class ModelerDbImportAction extends DefaultDbImportAction {
                                  @Inject DbAdapterFactory adapterFactory,
                                  @Inject DataMapLoader mapLoader,
                                  @Inject MergerTokenFactoryProvider mergerTokenFactoryProvider,
-                                 @Inject DataChannelMetaData metaData) {
-        super(logger, projectSaver, dataSourceFactory, adapterFactory, mapLoader, mergerTokenFactoryProvider, metaData);
-                                 @Inject MergerTokenFactoryProvider mergerTokenFactoryProvider,
+                                 @Inject DataChannelMetaData metaData,
                                  @Inject DataChannelDescriptorLoader dataChannelDescriptorLoader) {
-        super(logger, projectSaver, dataSourceFactory, adapterFactory, mapLoader, mergerTokenFactoryProvider, dataChannelDescriptorLoader);
+        super(logger, projectSaver, dataSourceFactory, adapterFactory, mapLoader, mergerTokenFactoryProvider, dataChannelDescriptorLoader, metaData);
     }
 
     @Override

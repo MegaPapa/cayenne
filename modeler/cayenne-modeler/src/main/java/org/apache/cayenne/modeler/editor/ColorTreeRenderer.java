@@ -61,7 +61,7 @@ public class ColorTreeRenderer extends DbImportTreeCellRenderer {
             handler.setHasEntitiesInEmptyContainer(false);
         }
         if (selected) {
-            setForeground(Color.WHITE);
+            setForeground(Color.BLACK);
             node.setColorized(node.isColorized());
             return this;
         }

@@ -95,8 +95,7 @@ public class DefaultDbImportAction implements DbImportAction {
                                  @Inject DbAdapterFactory adapterFactory,
                                  @Inject DataMapLoader mapLoader,
                                  @Inject MergerTokenFactoryProvider mergerTokenFactoryProvider,
-                                 @Inject DataChannelDescriptorLoader dataChannelDescriptorLoader) {
-                                 @Inject MergerTokenFactoryProvider mergerTokenFactoryProvider,
+                                 @Inject DataChannelDescriptorLoader dataChannelDescriptorLoader,
                                  @Inject DataChannelMetaData metaData) {
         this.logger = logger;
         this.projectSaver = projectSaver;
