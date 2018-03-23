@@ -28,7 +28,7 @@ import org.apache.cayenne.modeler.Application;
 public class AddIncludeColumnAction extends AddPatternParamAction {
 
     private static final String ACTION_NAME = "Add Include Column";
-    private static final String ICON_NAME = "icon-attribute.png";
+    private static final String ICON_NAME = "icon-dbi-includeColumn.png";
 
     public AddIncludeColumnAction(Application application) {
         super(ACTION_NAME, application);

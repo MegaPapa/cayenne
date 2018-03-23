@@ -46,7 +46,7 @@ import static org.apache.cayenne.modeler.pref.DBConnectionInfo.JDBC_DRIVER_PROPE
 public class ReverseEngineeringAction extends DBWizardAction<DbActionOptionsDialog> {
 
     private static final String ACTION_NAME = "Reengineer Database Schema";
-    private static final String ICON_NAME = "icon-dom.png";
+    private static final String ICON_NAME = "icon-dbi-runImport.png";
     private static final String DIALOG_TITLE = "Reengineer DB Schema: Connect to Database";
 
     private DbImportView view;

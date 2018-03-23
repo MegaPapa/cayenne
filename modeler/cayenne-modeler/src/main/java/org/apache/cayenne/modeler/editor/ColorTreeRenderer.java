@@ -51,12 +51,13 @@ public class ColorTreeRenderer extends DbImportTreeCellRenderer {
                                                   boolean hasFocus) {
         super.getTreeCellRendererComponent(tree, value, sel,
                 expanded, leaf, row, hasFocus);
+        DbImportTree renderedTree = (DbImportTree) tree;
         handler.setDbSchemaNode(node);
         if (node.isLabel()) {
             setForeground(LABEL_COLOR);
             return this;
         }
-        if (handler.isContainer(node) || (handler.isFirstNodeIsPrimitive((DbImportTree) tree))) {
+        if (handler.isContainer(node) || (handler.isFirstNodeIsPrimitive(renderedTree))) {
             handler.setHasEntitiesInEmptyContainer(false);
         }
         if (selected) {
@@ -66,7 +67,7 @@ public class ColorTreeRenderer extends DbImportTreeCellRenderer {
         }
         DbImportTreeNode root;
         handler.findFirstLevelIncludeTable();
-        if (!handler.checkTreesLevels((DbImportTree) tree)) {
+        if (!handler.checkTreesLevels(renderedTree)) {
             setForeground(NON_INCLUDE_COLOR);
             node.setColorized(false);
             return this;
@@ -76,7 +77,7 @@ public class ColorTreeRenderer extends DbImportTreeCellRenderer {
         } else {
             root = reverseEngineeringTree.getRootNode();
         }
-        ((DbImportTreeNode) tree.getModel().getRoot()).setColorized(true);
+        renderedTree.getRootNode().setColorized(true);
 
         int bypassResult = handler.bypassTree(root);
         if (bypassResult > 0) {

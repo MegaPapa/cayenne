@@ -102,9 +102,6 @@ class ReverseEngineeringTreePanel extends JScrollPane {
             public void mouseClicked(MouseEvent e) {
                 if (reverseEngineeringTree.getRowForLocation(e.getX(), e.getY()) == -1) {
                     reverseEngineeringTree.setSelectionRow(-1);
-                    ArrayList<DbImportTreeNode> expandList = dbSchemaTree.getTreeExpandList();
-                    ((DbImportModel) dbSchemaTree.getModel()).reload(dbSchemaTree.getRootNode());
-                    dbSchemaTree.expandTree(expandList);
                 }
 
                 if (SwingUtilities.isRightMouseButton(e)) {

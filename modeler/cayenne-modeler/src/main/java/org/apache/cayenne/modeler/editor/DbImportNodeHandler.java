@@ -122,7 +122,7 @@ class DbImportNodeHandler {
         return false;
     }
 
-    // Get child IncludeTable count in node, if exists
+    // Get child IncludeTable's count in node, if exists
     private int getChildIncludeTableCount(DbImportTreeNode parentNode) {
         if (parentNode.isIncludeTable()) {
             return 1;

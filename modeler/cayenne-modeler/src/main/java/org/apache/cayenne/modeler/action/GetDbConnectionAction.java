@@ -40,7 +40,7 @@ public class GetDbConnectionAction extends DBWizardAction<DbActionOptionsDialog>
 
     public static final String DIALOG_TITLE = "Configure Connection to Database";
     private static final String ACTION_NAME = "Configure Connection";
-    private static final String ICON_NAME = "icon-dom.png";
+    private static final String ICON_NAME = "icon-dbi-config.png";
 
     public GetDbConnectionAction(Application application) {
         super(ACTION_NAME, application);

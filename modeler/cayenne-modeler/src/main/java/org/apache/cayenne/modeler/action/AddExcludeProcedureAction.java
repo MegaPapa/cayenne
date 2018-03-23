@@ -28,7 +28,7 @@ import org.apache.cayenne.modeler.Application;
 public class AddExcludeProcedureAction extends AddPatternParamAction {
 
     private static final String ACTION_NAME = "Add Exclude Procedure";
-    private static final String ICON_NAME = "icon-stored-procedure.png";
+    private static final String ICON_NAME = "icon-dbi-excludeProcedure.png";
 
     public AddExcludeProcedureAction(Application application) {
         super(ACTION_NAME, application);

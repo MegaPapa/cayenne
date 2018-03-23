@@ -132,6 +132,7 @@ public class MoveImportNodeAction extends CayenneAction {
                     DbImportTreeNode foundNode = targetTree.findNodeByParentsChain(
                             targetTree.getRootNode(), selectedElement, 0
                     );
+                    // If parent nodes from db schema doesn't exist, create it
                     if (foundNode == null) {
                         for (int i = selectedElement.getParents().size() - 2; i >= 0; i--) {
                             DbImportTreeNode insertedNode = selectedElement.getParents().get(i);
@@ -150,6 +151,7 @@ public class MoveImportNodeAction extends CayenneAction {
                             }
                         }
                     }
+                    // Again find node where we insert our node
                     foundNode = targetTree.findNodeByParentsChain(targetTree.getRootNode(), selectedElement, 0);
                     if (!moveInverted) {
                         action = panel.getActionByNodeType(selectedElement.getUserObject().getClass());
@@ -170,6 +172,7 @@ public class MoveImportNodeAction extends CayenneAction {
                             action.setMovedFromDbSchema(true);
                             action.actionPerformed(e);
                             action.setFoundNode(null);
+                            action.resetActionFlags();
                             isChanged = true;
                             sourceTree.setSelectionRow(-1);
                             panel.getMoveButton().setEnabled(false);

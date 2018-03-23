@@ -23,7 +23,6 @@ import java.util.Map;
 
 import javax.swing.undo.UndoableEdit;
 
-import com.sun.corba.se.impl.orbutil.graph.Graph;
 import org.apache.cayenne.configuration.DataChannelDescriptor;
 import org.apache.cayenne.configuration.xml.DataChannelLoaderListener;
 import org.apache.cayenne.configuration.xml.NamespaceAwareNestedTagHandler;
