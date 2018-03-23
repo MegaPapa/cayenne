@@ -67,7 +67,8 @@ public class DbImportTree extends JTree {
     public DbImportTreeNode findNodeByParentsChain(DbImportTreeNode rootNode, DbImportTreeNode movedNode, int depth) {
         String parentName = ((DbImportTreeNode) movedNode.getParent()).getSimpleNodeName();
         if ((rootNode.parentsIsEqual(((DbImportTreeNode) movedNode.getParent())))
-                && (rootNode.getSimpleNodeName().equals(parentName))) {
+                && (rootNode.getSimpleNodeName().equals(parentName))
+                && ((rootNode.isCatalog()) || (rootNode.isSchema()))) {
             return rootNode;
         }
         for (int i = 0; i < rootNode.getChildCount(); i++) {
@@ -82,7 +83,8 @@ public class DbImportTree extends JTree {
 
     public DbImportTreeNode findNode(DbImportTreeNode rootNode, DbImportTreeNode movedNode, int depth) {
         String parentName = movedNode.getSimpleNodeName();
-        if ((rootNode.parentsIsEqual(movedNode)) && (rootNode.getSimpleNodeName().equals(parentName))) {
+        if ((rootNode.parentsIsEqual(movedNode))
+                && (rootNode.getSimpleNodeName().equals(parentName))) {
             return rootNode;
         }
         for (int i = 0; i < rootNode.getChildCount(); i++) {
@@ -95,6 +97,7 @@ public class DbImportTree extends JTree {
         return null;
     }
 
+    // Create list of expanded elements
     private ArrayList<DbImportTreeNode> createTreeExpandList(DbImportTreeNode rootNode, ArrayList<DbImportTreeNode> resultList) {
         for (int i = 0; i < rootNode.getChildCount(); i++) {
             DbImportTreeNode childNode = (DbImportTreeNode) rootNode.getChildAt(i);
@@ -196,5 +199,9 @@ public class DbImportTree extends JTree {
 
     public void setReverseEngineering(ReverseEngineering reverseEngineering) {
         this.reverseEngineering = reverseEngineering;
+    }
+
+    public boolean isTransferable() {
+        return isTransferable;
     }
 }

@@ -173,7 +173,7 @@ public abstract class TreeManipulationAction extends CayenneAction {
         resetActionFlags();
     }
 
-    void resetActionFlags() {
+    public void resetActionFlags() {
         movedFromDbSchema = false;
         isMultipleAction = false;
         insertableNodeName = "";

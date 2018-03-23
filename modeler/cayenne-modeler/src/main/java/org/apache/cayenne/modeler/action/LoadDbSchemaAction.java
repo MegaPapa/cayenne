@@ -51,7 +51,7 @@ import static org.apache.cayenne.modeler.pref.DBConnectionInfo.JDBC_DRIVER_PROPE
  */
 public class LoadDbSchemaAction extends CayenneAction {
 
-    private static final String ICON_NAME = "icon-sync.png";
+    private static final String ICON_NAME = "icon-dbi-refresh.png";
     private static final String ACTION_NAME = "Refresh Db Schema";
     private static final String INCLUDE_ALL_PATTERN = "%";
     private static final String EMPTY_DEFAULT_CATALOG = "";
